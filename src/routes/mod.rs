@@ -11,7 +11,7 @@ pub fn app_router() -> Router {
 }
 
 async fn root() -> &'static str {
-    "Hello, World!"
+    "Goodbye, World!"
 }
 async fn health() -> &'static str {
     match 1 == 2 {

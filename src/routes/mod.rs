@@ -1,6 +1,5 @@
 use self::{foo::foo_routes, utils::utils_routes};
-use axum::{routing::get, Extension, Router};
-use tower::{Layer, ServiceBuilder};
+use axum::{routing::get, Router};
 use tower_http::trace::TraceLayer;
 
 pub mod foo;

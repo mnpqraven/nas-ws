@@ -23,6 +23,8 @@ enum Decoder {
     Base64,
 }
 
+// TODO: to util module
+// other way around for exports
 async fn parse_mdx(Json(payload): Json<MdxPayload>) -> Result<String, StatusCode> {
     // data:text/markdown;base64,LS0tCnRpdGxlOiBUZXN0IHRpdGxlCmRlc2NyaXB0aW9uOiBUZXN0IGRlc2NyaXB0aW9uCi0tLQoKVGhpcyBpcyBhIGR1bW15IGZpbGUKCmBgYHJ1c3QgZmlsZW5hbWU9InNyYy9tYWluLnJzIgpmbiBtYWluKCkgewogICAgcHJpbnRsbiEoIkhlbGxvIFdvcmxkIik7Cn0KYGBgCg==
     // split function () -> (file_type, encoder, encoded_data)
@@ -37,7 +39,7 @@ async fn parse_mdx(Json(payload): Json<MdxPayload>) -> Result<String, StatusCode
             match meta.find(';') {
                 None => Err(StatusCode::BAD_REQUEST),
                 Some(metaindex) => {
-                    let (file_type, decoder) = meta.split_at(metaindex);
+                    let (_file_type, decoder) = meta.split_at(metaindex);
                     let decoder = decoder.trim_start_matches(';');
                     parse_wrapper(Decoder::from_str(decoder).unwrap(), data.to_owned())
                         .map_err(|_| StatusCode::BAD_REQUEST)
@@ -47,6 +49,7 @@ async fn parse_mdx(Json(payload): Json<MdxPayload>) -> Result<String, StatusCode
     }
 }
 
+// TODO: needs to implement From for error propagation
 #[derive(Serialize, Debug)]
 enum WorkerError {
     ParseError,

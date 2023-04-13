@@ -6,7 +6,9 @@ use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5005));
     tracing::info!("listening on {}", addr);

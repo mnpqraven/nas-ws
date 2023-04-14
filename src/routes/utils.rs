@@ -1,9 +1,9 @@
-use std::str::FromStr;
-
-use axum::{http::StatusCode, routing::post, Json, Router};
+use crate::handler::error::WorkerError;
+use axum::{routing::post, Json, Router};
 use base64::{engine, Engine};
 use gray_matter::{engine::YAML, Matter};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 use strum::EnumString;
 
 pub fn utils_routes() -> Router {
@@ -25,35 +25,34 @@ enum Decoder {
 
 // TODO: to util module
 // other way around for exports
-async fn parse_mdx(Json(payload): Json<MdxPayload>) -> Result<String, StatusCode> {
+async fn parse_mdx(Json(payload): Json<MdxPayload>) -> Result<String, WorkerError> {
     // data:text/markdown;base64,LS0tCnRpdGxlOiBUZXN0IHRpdGxlCmRlc2NyaXB0aW9uOiBUZXN0IGRlc2NyaXB0aW9uCi0tLQoKVGhpcyBpcyBhIGR1bW15IGZpbGUKCmBgYHJ1c3QgZmlsZW5hbWU9InNyYy9tYWluLnJzIgpmbiBtYWluKCkgewogICAgcHJpbnRsbiEoIkhlbGxvIFdvcmxkIik7Cn0KYGBgCg==
     // split function () -> (file_type, encoder, encoded_data)
     // meta and content split
     let index = &payload.file_data.find(',');
     match index {
-        None => Err(StatusCode::BAD_REQUEST),
+        None => Err(WorkerError::ParseData(
+            "No seperator between encoding engine and encoded data found".to_owned(),
+        )),
         Some(index) => {
             // "data:text/markdown;base64,", "base64 data"
             let (meta_chunk, data) = payload.file_data.split_at(*index + 1);
             let meta = meta_chunk.trim_end_matches(',').trim_start_matches("data:");
             match meta.find(';') {
-                None => Err(StatusCode::BAD_REQUEST),
+                None => Err(WorkerError::ParseData(
+                    "No seperator between file type and encoding engine found".to_owned(),
+                )),
                 Some(metaindex) => {
-                    let (_file_type, decoder) = meta.split_at(metaindex);
-                    let decoder = decoder.trim_start_matches(';');
-                    parse_wrapper(Decoder::from_str(decoder).unwrap(), data.to_owned())
-                        .map_err(|_| StatusCode::BAD_REQUEST)
+                    let (file_type, binding) = meta.split_at(metaindex);
+                    let decoder =
+                        Decoder::from_str(binding.trim_start_matches(';')).map_err(|_| {
+                            WorkerError::ParseData("Unsupporetd encoding engine".to_owned())
+                        })?;
+                    parse_wrapper(decoder, data.to_owned())
                 }
             }
         }
     }
-}
-
-// TODO: needs to implement From for error propagation
-#[derive(Serialize, Debug)]
-enum WorkerError {
-    ParseError,
-    ComputationError,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -65,13 +64,13 @@ struct DecodedDataForm {
 
 fn parse_wrapper(decoder: Decoder, data: String) -> Result<String, WorkerError> {
     match decoder {
-        Decoder::RawString => Err(WorkerError::ComputationError),
+        Decoder::RawString => Err(WorkerError::Computation),
         Decoder::Base64 => {
             let Ok(decoded_data_stream) = engine::general_purpose::STANDARD.decode(data) else {
-                return Err(WorkerError::ComputationError);
+                return Err(WorkerError::Computation);
             };
             let Ok(content_chunk) = String::from_utf8(decoded_data_stream) else {
-                return Err(WorkerError::ParseError);
+                return Err(WorkerError::ParseData("Decoding data failed".to_owned()));
             };
             let data = parse_fn_base64(content_chunk)?;
             // safe unwrap
@@ -87,10 +86,13 @@ fn parse_fn_base64(chunk: String) -> Result<DecodedDataForm, WorkerError> {
         match result.data.as_ref() {
             Some(yaml_kv) => match yaml_kv[key].as_string() {
                 Ok(value) => Ok(value),
-                Err(_) => Err(WorkerError::ParseError),
+                Err(_) => Err(WorkerError::ParseData(format!(
+                    "field {:?} doesn't exist in {:?}",
+                    key, yaml_kv
+                ))),
             },
             // no frontmatter found
-            None => Err(WorkerError::ParseError),
+            None => Err(WorkerError::ParseData("No Frontmatter found".to_owned())),
         }
     };
 

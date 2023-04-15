@@ -22,12 +22,12 @@ rand = "0.8.5"
 url = "2.3.1"
 
 [[bin]]
-name = "handler"
-path = "api/handler.rs"
+name = "hello"
+path = "api/hello.rs"
 
 [[bin]]
-name = "_id_"
-path = "api/trpc/[id].rs"
+name = "parse_mdx"
+path = "api/utils/parse_mdx.rs"
 
 [lib]
 path = "src-rs/lib.rs"

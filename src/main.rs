@@ -1,5 +1,6 @@
 mod builder;
 mod routes;
+mod handler;
 
 use crate::routes::app_router;
 use std::net::SocketAddr;

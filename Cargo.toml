@@ -27,7 +27,7 @@ path = "api/handler.rs"
 
 [[bin]]
 name = "_id_"
-path = "api/user/[id].rs"
+path = "api/trpc/[id].rs"
 
 [lib]
 path = "src-rs/lib.rs"

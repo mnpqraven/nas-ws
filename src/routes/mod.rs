@@ -4,7 +4,7 @@ use tower_http::trace::TraceLayer;
 
 mod foo;
 mod trpc;
-mod utils;
+pub mod utils;
 
 pub fn app_router() -> Router {
     Router::new()

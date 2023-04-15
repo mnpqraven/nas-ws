@@ -1,16 +1,24 @@
-use std::fmt::Display;
-
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
 use serde::Serialize;
+use std::fmt::Display;
 
 #[derive(Serialize, Debug)]
 pub enum WorkerError {
     // reason text
     ParseData(String),
     Computation,
+}
+
+impl WorkerError {
+    pub fn code(&self) -> StatusCode {
+        match self {
+            WorkerError::ParseData(_) => StatusCode::BAD_REQUEST,
+            WorkerError::Computation => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 }
 
 impl Display for WorkerError {
@@ -23,12 +31,15 @@ impl Display for WorkerError {
     }
 }
 
+// use serde::ser::StdError;
+impl From<WorkerError> for vercel_runtime::Error {
+    fn from(value: WorkerError) -> Self {
+        Self::from(value.to_string())
+    }
+}
+
 impl IntoResponse for WorkerError {
     fn into_response(self) -> Response {
-        let code: StatusCode = match self {
-            Self::ParseData(_) => StatusCode::BAD_REQUEST,
-            Self::Computation => StatusCode::INTERNAL_SERVER_ERROR,
-        };
-        (code, self.to_string()).into_response()
+        (self.code(), self.to_string()).into_response()
     }
 }

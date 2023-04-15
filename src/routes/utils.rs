@@ -11,9 +11,9 @@ pub fn utils_routes() -> Router {
 }
 
 #[derive(Deserialize)]
-struct MdxPayload {
+pub struct MdxPayload {
     #[serde(rename = "fileData")]
-    file_data: String,
+    pub file_data: String,
 }
 
 #[derive(EnumString)]
@@ -25,7 +25,7 @@ enum Decoder {
 
 // TODO: to util module
 // other way around for exports
-async fn parse_mdx(Json(payload): Json<MdxPayload>) -> Result<String, WorkerError> {
+pub async fn parse_mdx(Json(payload): Json<MdxPayload>) -> Result<String, WorkerError> {
     // data:text/markdown;base64,LS0tCnRpdGxlOiBUZXN0IHRpdGxlCmRlc2NyaXB0aW9uOiBUZXN0IGRlc2NyaXB0aW9uCi0tLQoKVGhpcyBpcyBhIGR1bW15IGZpbGUKCmBgYHJ1c3QgZmlsZW5hbWU9InNyYy9tYWluLnJzIgpmbiBtYWluKCkgewogICAgcHJpbnRsbiEoIkhlbGxvIFdvcmxkIik7Cn0KYGBgCg==
     // split function () -> (file_type, encoder, encoded_data)
     // meta and content split

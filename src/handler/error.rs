@@ -10,6 +10,8 @@ pub enum WorkerError {
     // reason text
     ParseData(String),
     Computation,
+    WrongMethod,
+    NoBody,
 }
 
 impl WorkerError {
@@ -17,6 +19,8 @@ impl WorkerError {
         match self {
             WorkerError::ParseData(_) => StatusCode::BAD_REQUEST,
             WorkerError::Computation => StatusCode::INTERNAL_SERVER_ERROR,
+            WorkerError::NoBody => StatusCode::BAD_REQUEST,
+            WorkerError::WrongMethod => StatusCode::METHOD_NOT_ALLOWED,
         }
     }
 }
@@ -26,20 +30,25 @@ impl Display for WorkerError {
         let fmt = match self {
             WorkerError::ParseData(reason) => format!("Incorrect Data\nReason: {}", reason),
             WorkerError::Computation => "Computation error from the server".to_owned(),
+            WorkerError::WrongMethod => "Method is not supported".to_owned(),
+            WorkerError::NoBody => "Missing body data".to_owned(),
         };
         write!(f, "{}", fmt)
-    }
-}
-
-// use serde::ser::StdError;
-impl From<WorkerError> for vercel_runtime::Error {
-    fn from(value: WorkerError) -> Self {
-        Self::from(value.to_string())
     }
 }
 
 impl IntoResponse for WorkerError {
     fn into_response(self) -> Response {
         (self.code(), self.to_string()).into_response()
+    }
+}
+
+impl From<WorkerError> for vercel_runtime::Response<vercel_runtime::Body> {
+    fn from(value: WorkerError) -> Self {
+        // is this a safe unwrap ?
+        vercel_runtime::Response::builder()
+            .status(value.code())
+            .body(value.to_string().into())
+            .unwrap()
     }
 }

@@ -5,7 +5,7 @@ use axum::{
 use serde::Serialize;
 use std::fmt::Display;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub enum WorkerError {
     // reason text
     ParseData(String),

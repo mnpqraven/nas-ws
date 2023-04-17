@@ -19,7 +19,18 @@ pub fn response_derive_macro(input: TokenStream) -> TokenStream {
                     .unwrap()
                 }
         }
-        impl FromAxumResponse<WorkerError> for #name {}
+
+        impl FromAxumResponse<#name, WorkerError, vercel_runtime::Error>  for Result<Json<#name>, WorkerError> {
+            type TFrom = Json<#name>;
+            type TTo = Response<Body>;
+
+            fn as_axum(&self) -> Result<Response<Body>, vercel_runtime::Error> {
+                self.as_ref().map_or_else(
+                    |err| Ok(err.clone().into()),
+                    |Json(val)| Ok(val.clone().into()),
+                )
+            }
+        }
     };
     gen.into()
 }

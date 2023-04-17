@@ -1,9 +1,10 @@
+use crate::handler::FromAxumResponse;
 use crate::{handler::error::WorkerError, routes::utils::parse_mdx::parse_mdx};
 use axum::{routing::post, Router};
-use response_derive::OthiResponse;
+use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
 use vercel_runtime::{Body, Response, StatusCode};
-use crate::handler::FromAxumResponse;
+use self::parse_mdx::Decoder;
 
 pub mod parse_mdx;
 
@@ -13,7 +14,13 @@ pub struct MdxPayload {
     pub file_data: String,
 }
 
-#[derive(Serialize, Deserialize, OthiResponse)]
+pub struct EncodedFile {
+    pub filetype: String,
+    pub decoder: Decoder,
+    pub encoded_data: String
+}
+
+#[derive(Serialize, Deserialize, JsonResponse)]
 pub struct DecodedDataForm {
     pub title: String,
     pub description: String,

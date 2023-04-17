@@ -11,7 +11,7 @@ pub enum WorkerError {
     ParseData(String),
     Computation,
     WrongMethod,
-    NoBody,
+    EmptyBody,
 }
 
 impl WorkerError {
@@ -19,7 +19,7 @@ impl WorkerError {
         match self {
             WorkerError::ParseData(_) => StatusCode::BAD_REQUEST,
             WorkerError::Computation => StatusCode::INTERNAL_SERVER_ERROR,
-            WorkerError::NoBody => StatusCode::BAD_REQUEST,
+            WorkerError::EmptyBody => StatusCode::BAD_REQUEST,
             WorkerError::WrongMethod => StatusCode::METHOD_NOT_ALLOWED,
         }
     }
@@ -28,10 +28,10 @@ impl WorkerError {
 impl Display for WorkerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let fmt = match self {
-            WorkerError::ParseData(reason) => format!("Incorrect Data\nReason: {}", reason),
-            WorkerError::Computation => "Computation error from the server".to_owned(),
-            WorkerError::WrongMethod => "Method is not supported".to_owned(),
-            WorkerError::NoBody => "Missing body data".to_owned(),
+            Self::ParseData(reason) => format!("Incorrect Data\nReason: {}", reason),
+            Self::Computation => "Computation error from the server".to_owned(),
+            Self::WrongMethod => "Method is not supported".to_owned(),
+            Self::EmptyBody => "Missing body data".to_owned(),
         };
         write!(f, "{}", fmt)
     }

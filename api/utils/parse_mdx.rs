@@ -1,6 +1,8 @@
 use axum::extract::FromRequest;
 use axum::Json;
+use axum::http::Method;
 use nas_ws::handler::FromAxumResponse;
+use nas_ws::handler::error::WorkerError;
 use nas_ws::routes::utils::{parse_mdx::parse_mdx, DecodedDataForm};
 use vercel_runtime::{run, Body, Error, Request, Response};
 
@@ -13,6 +15,9 @@ async fn main() -> Result<(), Error> {
 }
 
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
+    if *req.method() != Method::POST {
+        return Ok(WorkerError::WrongMethod.into());
+    }
     let payload = Json::from_request(req, &()).await;
     DecodedDataForm::from_axum(parse_mdx(payload).await)
 }

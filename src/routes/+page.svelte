@@ -1,5 +1,5 @@
 <script>
-	import { tParseMdx } from '$lib/server/type_registry';
+	import { tParseMdx } from '../type_registry';
 </script>
 
 <h1>API</h1>

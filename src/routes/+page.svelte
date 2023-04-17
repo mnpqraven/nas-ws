@@ -1,2 +1,21 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script>
+	import { tParseMdx } from '$lib/server/type_registry';
+</script>
+
+<h1>API</h1>
+<div>
+	<p>path: <code>{tParseMdx.path}</code></p>
+	<p>methods: <code>{tParseMdx.methods.join()}</code></p>
+	<p>description: <code>{tParseMdx.path}</code></p>
+	<p>input:</p>
+	<pre><code>{tParseMdx.input}</code></pre>
+	<p>output:</p>
+	<pre><code>{tParseMdx.output}</code></pre>
+</div>
+
+<style>
+	div {
+		width: fit-content;
+		border: 1px solid pink;
+	}
+</style>

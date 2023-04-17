@@ -16,7 +16,6 @@ base64 = "0.21.0"
 gray_matter = "0.2.6"
 tower = "0.4.13"
 tower-http = { version = "0.4.0", features = ["trace"] }
-rspc = { version = "0.1.3", features = ["axum"] }
 vercel_runtime = { version = "0.3.4" }
 rand = "0.8.5"
 url = "2.3.1"

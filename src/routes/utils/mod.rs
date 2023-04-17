@@ -1,10 +1,8 @@
 pub mod parse_mdx;
 
 use self::parse_mdx::Decoder;
-use crate::{
-    handler::{error::WorkerError, FromAxumResponse},
-    routes::utils::parse_mdx::parse_mdx,
-};
+use crate::handler::{error::WorkerError, FromAxumResponse};
+use crate::routes::utils::parse_mdx::parse_mdx;
 use axum::{routing::post, Json, Router};
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};

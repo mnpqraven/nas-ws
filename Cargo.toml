@@ -23,10 +23,10 @@ response_derive = { version = "0.1.0", path = "response_derive" }
 
 [[bin]]
 name = "nas-ws"
-path = "src/bin.rs"
+path = "src-rust/bin.rs"
 
 [lib]
-path = "src/lib.rs"
+path = "src-rust/lib.rs"
 
 [[bin]]
 name = "hello"

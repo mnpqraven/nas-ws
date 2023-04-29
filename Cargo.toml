@@ -20,6 +20,7 @@ vercel_runtime = { version = "0.3.4" }
 rand = "0.8.5"
 url = "2.3.1"
 response_derive = { version = "0.1.0", path = "response_derive" }
+dotfiles-schema = { git = "https://github.com/mnpqraven/dotfiles-install" }
 
 [[bin]]
 name = "nas-ws"
@@ -35,3 +36,7 @@ path = "api/hello.rs"
 [[bin]]
 name = "parse_mdx"
 path = "api/utils/parse_mdx.rs"
+
+[[bin]]
+name = "install_schema"
+path = "api/dotfiles/install_schema.rs"

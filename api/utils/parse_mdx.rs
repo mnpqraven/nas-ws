@@ -1,3 +1,12 @@
+/// path: 'utils/parse_mdx',
+/// methods:
+/// 'POST',
+/// description: 'Parse a mdx file decoded in base64',
+/// input:
+/// 'test: string',
+/// output:
+/// 'test: string'
+
 use axum::{extract::FromRequest, http::Method, Json};
 use nas_ws::handler::{error::WorkerError, FromAxumResponse};
 use nas_ws::routes::utils::parse_mdx::parse_mdx;

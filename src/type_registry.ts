@@ -8,4 +8,4 @@ const tParseMdx: ApiEndpoint = {
   output: ['test: string']
 };
 
-export default { tParseMdx };
+export { tParseMdx };

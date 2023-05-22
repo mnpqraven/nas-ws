@@ -16,6 +16,7 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     //     return Ok(WorkerError::WrongMethod.into());
     // }
     // let payload = Json::from_request(req, &()).await;
+    // INFO: https://www.reddit.com/r/Genshin_Impact/comments/kdy1ky/everyone_is_misunderstanding_soft_pity/
     Ok(Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "application/json")

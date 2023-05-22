@@ -1,5 +1,11 @@
 <script>
-	import { tParseMdx } from '../type_registry';
+const tParseMdx = {
+  path: 'utils/parse_mdx',
+  methods: ['POST'],
+  description: 'Parse a mdx file decoded in base64',
+  input: '{\n  test: string\n}',
+  output: '{\n  test: string\n}'
+}
 </script>
 
 <h1>API</h1>

@@ -40,3 +40,7 @@ path = "api/utils/parse_mdx.rs"
 [[bin]]
 name = "install_schema"
 path = "api/dotfiles/install_schema.rs"
+
+[[bin]]
+name = "honkaijade"
+path = "api/honkai/honkaijade.rs"

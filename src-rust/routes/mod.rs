@@ -1,9 +1,12 @@
-use self::{foo::foo_routes, utils::utils_routes, dotfiles::dotfiles_routes};
+use self::{
+    dotfiles::dotfiles_routes, foo::foo_routes, honkai::honkai_routes, utils::utils_routes,
+};
 use axum::{routing::get, Router};
 use tower_http::trace::TraceLayer;
 
 pub mod dotfiles;
 mod foo;
+pub mod honkai;
 pub mod utils;
 
 pub fn app_router() -> Router {
@@ -12,6 +15,7 @@ pub fn app_router() -> Router {
         .nest("/utils", utils_routes())
         .nest("/foo", foo_routes())
         .nest("/dotfiles", dotfiles_routes())
+        .nest("/honkai", honkai_routes())
         .layer(TraceLayer::new_for_http())
 }
 

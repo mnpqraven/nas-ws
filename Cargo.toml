@@ -21,10 +21,15 @@ rand = "0.8.5"
 url = "2.3.1"
 response_derive = { version = "0.1.0", path = "response_derive" }
 dotfiles-schema = { git = "https://github.com/mnpqraven/dotfiles-install" }
+csv = "1.2.1"
 
 [[bin]]
 name = "nas-ws"
 path = "src-rust/bin.rs"
+
+[[bin]]
+name = "tasks"
+path = "src-rust/tasks.rs"
 
 [lib]
 path = "src-rust/lib.rs"
@@ -42,5 +47,5 @@ name = "install_schema"
 path = "api/dotfiles/install_schema.rs"
 
 [[bin]]
-name = "honkaijade"
-path = "api/honkai/honkaijade.rs"
+name = "gacha_cfg"
+path = "api/honkai/gacha_cfg.rs"

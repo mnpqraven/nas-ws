@@ -175,6 +175,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "csv"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b015497079b9a9d69c02ad25de6c0a6edef051ea6360a327d0bd05802ef64ad"
+dependencies = [
+ "csv-core",
+ "itoa",
+ "ryu",
+ "serde",
+]
+
+[[package]]
+name = "csv-core"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b2466559f260f48ad25fe6317b3c8dac77b5bdb5763ac7d9d6103530663bc90"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "dotfiles-schema"
 version = "0.1.0"
 source = "git+https://github.com/mnpqraven/dotfiles-install#5f4fa5ff5bc33fc14e7165d07cfe1ab34c17ba1f"
@@ -563,6 +584,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "base64 0.21.0",
+ "csv",
  "dotfiles-schema",
  "gray_matter",
  "rand",

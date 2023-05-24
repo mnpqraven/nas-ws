@@ -49,3 +49,7 @@ path = "api/dotfiles/install_schema.rs"
 [[bin]]
 name = "gacha_cfg"
 path = "api/honkai/gacha_cfg.rs"
+
+[[bin]]
+name = "probability_rate"
+path = "api/honkai/probability_rate.rs"

@@ -1,7 +1,7 @@
-use axum::http::Method;
+use axum::{http::Method, Json, extract::FromRequest};
 use nas_ws::{
     handler::{error::WorkerError, FromAxumResponse},
-    routes::honkai::gacha::gacha_cfg,
+    routes::honkai::gacha::probability_rate,
 };
 use vercel_runtime::{run, Body, Error, Request, Response};
 
@@ -19,6 +19,6 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
         return Ok(WorkerError::WrongMethod.into());
     }
     // NOTE: uncomment if payload is used (will be eventaully)
-    // let payload = Json::from_request(req, &()).await;
-    gacha_cfg().await.as_axum()
+    let payload = Json::from_request(req, &()).await;
+    probability_rate(payload).await.as_axum()
 }

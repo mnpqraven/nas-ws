@@ -18,7 +18,7 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     if *req.method() != Method::GET {
         return Ok(WorkerError::WrongMethod.into());
     }
-    // NOTE: uncomment if payload is used (will be eventaully)
+    // NOTE: uncomment if payload is used (will be eventually)
     // let payload = Json::from_request(req, &()).await;
     gacha_cfg().await.as_axum()
 }

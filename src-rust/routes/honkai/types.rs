@@ -1,25 +1,5 @@
-use crate::handler::{error::WorkerError, FromAxumResponse};
-use axum::Json;
-use response_derive::JsonResponse;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::path::Path;
-use vercel_runtime::{Body, Response, StatusCode};
-
-// TODO: export as binding
-#[derive(Serialize, Deserialize, JsonResponse, Clone)]
-pub struct GachaCfg {
-    name: String,
-    message: String,
-}
-
-impl Default for GachaCfg {
-    fn default() -> Self {
-        Self {
-            name: "default".into(),
-            message: "huh".into(),
-        }
-    }
-}
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]

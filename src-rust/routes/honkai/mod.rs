@@ -1,17 +1,20 @@
 pub mod constants;
 pub mod gacha;
+pub mod jade_estimate;
 pub mod types;
 
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use axum::{routing::get, Router};
 
-use self::gacha::{gacha_cfg, probability_rate};
+use self::{gacha::probability_rate, jade_estimate::jade_estimate};
 
 pub fn honkai_routes() -> Router {
-    Router::new().route("/gacha_cfg", get(gacha_cfg)).route(
-        "/probability_rate",
-        get(probability_rate).post(probability_rate),
-    )
+    Router::new()
+        .route(
+            "/jade_estimate",
+            get(jade_estimate).post(jade_estimate),
+        )
+        .route(
+            "/probability_rate",
+            get(probability_rate).post(probability_rate),
+        )
 }

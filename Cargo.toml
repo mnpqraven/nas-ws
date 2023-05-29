@@ -22,6 +22,7 @@ url = "2.3.1"
 response_derive = { version = "0.1.0", path = "response_derive" }
 dotfiles-schema = { git = "https://github.com/mnpqraven/dotfiles-install" }
 csv = "1.2.1"
+chrono = { version = "0.4.24", features = ["serde"] }
 
 [[bin]]
 name = "nas-ws"
@@ -47,8 +48,8 @@ name = "install_schema"
 path = "api/dotfiles/install_schema.rs"
 
 [[bin]]
-name = "gacha_cfg"
-path = "api/honkai/gacha_cfg.rs"
+name = "jade_estimate"
+path = "api/honkai/jade_estimate.rs"
 
 [[bin]]
 name = "probability_rate"

@@ -1,8 +1,5 @@
-use axum::{extract::FromRequest, http::Method, Json};
-use nas_ws::{
-    handler::{error::WorkerError, FromAxumResponse},
-    routes::honkai::gacha::probability_rate,
-};
+use axum::{extract::FromRequest, Json};
+use nas_ws::{handler::FromAxumResponse, routes::honkai::gacha::probability_rate};
 use vercel_runtime::{run, Body, Error, Request, Response};
 
 #[tokio::main]

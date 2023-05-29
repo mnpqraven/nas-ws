@@ -1,9 +1,6 @@
-use super::{
-    constants::{
-        HARD_DRAW, HARD_PITY_RATE, NORMAL_DRAW_RIGHT, NORMAL_RATE, SOFT_DRAW_LEFT, SOFT_DRAW_RIGHT,
-        SOFT_PITY_RATE,
-    },
-    types::GachaCfg,
+use super::constants::{
+    HARD_DRAW, HARD_PITY_RATE, NORMAL_DRAW_RIGHT, NORMAL_RATE, SOFT_DRAW_LEFT, SOFT_DRAW_RIGHT,
+    SOFT_PITY_RATE,
 };
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::{extract::rejection::JsonRejection, Json};
@@ -12,10 +9,6 @@ use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
 use tracing::error;
 use vercel_runtime::{Body, Response, StatusCode};
-
-pub async fn gacha_cfg() -> Result<Json<GachaCfg>, WorkerError> {
-    Ok(Json(GachaCfg::default()))
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct DistributedRate {

@@ -9,12 +9,25 @@ use vercel_runtime::{Body, Response, StatusCode};
 // TODO: export as binding
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
 pub struct Rewards {
-    pub from_battle_pass: i32,
-    pub from_rail_pass: i32,
-    pub from_su: i32,
-    pub dailies: i32,
+    pub sources: Vec<RewardSource>,
     pub total_jades: i32,
+    pub rolls: i32,
     pub days: i64,
+}
+
+#[derive(Serialize, Deserialize, JsonResponse, Clone)]
+pub struct RewardSource {
+    pub source: String,
+    pub value: i32,
+}
+
+impl RewardSource {
+    fn new(source: impl Into<String>, value: i32) -> Self {
+        Self {
+            source: source.into(),
+            value,
+        }
+    }
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -25,6 +38,8 @@ pub struct EstimateCfg {
     pub rail_pass: RailPassCfg,
     pub battle_pass: bool,
     pub level: u32,
+    pub current_rolls: Option<i32>,
+    pub current_jades: Option<i32>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -90,19 +105,37 @@ impl Rewards {
             false => diff.num_weeks(),
         };
 
-        let from_su = Self::get_su_jades(cfg.level, diff_weeks);
-        let from_battle_pass = Self::get_bp_jades(cfg.battle_pass);
-        let from_rail_pass: i32 = Self::get_rail_pass_jades(cfg.rail_pass, diff_days as u32);
-        let dailies = Self::get_dailies_jades(cfg.level, diff_days as u32);
-        let total_jades: i32 = from_battle_pass + from_rail_pass + from_su + dailies;
+        let rewards: Vec<RewardSource> = vec![
+            RewardSource::new(
+                "Simulated Universe",
+                Self::get_su_jades(cfg.level, diff_weeks),
+            ),
+            RewardSource::new("Battle Pass", Self::get_bp_jades(cfg.battle_pass)),
+            RewardSource::new(
+                "Rail Pass",
+                Self::get_rail_pass_jades(cfg.rail_pass, diff_days as u32),
+            ),
+            RewardSource::new(
+                "Dailies",
+                Self::get_dailies_jades(cfg.level, diff_days as u32),
+            ),
+        ];
+
+        let total_jades: i32 = rewards.iter().map(|e| e.value).sum();
+
+        let rolls = match cfg.current_rolls {
+            Some(rolls) => (total_jades / 160) + rolls,
+            None => match cfg.current_jades {
+                Some(jades) => (total_jades + jades) / 160,
+                None => total_jades / 160,
+            },
+        };
 
         Self {
-            from_battle_pass,
-            from_rail_pass,
-            from_su,
-            dailies,
             total_jades,
+            rolls,
             days: diff_days,
+            sources: rewards,
         }
     }
 
@@ -124,10 +157,10 @@ impl Rewards {
         let per_weeks = match EqTier::from_level(level as i32).unwrap() {
             // WARN: NEEDS CONFIRM
             EqTier::Zero => 60,
-            EqTier::One => 60,
-            EqTier::Two => 60,
-            EqTier::Three => 60,
+            EqTier::One => 75,
             // NOTE: CONFIRMED
+            EqTier::Two => 105,
+            EqTier::Three => 135,
             EqTier::Four => 165,
             // WARN: NEEDS CONFIRM
             EqTier::Five => 165,

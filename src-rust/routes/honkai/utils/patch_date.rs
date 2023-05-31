@@ -58,8 +58,8 @@ pub async fn list_future_patch_date() -> Result<Json<PatchList>, WorkerError> {
     let diff = dt_1_1 - dt_now;
 
     let patches: Vec<PatchInfo> = vec![
-        PatchInfo("1.2".into(), "Patch 1.2".into()),
-        PatchInfo("1.3".into(), "Patch 1.3".into()),
+        PatchInfo("Patch 1.2".into(), "1.2".into()),
+        PatchInfo("Patch 1.3".into(), "1.3".into()),
     ];
 
     let future_patches = PatchList::calculate_from_base(patch_1_1, patches);

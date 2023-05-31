@@ -32,6 +32,10 @@ path = "src-rust/bin.rs"
 name = "tasks"
 path = "src-rust/tasks.rs"
 
+[[bin]]
+name = "dev"
+path = "src-rust/dev.rs"
+
 [lib]
 path = "src-rust/lib.rs"
 
@@ -54,3 +58,7 @@ path = "api/honkai/jade_estimate.rs"
 [[bin]]
 name = "probability_rate"
 path = "api/honkai/probability_rate.rs"
+
+[[bin]]
+name = "list_future_patch_date"
+path = "api/honkai/list_future_patch_date.rs"

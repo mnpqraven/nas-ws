@@ -1,6 +1,8 @@
+use std::mem;
+
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::{extract::rejection::JsonRejection, Json};
-use chrono::{TimeZone, Utc};
+use chrono::{DateTime, Datelike, Duration, TimeZone, Utc};
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
 use tracing::error;
@@ -18,16 +20,55 @@ pub struct Rewards {
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
 pub struct RewardSource {
     pub source: String,
-    pub value: i32,
+    pub jades_amount: Option<i32>,
+    pub rolls_amount: Option<i32>,
+    pub source_type: RewardSourceType,
+}
+
+#[derive(Serialize, Deserialize, JsonResponse, Clone)]
+pub enum RewardSourceType {
+    Daily,
+    Weekly,
+    Monthly,
+    WholePatch,
+    HalfPatch,
+    OneTime,
 }
 
 impl RewardSource {
-    fn new(source: impl Into<String>, value: i32) -> Self {
+    fn new_jade(source: impl Into<String>, value: i32, source_type: RewardSourceType) -> Self {
         Self {
             source: source.into(),
-            value,
+            jades_amount: Some(value),
+            rolls_amount: None,
+            source_type,
         }
     }
+    fn new_roll(source: impl Into<String>, value: i32, source_type: RewardSourceType) -> Self {
+        Self {
+            source: source.into(),
+            jades_amount: None,
+            rolls_amount: Some(value),
+            source_type,
+        }
+    }
+}
+
+/// [TODO:description]
+///
+/// * `from_date`: [TODO:parameter]
+/// * `to_date`: [TODO:parameter]
+/// returns a tuple of differences in days and weeks, week diff is always rounded up (e.g a difference of 17-18 days would equate to 3 weeks)
+fn get_date_differences(from_date: Option<DateTime<Utc>>, to_date: DateTime<Utc>) -> (u32, i64) {
+    let dt_now = from_date.unwrap_or(Utc::now());
+    let diff = to_date - dt_now;
+
+    let diff_days = diff.num_days() as u32;
+    let diff_weeks = match i64::from(diff_days / 7) > diff.num_weeks() {
+        true => diff.num_weeks() + 1,
+        false => diff.num_weeks(),
+    };
+    (diff_days, diff_weeks)
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -96,34 +137,57 @@ impl Rewards {
                 0,
             )
             .unwrap();
-        let dt_now = Utc::now();
-        let diff = dt_to - dt_now;
+        let (diff_days, diff_weeks) = get_date_differences(None, dt_to);
 
-        let diff_days = diff.num_days();
-        let diff_weeks = match diff_days / 7 > diff.num_weeks() {
-            true => diff.num_weeks() + 1,
-            false => diff.num_weeks(),
-        };
-
+        // TODO: better weekly rewards algorithm
+        // eval to see if iteraing rewards by days is cheap enough
         let rewards: Vec<RewardSource> = vec![
-            RewardSource::new(
+            RewardSource::new_jade(
                 "Simulated Universe",
                 Self::get_su_jades(cfg.level, diff_weeks),
+                RewardSourceType::Weekly,
             ),
-            RewardSource::new("Battle Pass", Self::get_bp_jades(cfg.battle_pass)),
-            RewardSource::new(
+            RewardSource::new_jade(
+                "Battle Pass",
+                Self::get_bp_jades(cfg.battle_pass),
+                RewardSourceType::WholePatch,
+            ),
+            RewardSource::new_jade(
                 "Rail Pass",
-                Self::get_rail_pass_jades(cfg.rail_pass, diff_days as u32),
+                Self::get_rail_pass_jades(cfg.rail_pass, diff_days),
+                RewardSourceType::Monthly,
             ),
-            RewardSource::new(
-                "Dailies",
-                Self::get_dailies_jades(cfg.level, diff_days as u32),
+            RewardSource::new_jade(
+                "Daily missions",
+                Self::get_daily_missions(cfg.level, diff_days),
+                RewardSourceType::Daily,
+            ),
+            RewardSource::new_jade(
+                "Daily text messages",
+                Self::get_daily_text(diff_days),
+                RewardSourceType::Daily,
+            ),
+            RewardSource::new_jade(
+                "HoyoLab Check-in",
+                Self::get_checkin_jades(dt_to),
+                RewardSourceType::Monthly,
+            ),
+            RewardSource::new_jade(
+                "Character Trials",
+                Self::get_character_trial_jades(get_current_patch_boundaries(Utc::now()).0, dt_to),
+                RewardSourceType::HalfPatch,
+            ),
+            RewardSource::new_roll(
+                "Monthly ember exchange",
+                Self::get_monthly_ember_rolls(dt_to),
+                RewardSourceType::Monthly,
             ),
         ];
 
-        let total_jades: i32 = rewards.iter().map(|e| e.value).sum();
+        let total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
+        let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
 
-        let rolls = match cfg.current_rolls {
+        let jades_translate_2rolls = match cfg.current_rolls {
             Some(rolls) => (total_jades / 160) + rolls,
             None => match cfg.current_jades {
                 Some(jades) => (total_jades + jades) / 160,
@@ -133,13 +197,13 @@ impl Rewards {
 
         Self {
             total_jades,
-            rolls,
-            days: diff_days,
+            rolls: reward_rolls + jades_translate_2rolls,
+            days: diff_days.try_into().unwrap(),
             sources: rewards,
         }
     }
 
-    fn get_dailies_jades(level: u32, days: u32) -> i32 {
+    fn get_daily_missions(level: u32, days: u32) -> i32 {
         let daily = match EqTier::from_level(level as i32).unwrap() {
             EqTier::Zero => todo!(),
             EqTier::One => todo!(),
@@ -151,6 +215,10 @@ impl Rewards {
             EqTier::Six => todo!(),
         };
         (daily * days).try_into().unwrap()
+    }
+
+    fn get_daily_text(days: u32) -> i32 {
+        (days * 15).try_into().unwrap()
     }
 
     fn get_su_jades(level: u32, weeks: i64) -> i32 {
@@ -184,6 +252,59 @@ impl Rewards {
             },
             None if cfg.use_rail_pass => 90 * diff_days as i32,
             _ => 0,
+        }
+    }
+
+    fn get_checkin_jades(until_date: DateTime<Utc>) -> i32 {
+        let mut amount: i32 = 0;
+        for date in DateRange(Utc::now(), until_date) {
+            if let 5 | 13 | 20 = date.day() {
+                amount += 20;
+            }
+        }
+        amount
+    }
+
+    fn get_character_trial_jades(patch_start: DateTime<Utc>, until_date: DateTime<Utc>) -> i32 {
+        // rewards from both banners in patch
+        if patch_start + Duration::weeks(3) < until_date {
+            40
+        } else {
+            20
+        }
+    }
+
+    fn get_monthly_ember_rolls(until_date: DateTime<Utc>) -> i32 {
+        let mut amount: i32 = 0;
+        for date in DateRange(Utc::now(), until_date) {
+            if let 1 = date.day() {
+                amount += 5;
+            }
+        }
+        amount
+    }
+}
+
+fn get_current_patch_boundaries(current_date: DateTime<Utc>) -> (DateTime<Utc>, DateTime<Utc>) {
+    let base_1_1 = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();
+    let (mut l_bound, mut r_bound) = (base_1_1, base_1_1 + Duration::weeks(6));
+    while r_bound < current_date {
+        l_bound = r_bound;
+        r_bound += Duration::weeks(6);
+    }
+    (l_bound, r_bound)
+}
+
+struct DateRange(DateTime<Utc>, DateTime<Utc>);
+impl Iterator for DateRange {
+    type Item = DateTime<Utc>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.0 < self.1 {
+            let next = self.0 + Duration::days(1);
+            Some(mem::replace(&mut self.0, next))
+        } else {
+            None
         }
     }
 }

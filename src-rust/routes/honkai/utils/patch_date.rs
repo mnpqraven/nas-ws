@@ -7,6 +7,7 @@ use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Patch {
     name: String,
     version: String,

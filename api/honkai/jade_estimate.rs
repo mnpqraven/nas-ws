@@ -14,7 +14,6 @@ async fn main() -> Result<(), Error> {
     run(handler).await
 }
 
-/// INFO: https://www.reddit.com/r/Genshin_Impact/comments/kdy1ky/everyone_is_misunderstanding_soft_pity/
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     if *req.method() != Method::POST {
         return Ok(WorkerError::WrongMethod.into());

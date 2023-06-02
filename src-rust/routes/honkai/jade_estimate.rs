@@ -184,20 +184,20 @@ impl Rewards {
             ),
         ];
 
-        let total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
+        let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
         let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
 
-        let jades_translate_2rolls = match cfg.current_rolls {
-            Some(rolls) => (total_jades / 160) + rolls,
-            None => match cfg.current_jades {
-                Some(jades) => (total_jades + jades) / 160,
-                None => total_jades / 160,
-            },
-        };
+        if let Some(current_jades) = cfg.current_jades {
+            total_jades += current_jades;
+        }
+        let mut total_rolls = (total_jades / 160) + reward_rolls;
+        if let Some(current_rolls) = cfg.current_rolls {
+            total_rolls += current_rolls;
+        }
 
         Self {
             total_jades,
-            rolls: reward_rolls + jades_translate_2rolls,
+            rolls: total_rolls,
             days: diff_days.try_into().unwrap(),
             sources: rewards,
         }
@@ -218,7 +218,7 @@ impl Rewards {
     }
 
     fn get_daily_text(days: u32) -> i32 {
-        (days * 15).try_into().unwrap()
+        (days * 5).try_into().unwrap()
     }
 
     fn get_su_jades(level: u32, weeks: i64) -> i32 {

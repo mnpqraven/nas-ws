@@ -1,5 +1,5 @@
 pub mod constants;
-pub mod gacha;
+pub mod probability_rate;
 pub mod jade_estimate;
 pub mod types;
 pub mod utils;
@@ -7,7 +7,7 @@ pub mod utils;
 use axum::{routing::get, Router};
 
 use self::{
-    gacha::probability_rate, jade_estimate::jade_estimate,
+    probability_rate::probability_rate, jade_estimate::jade_estimate,
     utils::patch_date::list_future_patch_date,
 };
 

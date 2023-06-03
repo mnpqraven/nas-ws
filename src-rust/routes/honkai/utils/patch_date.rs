@@ -55,8 +55,6 @@ impl PatchList {
 pub async fn list_future_patch_date() -> Result<Json<PatchList>, WorkerError> {
     let dt_1_1 = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();
     let patch_1_1 = Patch::new("Galatic Roaming", "1.1", dt_1_1);
-    let dt_now = Utc::now();
-    let diff = dt_1_1 - dt_now;
 
     let patches: Vec<PatchInfo> = vec![
         PatchInfo("Patch 1.2".into(), "1.2".into()),

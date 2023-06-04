@@ -86,7 +86,7 @@ impl RewardSource {
         let su = || Rewards::get_su_jades(&cfg.eq, diff_weeks);
         let bp = || Rewards::get_bp_jades(cfg.battle_pass);
         let rail_pass = || Rewards::get_rail_pass_jades(&cfg.rail_pass, diff_days);
-        let daily_mission = || Rewards::get_daily_missions(&cfg.eq, diff_days);
+        let daily_mission = || Rewards::get_daily_missions(diff_days);
         let daily_text = || Rewards::get_daily_text(diff_days);
         let lab_checkin = || Rewards::get_checkin_jades(dt_to);
         let char_trial = || {
@@ -214,20 +214,8 @@ impl Rewards {
         }
     }
 
-    fn get_daily_missions(eq_tier: &EqTier, days: u32) -> i32 {
-        let daily = match eq_tier {
-            // NOT CONFIRMED
-            EqTier::Zero => 50,
-            EqTier::One => 50,
-            EqTier::Two => 50,
-            EqTier::Three => 50,
-            // NOTE: CONFIRMED
-            EqTier::Four => 60,
-            // NOT CONFIRMED
-            EqTier::Five => 60,
-            EqTier::Six => 60,
-        };
-        (daily * days).try_into().unwrap()
+    fn get_daily_missions(days: u32) -> i32 {
+        (60 * days).try_into().unwrap()
     }
 
     fn get_daily_text(days: u32) -> i32 {
@@ -236,16 +224,13 @@ impl Rewards {
 
     fn get_su_jades(eq_tier: &EqTier, weeks: i64) -> i32 {
         let per_weeks = match eq_tier {
-            // WARN: NEEDS CONFIRM
-            EqTier::Zero => 60,
-            EqTier::One => 75,
-            // NOTE: CONFIRMED
+            EqTier::Zero | EqTier::One => 75,
             EqTier::Two => 105,
             EqTier::Three => 135,
             EqTier::Four => 165,
+            EqTier::Five => 195,
             // WARN: NEEDS CONFIRM
-            EqTier::Five => 165,
-            EqTier::Six => 165,
+            EqTier::Six => 225,
         };
         (per_weeks * weeks).try_into().unwrap()
     }

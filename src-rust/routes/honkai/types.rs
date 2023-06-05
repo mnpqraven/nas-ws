@@ -1,7 +1,7 @@
 use crate::handler::error::WorkerError;
 use crate::handler::FromAxumResponse;
 use axum::Json;
-use chrono::{DateTime, Datelike, Duration, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike, Utc};
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -33,6 +33,15 @@ pub enum Server {
     Asia,
     America,
     Europe,
+}
+impl Server {
+    pub fn get_utc_reset_hour(&self) -> u32 {
+        match self {
+            Server::Asia => 19,
+            Server::America => 9,
+            Server::Europe => 12,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
@@ -81,8 +90,8 @@ impl RewardSource {
     }
 
     fn compile_sources(cfg: &EstimateCfg) -> Vec<Self> {
-        let dt_to = cfg.until_date.to_date_time(&cfg.server);
-        let (diff_days, diff_weeks) = get_date_differences(None, dt_to);
+        let dt_to = cfg.to_date_time();
+        let (diff_days, _) = get_date_differences(&cfg.server, dt_to);
 
         let daily = RewardSourceType::Daily;
         let weekly = RewardSourceType::Weekly;
@@ -126,21 +135,6 @@ pub struct SimpleDate {
     pub day: u32,
     pub month: u32,
     pub year: u32,
-}
-impl SimpleDate {
-    fn to_date_time(&self, server: &Server) -> DateTime<Utc> {
-        match server {
-            Server::Asia => Utc.with_ymd_and_hms(self.year as i32, self.month, self.day, 19, 0, 0),
-            Server::America => {
-                Utc.with_ymd_and_hms(self.year as i32, self.month, self.day, 9, 0, 0)
-            }
-            // NEEDS CONFIRM
-            Server::Europe => {
-                Utc.with_ymd_and_hms(self.year as i32, self.month, self.day, 12, 0, 0)
-            }
-        }
-        .unwrap()
-    }
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -209,7 +203,7 @@ impl Default for SurveyRate {
 impl Rewards {
     pub fn from_cfg(cfg: EstimateCfg) -> Self {
         let rewards = RewardSource::compile_sources(&cfg);
-        let (diff_days, _) = get_date_differences(None, cfg.until_date.to_date_time(&cfg.server));
+        let (diff_days, _) = get_date_differences(&cfg.server, cfg.to_date_time());
 
         let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
         let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
@@ -264,7 +258,7 @@ impl Rewards {
         }
     }
 
-    fn get_rail_pass_jades(cfg: &RailPassCfg, diff_days: u32) -> i32 {
+    pub fn get_rail_pass_jades(cfg: &RailPassCfg, diff_days: u32) -> i32 {
         match cfg.days_left {
             Some(days_left) if cfg.use_rail_pass => match days_left < diff_days {
                 true => 90 * diff_days as i32 + 300 * diff_days as i32 / 30,
@@ -304,7 +298,7 @@ impl Rewards {
     }
 }
 
-struct DateRange(DateTime<Utc>, DateTime<Utc>);
+pub struct DateRange(pub DateTime<Utc>, pub DateTime<Utc>);
 impl Iterator for DateRange {
     type Item = DateTime<Utc>;
 
@@ -315,5 +309,17 @@ impl Iterator for DateRange {
         } else {
             None
         }
+    }
+}
+
+impl EstimateCfg {
+    pub fn to_date_time(&self) -> DateTime<Utc> {
+        let SimpleDate { day, month, year } = self.until_date;
+        match self.server {
+            Server::Asia => Utc.with_ymd_and_hms(year as i32, month, day, 19, 0, 0),
+            Server::America => Utc.with_ymd_and_hms(year as i32, month, day, 9, 0, 0),
+            Server::Europe => Utc.with_ymd_and_hms(year as i32, month, day, 12, 0, 0),
+        }
+        .unwrap()
     }
 }

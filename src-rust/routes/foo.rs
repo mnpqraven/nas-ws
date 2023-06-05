@@ -6,21 +6,12 @@ pub fn foo_routes() -> Router {
     Router::new()
         // INFO: /foo
         .route("/", get(foo_get).post(foo_post))
-        .route("/test", get(foo_test_get).post(foo_test_post))
         .route("/:id/:name", get(foo_id_name_get))
 }
 
 #[derive(Deserialize)]
 struct UnknownPayload {
     data: String,
-}
-
-async fn foo_test_get() {
-    // TODO:
-    //
-}
-async fn foo_test_post() {
-    // TODO:
 }
 
 async fn foo_post(Json(payload): Json<UnknownPayload>) -> String {

@@ -8,7 +8,7 @@ use std::net::SocketAddr;
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .init();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5005));

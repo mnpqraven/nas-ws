@@ -20,12 +20,19 @@ pub struct Rewards {
 #[derive(Deserialize, Clone, Debug)]
 #[serde(rename_all(deserialize = "camelCase"))]
 pub struct EstimateCfg {
+    pub server: Server,
     pub until_date: SimpleDate,
     pub rail_pass: RailPassCfg,
     pub battle_pass: bool,
     pub eq: EqTier,
     pub current_rolls: Option<i32>,
     pub current_jades: Option<i32>,
+}
+#[derive(Deserialize, Clone, Debug)]
+pub enum Server {
+    Asia,
+    America,
+    Europe,
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
@@ -74,7 +81,7 @@ impl RewardSource {
     }
 
     fn compile_sources(cfg: &EstimateCfg) -> Vec<Self> {
-        let dt_to = cfg.until_date.to_date_time();
+        let dt_to = cfg.until_date.to_date_time(&cfg.server);
         let (diff_days, diff_weeks) = get_date_differences(None, dt_to);
 
         let daily = RewardSourceType::Daily;
@@ -121,9 +128,18 @@ pub struct SimpleDate {
     pub year: u32,
 }
 impl SimpleDate {
-    fn to_date_time(&self) -> DateTime<Utc> {
-        Utc.with_ymd_and_hms(self.year as i32, self.month, self.day, 19, 0, 0)
-            .unwrap()
+    fn to_date_time(&self, server: &Server) -> DateTime<Utc> {
+        match server {
+            Server::Asia => Utc.with_ymd_and_hms(self.year as i32, self.month, self.day, 19, 0, 0),
+            Server::America => {
+                Utc.with_ymd_and_hms(self.year as i32, self.month, self.day, 9, 0, 0)
+            }
+            // NEEDS CONFIRM
+            Server::Europe => {
+                Utc.with_ymd_and_hms(self.year as i32, self.month, self.day, 12, 0, 0)
+            }
+        }
+        .unwrap()
     }
 }
 
@@ -193,7 +209,7 @@ impl Default for SurveyRate {
 impl Rewards {
     pub fn from_cfg(cfg: EstimateCfg) -> Self {
         let rewards = RewardSource::compile_sources(&cfg);
-        let (diff_days, _) = get_date_differences(None, cfg.until_date.to_date_time());
+        let (diff_days, _) = get_date_differences(None, cfg.until_date.to_date_time(&cfg.server));
 
         let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
         let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();

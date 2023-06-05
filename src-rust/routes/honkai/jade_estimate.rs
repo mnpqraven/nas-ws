@@ -1,7 +1,7 @@
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use chrono::{DateTime, Duration, TimeZone, Utc};
-use tracing::error;
+use tracing::{error, info};
 
 use super::types::{EstimateCfg, Rewards};
 

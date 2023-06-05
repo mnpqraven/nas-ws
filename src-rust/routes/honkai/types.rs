@@ -90,7 +90,7 @@ impl RewardSource {
         let patch_long = RewardSourceType::WholePatch;
         let patch_half = RewardSourceType::HalfPatch;
 
-        let su = || Rewards::get_su_jades(&cfg.eq, diff_weeks);
+        let su = || Rewards::get_su_jades(&cfg.eq, dt_to);
         let bp = || Rewards::get_bp_jades(cfg.battle_pass);
         let rail_pass = || Rewards::get_rail_pass_jades(&cfg.rail_pass, diff_days);
         let daily_mission = || Rewards::get_daily_missions(diff_days);
@@ -238,7 +238,7 @@ impl Rewards {
         (days * 5).try_into().unwrap()
     }
 
-    fn get_su_jades(eq_tier: &EqTier, weeks: i64) -> i32 {
+    fn get_su_jades(eq_tier: &EqTier, until_date: DateTime<Utc>) -> i32 {
         let per_weeks = match eq_tier {
             EqTier::Zero | EqTier::One => 75,
             EqTier::Two => 105,
@@ -248,7 +248,13 @@ impl Rewards {
             // WARN: NEEDS CONFIRM
             EqTier::Six => 225,
         };
-        (per_weeks * weeks).try_into().unwrap()
+        let mut amount = 0;
+        for date in DateRange(Utc::now(), until_date) {
+            if let chrono::Weekday::Mon = date.weekday() {
+                amount += per_weeks;
+            }
+        }
+        amount
     }
 
     fn get_bp_jades(use_bp: bool) -> i32 {

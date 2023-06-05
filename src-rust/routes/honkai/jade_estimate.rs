@@ -1,7 +1,7 @@
 use crate::{handler::error::WorkerError, routes::honkai::types::Server};
 use axum::{extract::rejection::JsonRejection, Json};
-use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike, Utc, Weekday};
-use tracing::{error, info};
+use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
+use tracing::error;
 
 use super::types::{DateRange, EstimateCfg, Rewards};
 

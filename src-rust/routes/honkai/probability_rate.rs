@@ -9,21 +9,7 @@ use std::collections::HashMap;
 use tracing::error;
 use vercel_runtime::{Body, Response, StatusCode};
 
-struct Banner {
-    banner_name: String,
-    // rate of the featured ssr (0.5 for character, 0.75 for LC)
-    banner: f64,
-    guaranteed: f64,
-    // not yet implemented, genshin epitomized path ???
-    guaranteed_pity: Option<i32>,
-    min_const: i32,
-    max_const: i32,
-    // pity count (90 for char, 80 lc)
-    max_pity: i32,
-    // constFormat: string
-    // constName: string
-    rate: Box<dyn Fn(i32) -> f64>, // (pity: number) => number
-}
+use super::banner::{Banner, BannerIternal};
 
 #[derive(Debug, Clone)]
 struct Sim {
@@ -50,12 +36,25 @@ pub struct ProbabilityRatePayload {
     pub banner: BannerType,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone)]
 pub enum BannerType {
-    SSR,
-    SR,
-    LC,
+    #[serde(rename = "SSR")]
+    Ssr,
+    #[serde(rename = "SR")]
+    Sr,
+    #[serde(rename = "LC")]
+    Lc,
 }
+impl BannerType {
+    pub fn const_prefix(&self) -> String {
+        match self {
+            BannerType::Ssr => "Eidolon".into(),
+            BannerType::Sr => "Eidolon".into(),
+            BannerType::Lc => "Superimpose".into(),
+        }
+    }
+}
+
 // master struct
 #[derive(Debug, Serialize, JsonResponse, Clone)]
 pub struct ProbabilityRateResponse {
@@ -74,9 +73,9 @@ pub async fn probability_rate(
     // safe unwrap
     let Json(payload) = rpayload.unwrap();
     let banner = match payload.banner {
-        BannerType::SSR => Banner::char_ssr(),
-        BannerType::SR => Banner::char_sr(),
-        BannerType::LC => Banner::weapon(),
+        BannerType::Ssr => Banner::char_ssr().to_internal(pity_rate(0.6, 74)),
+        BannerType::Sr => Banner::char_sr().to_internal(pity_rate(5.1, 9)),
+        BannerType::Lc => Banner::basic_weapon().to_internal(pity_rate(0.7, 63)),
     };
 
     let calcs = calc_sims_regular(
@@ -104,52 +103,13 @@ fn pity_rate(base_rate: f64, pity_start: i32) -> Box<dyn Fn(i32) -> f64> {
     Box::new(func)
 }
 
-impl Banner {
-    fn char_ssr() -> Self {
-        Self {
-            banner_name: "5* Banner character".into(),
-            banner: 0.5,
-            guaranteed: 1.0,
-            guaranteed_pity: None,
-            min_const: -1,
-            max_const: 6,
-            max_pity: 90,
-            rate: pity_rate(0.6, 74),
-        }
-    }
-    fn char_sr() -> Self {
-        Self {
-            banner_name: "Specific 4* banner character".into(),
-            banner: 0.5,
-            guaranteed: 0.333333333,
-            guaranteed_pity: None,
-            min_const: -1,
-            max_const: 6,
-            max_pity: 10,
-            rate: pity_rate(5.1, 9),
-        }
-    }
-    fn weapon() -> Self {
-        Self {
-            banner_name: "Specific 5* banner weapon".into(),
-            banner: 0.75,
-            guaranteed: 0.5,
-            guaranteed_pity: Some(3),
-            min_const: 0,
-            max_const: 5,
-            max_pity: 80,
-            rate: pity_rate(0.7, 63),
-        }
-    }
-}
-
 fn calc_sims_regular(
     current_eidolon: i32,
     pity: i32,
     pulls: i32,
     guaranteed: bool,
     guaranteed_pity: i32,
-    banner: Banner,
+    banner: BannerIternal,
 ) -> Vec<Vec<ReducedSim>> {
     calc_sims_int(
         Sim {
@@ -164,57 +124,37 @@ fn calc_sims_regular(
     )
 }
 
-fn calc_sims_int(starter_sim: Sim, pulls: i32, banner: Banner) -> Vec<Vec<ReducedSim>> {
+fn calc_sims_int(starter_sim: Sim, pulls: i32, banner: BannerIternal) -> Vec<Vec<ReducedSim>> {
     let mut smal_sims = vec![starter_sim];
-    let mut sims = calc_sims_exact(&mut smal_sims, pulls, &banner);
+    let sims = calc_sims_exact(&mut smal_sims, pulls, &banner);
 
-    sims.iter_mut()
-        .map(|e| {
-            let mut reduced_sim: HashMap<i32, ReducedSim> = HashMap::new();
-            e.iter().for_each(|inner_sim| {
-                if inner_sim.rate != 0.0 {
-                    match reduced_sim.get_mut(&(inner_sim.eidolon + 1)) {
-                        Some(e) => {
-                            e.rate += inner_sim.rate;
-                        }
-                        None => {
-                            reduced_sim.insert(
-                                inner_sim.eidolon + 1,
-                                ReducedSim {
-                                    eidolon: inner_sim.eidolon,
-                                    rate: inner_sim.rate,
-                                },
-                            );
-                        }
-                    }
-                }
-            });
-            reduced_sim.values().cloned().collect::<Vec<ReducedSim>>()
-        })
-        .collect()
+    sims.iter().map(|e| sim_to_reduced(e)).collect()
 }
 
-// TODO: doesn't work anymore, refactor using foreach closure above
-fn sim_to_reduced(mut sim: &mut Vec<Sim>) -> Vec<ReducedSim> {
-    let mut res: Vec<ReducedSim> = vec![];
-    for sim in sim.iter_mut() {
-        if sim.rate != 0.0 {
-            let mut other = res.get_mut((sim.eidolon + 1) as usize);
-            if let Some(t) = other {
-                t.rate += sim.rate
-            } else {
-                let mut new_reduced = ReducedSim {
-                    eidolon: sim.eidolon,
-                    rate: sim.rate,
-                };
-                other = Some(&mut new_reduced)
+fn sim_to_reduced(sim: &[Sim]) -> Vec<ReducedSim> {
+    let mut reduced_sim: HashMap<i32, ReducedSim> = HashMap::new();
+    sim.iter().for_each(|inner_sim| {
+        if inner_sim.rate != 0.0 {
+            match reduced_sim.get_mut(&(inner_sim.eidolon + 1)) {
+                Some(e) => {
+                    e.rate += inner_sim.rate;
+                }
+                None => {
+                    reduced_sim.insert(
+                        inner_sim.eidolon + 1,
+                        ReducedSim {
+                            eidolon: inner_sim.eidolon,
+                            rate: inner_sim.rate,
+                        },
+                    );
+                }
             }
         }
-    }
-    res
+    });
+    reduced_sim.values().cloned().collect::<Vec<ReducedSim>>()
 }
 
-fn calc_sims_exact(sims: &mut Vec<Sim>, pulls: i32, banner: &Banner) -> Vec<Vec<Sim>> {
+fn calc_sims_exact(sims: &mut Vec<Sim>, pulls: i32, banner: &BannerIternal) -> Vec<Vec<Sim>> {
     let mut all_sims: Vec<Vec<Sim>> = vec![sims.clone()];
     for _ in 0..pulls {
         let mut new_sims: HashMap<i32, Sim> = HashMap::new();
@@ -342,11 +282,19 @@ fn calc_sims_exact(sims: &mut Vec<Sim>, pulls: i32, banner: &Banner) -> Vec<Vec<
 // debug
 #[cfg(test)]
 mod test {
-    use super::{calc_sims_regular, Banner};
+    use super::calc_sims_regular;
+    use crate::routes::honkai::{banner::Banner, probability_rate::pity_rate};
 
     #[test]
     fn test() {
-        let calcs = calc_sims_regular(-1, 0, 5, false, 0, Banner::char_ssr());
+        let calcs = calc_sims_regular(
+            -1,
+            0,
+            5,
+            false,
+            0,
+            Banner::char_ssr().to_internal(pity_rate(0.6, 74)),
+        );
         dbg!(calcs);
     }
 }

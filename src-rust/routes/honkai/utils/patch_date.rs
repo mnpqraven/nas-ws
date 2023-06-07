@@ -57,14 +57,12 @@ impl PatchList {
         while Utc::now() > next_bp_start {
             next_bp_start += Duration::weeks(6);
         }
-        tracing::info!("{:?}", next_bp_start);
 
         let mut amount: u32 = 0;
         while next_bp_start < to_date {
             amount += 1;
             next_bp_start += Duration::weeks(6);
         }
-        tracing::info!(amount);
         amount
     }
 }

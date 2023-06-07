@@ -89,10 +89,46 @@ pub async fn probability_rate(
     );
     let master_prob_rate = ProbabilityRateResponse {
         roll_budget: payload.pulls,
-        data: calcs,
+        data: to_accumulated_rates(&calcs),
     };
 
     Ok(Json(master_prob_rate))
+}
+
+fn to_accumulated_rates(data: &[Vec<ReducedSim>]) -> Vec<Vec<ReducedSim>> {
+    data.iter()
+        .cloned()
+        .map(|mut eidolons_by_pull| {
+            // appends eidolon pull if there's less than 7 entries
+            (0..7).for_each(|eidolon_number| {
+                if !eidolons_by_pull
+                    .iter_mut()
+                    .any(|e| e.eidolon == eidolon_number)
+                {
+                    eidolons_by_pull.push(ReducedSim {
+                        eidolon: eidolon_number,
+                        rate: 0.0,
+                    })
+                }
+            });
+            // transform separate rate of each eidolon into accumulated rate
+            // for lower eidolons
+            let cloned_ref = eidolons_by_pull.clone();
+            eidolons_by_pull.iter_mut().for_each(|mut cell| {
+                let higher_eid_cells: Vec<&ReducedSim> = cloned_ref
+                    .iter()
+                    .filter(|e| e.eidolon > cell.eidolon)
+                    .collect();
+                cell.rate += higher_eid_cells.iter().map(|e| e.rate).sum::<f64>();
+                cell.rate = match cell.rate {
+                    x if x > 1.0 => 1.0,
+                    y if y < 0.0 => 0.0,
+                    _ => cell.rate,
+                };
+            });
+            eidolons_by_pull
+        })
+        .collect()
 }
 
 fn pity_rate(base_rate: f64, pity_start: i32) -> Box<dyn Fn(i32) -> f64> {

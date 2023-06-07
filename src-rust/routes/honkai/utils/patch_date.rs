@@ -50,6 +50,23 @@ impl PatchList {
             false => Self { patches: res },
         }
     }
+
+    pub fn patches_passed_number(to_date: DateTime<Utc>) -> u32 {
+        let mut next_bp_start = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();
+        // get next bp start date (next patch)
+        while Utc::now() > next_bp_start {
+            next_bp_start += Duration::weeks(6);
+        }
+        tracing::info!("{:?}", next_bp_start);
+
+        let mut amount: u32 = 0;
+        while next_bp_start < to_date {
+            amount += 1;
+            next_bp_start += Duration::weeks(6);
+        }
+        tracing::info!(amount);
+        amount
+    }
 }
 
 pub async fn list_future_patch_date() -> Result<Json<PatchList>, WorkerError> {
@@ -59,6 +76,7 @@ pub async fn list_future_patch_date() -> Result<Json<PatchList>, WorkerError> {
     let patches: Vec<PatchInfo> = vec![
         PatchInfo("Patch 1.2".into(), "1.2".into()),
         PatchInfo("Patch 1.3".into(), "1.3".into()),
+        PatchInfo("Patch 1.4".into(), "1.4".into()),
     ];
 
     let future_patches = PatchList::calculate_from_base(patch_1_1, patches);

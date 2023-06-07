@@ -3,14 +3,14 @@ use axum::{extract::rejection::JsonRejection, Json};
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
 use tracing::error;
 
-use super::types::{DateRange, EstimateCfg, Rewards};
+use super::types::{DateRange, EstimateCfg, JadeEstimateResponse};
 
 pub async fn jade_estimate(
     rpayload: Result<Json<EstimateCfg>, JsonRejection>,
-) -> Result<Json<Rewards>, WorkerError> {
+) -> Result<Json<JadeEstimateResponse>, WorkerError> {
     // std::thread::sleep(std::time::Duration::from_secs(5));
     if let Ok(Json(payload)) = rpayload {
-        Ok(Json(Rewards::from_cfg(payload)))
+        Ok(Json(payload.into()))
     } else {
         let err = rpayload.unwrap_err();
         error!("{}", err.body_text());
@@ -78,37 +78,4 @@ pub(super) fn get_current_patch_boundaries(
         r_bound += Duration::weeks(6);
     }
     (l_bound, r_bound)
-}
-
-#[cfg(test)]
-mod test {
-    use super::get_date_differences;
-    use crate::routes::honkai::types::{
-        EqTier::Zero, EstimateCfg, RailPassCfg, Rewards, Server::America, SimpleDate,
-    };
-
-    #[test]
-    fn wtf() {
-        let cfg = EstimateCfg {
-            server: America,
-            until_date: SimpleDate {
-                day: 5,
-                month: 6,
-                year: 2023,
-            },
-            rail_pass: RailPassCfg {
-                use_rail_pass: true,
-                days_left: Some(30),
-            },
-            battle_pass: false,
-            eq: Zero,
-            current_rolls: Some(0),
-            current_jades: None,
-        };
-        let (diff_days, _) = get_date_differences(&America, cfg.to_date_time());
-        println!("{:?}", diff_days);
-
-        let t = Rewards::get_rail_pass_jades(&cfg.rail_pass, diff_days);
-        println!("{:?}", t);
-    }
 }

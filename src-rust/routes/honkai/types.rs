@@ -1,14 +1,12 @@
-use super::{
-    jade_estimate::{get_current_patch_boundaries, get_date_differences},
-    utils::patch_date::PatchList,
-};
+use super::{jade_estimate::get_date_differences, utils::patch_date::Patch};
 use crate::handler::error::WorkerError;
 use crate::handler::FromAxumResponse;
 use axum::Json;
-use chrono::{DateTime, Datelike, Duration, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
@@ -52,6 +50,7 @@ pub struct EstimateCfg {
     pub rail_pass: RailPassCfg,
     pub battle_pass: BattlePassOption,
     pub eq: EqTier,
+    pub moc: u32,
     pub current_rolls: Option<i32>,
     pub current_jades: Option<i32>,
 }
@@ -83,10 +82,183 @@ pub struct RewardSource {
 pub enum RewardSourceType {
     Daily,
     Weekly,
+    BiWeekly,
     Monthly,
     WholePatch,
     HalfPatch,
     OneTime,
+}
+
+impl RewardSourceType {
+    pub fn get_difference(
+        &self,
+        from_date: DateTime<Utc>,
+        to_date: DateTime<Utc>,
+        server: &Server,
+    ) -> u32 {
+        match self {
+            RewardSourceType::Daily => Self::get_date_diff(from_date, to_date, server),
+            RewardSourceType::Weekly => Self::get_week_diff(from_date, to_date, server),
+            RewardSourceType::BiWeekly => Self::get_biweek_diff(from_date, to_date, server),
+            RewardSourceType::Monthly => Self::get_month_diff(from_date, to_date),
+            RewardSourceType::WholePatch => Self::get_patch_diff(from_date, to_date),
+            RewardSourceType::HalfPatch => Self::get_half_patch_diff(from_date, to_date, server),
+            RewardSourceType::OneTime => todo!(),
+        }
+    }
+
+    fn get_date_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>, server: &Server) -> u32 {
+        let mut diff_days = 0;
+        DateRange(today_right_after_reset(&from_date, server), to_date).for_each(|_| {
+            diff_days += 1;
+        });
+        diff_days
+    }
+
+    fn get_week_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>, server: &Server) -> u32 {
+        let mut diff_weeks = 0;
+        DateRange(today_right_after_reset(&from_date, server), to_date).for_each(|date| {
+            if date.weekday() == Weekday::Mon {
+                diff_weeks += 1;
+            }
+        });
+        diff_weeks
+    }
+
+    fn get_biweek_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>, server: &Server) -> u32 {
+        let base_moc_time = Utc.with_ymd_and_hms(2023, 5, 29, 19, 0, 0).unwrap();
+        let base_moc = today_at_reset(&base_moc_time, server);
+
+        let mut diff_biweeks = 0;
+        let mut patch_at_from = Patch::base();
+        let mut patch_at_to = Patch::base();
+        // update patch to correctly wrap around from and to date
+        while !patch_at_from.contains(from_date) {
+            patch_at_from.next()
+        }
+        while !patch_at_to.contains(to_date) {
+            patch_at_to.next()
+        }
+
+        // next biweekly start after from_date
+        let mut next_biweekly_start = patch_at_from.date_start;
+        // last biweekly start before to_date
+        let mut last_biweekly_start = patch_at_to.date_start + Duration::weeks(2);
+        // this is to halve the mutation rate of the biweekly block as it
+        // should only mutate once every 2 monday checks
+        let mut modulo_inside = true;
+        // extra 1 day pad for equal or less
+        for current_date in DateRange(base_moc, to_date + Duration::days(1)) {
+            if current_date.weekday() == Weekday::Mon {
+                if modulo_inside {
+                    next_biweekly_start = current_date;
+                    last_biweekly_start = next_biweekly_start + Duration::weeks(2);
+
+                    if current_date >= from_date {
+                        diff_biweeks += 1;
+                    }
+                }
+                modulo_inside = !modulo_inside;
+            }
+        }
+
+        // in the same week
+        match next_biweekly_start < from_date && to_date < last_biweekly_start {
+            true => 0,
+            false => diff_biweeks,
+        }
+    }
+
+    pub fn get_month_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> u32 {
+        let mut amount = 0;
+        // padding 1 for first day of the month
+        for date in DateRange(from_date, to_date + Duration::days(1)) {
+            if let 1 = date.day() {
+                amount += 1;
+            }
+        }
+        amount
+    }
+
+    pub fn get_patch_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> u32 {
+        let mut amount = 0;
+        let (patch_start, _, mut patch_end) = Patch::get_patch_boundaries(from_date);
+        while to_date > patch_end {
+            if from_date > patch_start {
+                amount += 1;
+                patch_end += Duration::weeks(6)
+            }
+        }
+        amount
+    }
+
+    pub fn get_half_patch_diff(
+        from_date: DateTime<Utc>,
+        to_date: DateTime<Utc>,
+        _server: &Server,
+    ) -> u32 {
+        let mut diff_banners = 0;
+        let mut patch_at_from = Patch::base();
+        let mut patch_at_to = Patch::base();
+        // update patch to correctly wrap around from and to date
+        while !patch_at_from.contains(from_date) {
+            patch_at_from.next()
+        }
+        while !patch_at_to.contains(to_date) {
+            patch_at_to.next()
+        }
+
+        // next biweekly start after from_date
+        let mut next_banner_start = patch_at_from.date_start;
+        let mut last_banner_start = patch_at_to.date_start + Duration::weeks(3);
+        while next_banner_start < from_date {
+            next_banner_start += Duration::weeks(3);
+            last_banner_start += Duration::weeks(3);
+        }
+        // dbg!(next_banner_start,last_banner_start);
+        while next_banner_start < to_date && to_date <= last_banner_start {
+            diff_banners += 1;
+            next_banner_start += Duration::weeks(3)
+        }
+
+        diff_banners
+    }
+}
+
+pub fn today_right_after_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
+    let mut res = Utc
+        .with_ymd_and_hms(
+            a.year(),
+            a.month(),
+            a.day(),
+            server.get_utc_reset_hour(),
+            1,
+            0,
+        )
+        .unwrap();
+    // can't forward, has to rewind by 1 day
+    if res > *a {
+        res -= Duration::days(1);
+    }
+    res
+}
+
+pub fn today_at_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
+    let mut res = Utc
+        .with_ymd_and_hms(
+            a.year(),
+            a.month(),
+            a.day(),
+            server.get_utc_reset_hour(),
+            0,
+            0,
+        )
+        .unwrap();
+    // can't forward, has to rewind by 1 day
+    if res > *a {
+        res -= Duration::days(1);
+    }
+    res
 }
 
 #[derive(Debug, Deserialize, Clone, Copy)]
@@ -99,17 +271,17 @@ pub enum BattlePassOption {
 impl RewardSource {
     fn compile_sources(cfg: &EstimateCfg) -> Vec<Self> {
         let dt_to = cfg.to_date_time();
-        let (diff_days, _) = get_date_differences(&cfg.server, dt_to);
+        let diff_days = RewardSourceType::Daily.get_difference(Utc::now(), dt_to, &cfg.server);
 
         let src_su = Self::src_su(&cfg.eq, dt_to);
-        let src_bp = Self::src_bp(cfg.battle_pass, dt_to);
+        let src_bp = Self::src_bp(cfg.battle_pass, dt_to, &cfg.server);
         let src_rail_pass = Self::src_rail_pass(&cfg.rail_pass, diff_days);
         let src_daily_mission = Self::src_daily_mission(diff_days);
         let src_daily_text = Self::src_daily_text(diff_days);
         let src_hoyolab_checkin = Self::src_hoyolab_checkin(dt_to);
-        let src_char_trial =
-            Self::src_char_trial(get_current_patch_boundaries(Utc::now()).0, dt_to);
-        let src_ember_trade = Self::src_ember_trade(dt_to);
+        let src_moc = Self::src_moc(cfg.moc, dt_to, &cfg.server);
+        let src_char_trial = Self::src_char_trial(dt_to, &cfg.server);
+        let src_ember_trade = Self::src_ember_trade(dt_to, &cfg.server);
 
         vec![
             src_su,
@@ -118,23 +290,25 @@ impl RewardSource {
             src_daily_mission,
             src_daily_text,
             src_hoyolab_checkin,
+            src_moc,
             src_char_trial,
             src_ember_trade,
         ]
     }
 
-    fn src_bp(bp_config: BattlePassOption, dt_to: DateTime<Utc>) -> Self {
-        let patches = PatchList::patches_passed_number(dt_to) as i32;
+    fn src_bp(bp_config: BattlePassOption, dt_to: DateTime<Utc>, server: &Server) -> Self {
+        let freq = RewardSourceType::WholePatch;
+        let patches = freq.get_difference(Utc::now(), dt_to, server) as i32;
         let (jades_amount, rolls_amount) = match bp_config {
             BattlePassOption::None => (None, None),
             BattlePassOption::Basic => (Some((680 + 680) * patches), None),
             BattlePassOption::Premium => (Some((880 + 680) * patches), Some(4 * patches)),
         };
         Self {
-            source: "Battle Pass".into(),
+            source: "Nameless Honor".into(),
             jades_amount,
             rolls_amount,
-            source_type: RewardSourceType::Weekly,
+            source_type: freq,
         }
     }
 
@@ -214,32 +388,38 @@ impl RewardSource {
         }
     }
 
-    fn src_char_trial(patch_start: DateTime<Utc>, until_date: DateTime<Utc>) -> Self {
-        // rewards from both banners in patch
-        let jades = match patch_start + Duration::weeks(3) < until_date {
-            true => 40,
-            false => 20,
-        };
+    fn src_char_trial(until_date: DateTime<Utc>, server: &Server) -> Self {
+        let freq = RewardSourceType::HalfPatch;
+        let amount = freq.get_difference(Utc::now(), until_date, server) as i32;
         Self {
             source: "Character Trials".into(),
-            jades_amount: Some(jades),
+            jades_amount: Some(20 * amount),
             rolls_amount: None,
             source_type: RewardSourceType::HalfPatch,
         }
     }
 
-    fn src_ember_trade(until_date: DateTime<Utc>) -> Self {
-        let mut amount: i32 = 0;
-        for date in DateRange(Utc::now(), until_date) {
-            if let 1 = date.day() {
-                amount += 5;
-            }
-        }
+    fn src_ember_trade(until_date: DateTime<Utc>, server: &Server) -> Self {
+        let freq = RewardSourceType::Monthly;
+        let amount = 5 * freq.get_difference(Utc::now(), until_date, server) as i32;
         Self {
             source: "Monthly ember exchange".into(),
             jades_amount: None,
             rolls_amount: Some(amount),
-            source_type: RewardSourceType::Monthly,
+            source_type: freq,
+        }
+    }
+
+    fn src_moc(stars: u32, until_date: DateTime<Utc>, server: &Server) -> Self {
+        let freq = RewardSourceType::BiWeekly;
+        let diffs = freq.get_difference(Utc::now(), until_date, server);
+        let amount: i32 = ((stars / 3) * 60 * diffs).try_into().unwrap();
+        debug!(diffs, amount);
+        Self {
+            source: "Memory of chaos".into(),
+            jades_amount: Some(amount),
+            rolls_amount: None,
+            source_type: RewardSourceType::BiWeekly,
         }
     }
 }
@@ -369,5 +549,20 @@ impl EstimateCfg {
             Server::Europe => Utc.with_ymd_and_hms(year as i32, month, day, 12, 0, 0),
         }
         .unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::{Duration, Utc};
+
+    use super::{RewardSourceType, Server};
+
+    #[test]
+    fn biweek() {
+        let from = Utc::now();
+        let diff_biweeks =
+            RewardSourceType::get_biweek_diff(from, from + Duration::days(39), &Server::America);
+        println!("{}", diff_biweeks);
     }
 }

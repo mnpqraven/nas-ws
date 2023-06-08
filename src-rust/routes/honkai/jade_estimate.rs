@@ -67,15 +67,3 @@ pub fn get_date_differences(server: &Server, to_date: DateTime<Utc>) -> (u32, i6
 
     (diff_days as u32, diff_weeks)
 }
-
-pub(super) fn get_current_patch_boundaries(
-    current_date: DateTime<Utc>,
-) -> (DateTime<Utc>, DateTime<Utc>) {
-    let base_1_1 = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();
-    let (mut l_bound, mut r_bound) = (base_1_1, base_1_1 + Duration::weeks(6));
-    while r_bound < current_date {
-        l_bound = r_bound;
-        r_bound += Duration::weeks(6);
-    }
-    (l_bound, r_bound)
-}

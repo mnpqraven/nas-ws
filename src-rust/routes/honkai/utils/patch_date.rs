@@ -9,10 +9,10 @@ use vercel_runtime::{Body, Response, StatusCode};
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Patch {
-    name: String,
-    version: String,
-    date_start: DateTime<Utc>,
-    date_end: DateTime<Utc>,
+    pub name: String,
+    pub version: String,
+    pub date_start: DateTime<Utc>,
+    pub date_end: DateTime<Utc>,
 }
 #[derive(Serialize, JsonResponse, Clone, Debug)]
 pub struct PatchList {
@@ -20,6 +20,44 @@ pub struct PatchList {
 }
 
 impl Patch {
+    const BASE_1_1: (i32, u32, u32, u32, u32, u32) = (2023, 6, 7, 2, 0, 0);
+    pub fn base() -> Self {
+        let (year, month, day, hour, min, sec) = Self::BASE_1_1;
+        let start_date = Utc
+            .with_ymd_and_hms(year, month, day, hour, min, sec)
+            .unwrap();
+        Self::new("Galatic Roaming", "1.1", start_date)
+    }
+
+    /// Get the start, middle, end date of a patch
+    pub fn get_patch_boundaries(
+        current_date: DateTime<Utc>,
+    ) -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
+        let base_1_1 = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();
+        let (mut l_bound, mut m_bound, mut r_bound) = (
+            base_1_1,
+            base_1_1 + Duration::weeks(3),
+            base_1_1 + Duration::weeks(6),
+        );
+        while r_bound < current_date {
+            l_bound = r_bound;
+            m_bound += Duration::weeks(3);
+            r_bound += Duration::weeks(6);
+        }
+        (l_bound, m_bound, r_bound)
+    }
+
+    pub fn contains(&self, date: DateTime<Utc>) -> bool {
+        self.date_start <= date && self.date_end >= date
+    }
+
+    /// get the next timeslot of a future patch
+    /// WARN: the name and version is not (yet) edited
+    pub fn next(&mut self) {
+        self.date_start += Duration::weeks(6);
+        self.date_end += Duration::weeks(6);
+    }
+
     fn new(name: impl Into<String>, version: impl Into<String>, start_date: DateTime<Utc>) -> Self {
         let end_date = start_date + Duration::weeks(6);
         Self {
@@ -57,14 +95,12 @@ impl PatchList {
         while Utc::now() > next_bp_start {
             next_bp_start += Duration::weeks(6);
         }
-        tracing::info!("{:?}", next_bp_start);
 
         let mut amount: u32 = 0;
         while next_bp_start < to_date {
             amount += 1;
             next_bp_start += Duration::weeks(6);
         }
-        tracing::info!(amount);
         amount
     }
 }

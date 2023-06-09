@@ -29,6 +29,17 @@ impl Patch {
         Self::new("Galatic Roaming", "1.1", start_date)
     }
 
+    /// get the current patch
+    pub fn current() -> Self {
+        let mut base = Self::base();
+        base.name = String::new();
+        base.version = String::new();
+        while Utc::now() > base.date_end {
+            base.next();
+        }
+        base
+    }
+
     /// Get the start, middle, end date of a patch
     pub fn get_patch_boundaries(
         current_date: DateTime<Utc>,

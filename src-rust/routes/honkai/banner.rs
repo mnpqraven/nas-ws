@@ -105,11 +105,18 @@ pub struct BannerIternal {
     pub rate: Box<dyn Fn(i32) -> f64>, // (pity: number) => number
 }
 
-pub async fn gacha_banner_list() -> Result<Json<Vec<Banner>>, WorkerError> {
-    Ok(Json(vec![
-        Banner::char_ssr(),
-        Banner::char_sr(),
-        Banner::basic_weapon(),
-        // dev_weapon uses unreleased pity systems
-    ]))
+#[derive(Serialize, JsonResponse, Clone, Debug)]
+pub struct BannerList {
+    pub banners: Vec<Banner>,
+}
+pub async fn gacha_banner_list() -> Result<Json<BannerList>, WorkerError> {
+    let banner_list = BannerList {
+        banners: vec![
+            Banner::char_ssr(),
+            Banner::char_sr(),
+            Banner::basic_weapon(),
+            // dev_weapon uses unreleased pity systems
+        ],
+    };
+    Ok(Json(banner_list))
 }

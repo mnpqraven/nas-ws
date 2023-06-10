@@ -8,7 +8,6 @@ use axum::Json;
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
 use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
 

@@ -1,4 +1,7 @@
-use super::{jade_estimate::get_date_differences, utils::patch_date::Patch};
+use super::{
+    jade_estimate::get_date_differences,
+    utils::{helpers::get_next_monday, patch_date::Patch},
+};
 use crate::handler::error::WorkerError;
 use crate::handler::FromAxumResponse;
 use axum::Json;
@@ -261,8 +264,14 @@ pub fn today_at_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
     res
 }
 
-#[derive(Debug, Deserialize, Clone, Copy)]
-pub enum BattlePassOption {
+#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct BattlePassOption {
+    battle_pass_type: BattlePassType,
+    current_level: u32,
+}
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+pub enum BattlePassType {
     None,
     Basic,
     Premium,
@@ -296,19 +305,72 @@ impl RewardSource {
         ]
     }
 
+    // lv 10: 1 sp
+    // lv 20: 1 sp
+    // lv 30: 2 sp
+    // lv 50: 680 jade
+    // 800 per level, 8000 per week
     fn src_bp(bp_config: BattlePassOption, dt_to: DateTime<Utc>, server: &Server) -> Self {
-        let freq = RewardSourceType::WholePatch;
-        let patches = freq.get_difference(Utc::now(), dt_to, server) as i32;
-        let (jades_amount, rolls_amount) = match bp_config {
-            BattlePassOption::None => (None, None),
-            BattlePassOption::Basic => (Some((680 + 680) * patches), None),
-            BattlePassOption::Premium => (Some((880 + 680) * patches), Some(4 * patches)),
+        let mut current_level = bp_config.current_level;
+        let mut current_patch = Patch::current();
+        // distribute rewards for the first monday check, avoid infinite
+        let mut max_level_reached = false;
+        let start = get_next_monday(Utc::now(), server);
+
+        let (mut rolls, mut jades) = (0, 0);
+        for date in DateRange(start, dt_to + Duration::days(1)) {
+            if date.weekday() == Weekday::Mon {
+                // raise the bp level
+                current_level = match current_level {
+                    0..=40 => current_level + 10,
+                    _ => 50,
+                };
+                // give bp rewards based on levels
+                match current_level {
+                    50 => {
+                        if !max_level_reached {
+                            jades += 680;
+                        }
+                        max_level_reached = true;
+                    }
+                    40..=49 => (), // self-molding resin instead of rolls
+                    30..=39 => rolls += 2,
+                    20..=29 => rolls += 1,
+                    10..=19 => rolls += 1,
+                    _ => (),
+                };
+            }
+            // date crossed over to next patch
+            if !current_patch.contains(date) {
+                // iterate patch tracker
+                current_patch.next();
+                // reset the bp status
+                current_level = 0;
+                // distribute 1st time buying reward
+                match bp_config.battle_pass_type {
+                    BattlePassType::None => (),
+                    BattlePassType::Basic => {
+                        jades += 680;
+                        rolls += 4
+                    }
+                    BattlePassType::Premium => {
+                        jades += 880;
+                        rolls += 4;
+                        current_level += 10;
+                    }
+                }
+            }
+        }
+        // prototypeShouldEnd
+        let (final_jade, final_roll) = match bp_config.battle_pass_type {
+            BattlePassType::None => (None, None), // f2p doesn't get any jade nor purchase rewards
+            _ => (Some(jades), Some(rolls)),
         };
         Self {
             source: "Nameless Honor".into(),
-            jades_amount,
-            rolls_amount,
-            source_type: freq,
+            jades_amount: final_jade,
+            rolls_amount: final_roll,
+            source_type: RewardSourceType::WholePatch,
         }
     }
 

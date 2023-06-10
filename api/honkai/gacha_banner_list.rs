@@ -1,8 +1,4 @@
-use axum::{extract::FromRequest, http::Method, Json};
-use nas_ws::{
-    handler::{error::WorkerError, FromAxumResponse},
-    routes::honkai::banner::gacha_banner_list,
-};
+use nas_ws::{handler::FromAxumResponse, routes::honkai::banner::gacha_banner_list};
 use vercel_runtime::{run, Body, Error, Request, Response};
 
 #[tokio::main]

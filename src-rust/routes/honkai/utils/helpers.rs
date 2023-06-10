@@ -1,6 +1,6 @@
 use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike, Utc, Weekday};
 
-use crate::routes::honkai::types::{today_right_after_reset, DateRange, Server};
+use crate::routes::honkai::types::{DateRange, Server};
 
 pub fn get_next_monday(current_date: DateTime<Utc>, server: &Server) -> DateTime<Utc> {
     let mut now = current_date;

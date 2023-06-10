@@ -29,10 +29,6 @@ name = "nas-ws"
 path = "src-rust/bin.rs"
 
 [[bin]]
-name = "tasks"
-path = "src-rust/tasks.rs"
-
-[[bin]]
 name = "dev"
 path = "src-rust/dev.rs"
 

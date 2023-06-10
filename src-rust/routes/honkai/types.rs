@@ -372,19 +372,6 @@ impl RewardSource {
             rolls_amount: final_roll,
             source_type: RewardSourceType::WholePatch,
         }
-        // let freq = RewardSourceType::WholePatch;
-        // let patches = freq.get_difference(Utc::now(), dt_to, server) as i32;
-        // let (jades_amount, rolls_amount) = match bp_config.battle_pass_type {
-        //     BattlePassType::None => (None, None),
-        //     BattlePassType::Basic => (Some((680 + 680) * patches), None),
-        //     BattlePassType::Premium => (Some((880 + 680) * patches), Some(4 * patches)),
-        // };
-        // Self {
-        //     source: "Nameless Honor".into(),
-        //     jades_amount,
-        //     rolls_amount,
-        //     source_type: freq,
-        // }
     }
 
     fn src_su(eq_tier: &EqTier, until_date: DateTime<Utc>) -> Self {

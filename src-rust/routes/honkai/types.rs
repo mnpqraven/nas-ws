@@ -8,7 +8,6 @@ use axum::Json;
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
 use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
 
@@ -305,11 +304,6 @@ impl RewardSource {
         ]
     }
 
-    // lv 10: 1 sp
-    // lv 20: 1 sp
-    // lv 30: 2 sp
-    // lv 50: 680 jade
-    // 800 per level, 8000 per week
     fn src_bp(bp_config: BattlePassOption, dt_to: DateTime<Utc>, server: &Server) -> Self {
         let mut current_level = bp_config.current_level;
         let mut current_patch = Patch::current();
@@ -534,33 +528,6 @@ impl EqTier {
 pub struct Pull {
     pub draw_number: u32,
     pub rate: f32,
-}
-
-#[derive(Debug)]
-pub struct SurveyRate(pub Vec<Pull>);
-
-impl Default for SurveyRate {
-    fn default() -> Self {
-        let mut gacha_rate = SurveyRate(vec![]);
-        let path = match true {
-            true if Path::new("../assets/rate.csv").exists() => "../assets/rate.csv",
-            true if Path::new("assets/rate.csv").exists() => "assets/rate.csv",
-            _ => {
-                panic!("assets not found, run `cargo run --bin tasks`");
-            }
-        };
-        match csv::Reader::from_path(path) {
-            Ok(mut rdr) => {
-                for pull in rdr.deserialize::<Pull>().flatten() {
-                    gacha_rate.0.push(pull);
-                }
-            }
-            Err(_) => {
-                panic!("assets not found, run `cargo run --bin tasks`");
-            }
-        }
-        gacha_rate
-    }
 }
 
 impl JadeEstimateResponse {

@@ -313,11 +313,12 @@ impl RewardSource {
     fn src_bp(bp_config: BattlePassOption, dt_to: DateTime<Utc>, server: &Server) -> Self {
         let mut current_level = bp_config.current_level;
         let mut current_patch = Patch::current();
+        // distribute rewards for the first monday check, avoid infinite
+        let mut max_level_reached = false;
         let start = get_next_monday(Utc::now(), server);
 
         let (mut rolls, mut jades) = (0, 0);
         for date in DateRange(start, dt_to + Duration::days(1)) {
-            println!("{current_level}");
             if date.weekday() == Weekday::Mon {
                 // raise the bp level
                 current_level = match current_level {
@@ -326,8 +327,14 @@ impl RewardSource {
                 };
                 // give bp rewards based on levels
                 match current_level {
-                    50 => jades += 680,
-                    30..=49 => rolls += 2,
+                    50 => {
+                        if !max_level_reached {
+                            jades += 680;
+                        }
+                        max_level_reached = true;
+                    }
+                    40..=49 => (), // self-molding resin instead of rolls
+                    30..=39 => rolls += 2,
                     20..=29 => rolls += 1,
                     10..=19 => rolls += 1,
                     _ => (),
@@ -335,23 +342,34 @@ impl RewardSource {
             }
             // date crossed over to next patch
             if !current_patch.contains(date) {
-                // distribute 1st time buying reward
-                match bp_config.battle_pass_type {
-                    BattlePassType::None => (),
-                    BattlePassType::Basic => jades += 680,
-                    BattlePassType::Premium => jades += 880,
-                }
                 // iterate patch tracker
                 current_patch.next();
                 // reset the bp status
                 current_level = 0;
+                // distribute 1st time buying reward
+                match bp_config.battle_pass_type {
+                    BattlePassType::None => (),
+                    BattlePassType::Basic => {
+                        jades += 680;
+                        rolls += 4
+                    }
+                    BattlePassType::Premium => {
+                        jades += 880;
+                        rolls += 4;
+                        current_level += 10;
+                    }
+                }
             }
         }
         // prototypeShouldEnd
+        let (final_jade, final_roll) = match bp_config.battle_pass_type {
+            BattlePassType::None => (None, None), // f2p doesn't get any jade nor purchase rewards
+            _ => (Some(jades), Some(rolls)),
+        };
         Self {
             source: "Nameless Honor".into(),
-            jades_amount: Some(jades),
-            rolls_amount: Some(rolls),
+            jades_amount: final_jade,
+            rolls_amount: final_roll,
             source_type: RewardSourceType::WholePatch,
         }
         // let freq = RewardSourceType::WholePatch;

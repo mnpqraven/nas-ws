@@ -1,4 +1,3 @@
-use super::get_date_differences;
 use crate::{
     handler::{
         error::{ComputationType, WorkerError},
@@ -114,6 +113,9 @@ impl RewardSourceType {
         to_date: DateTime<Utc>,
         server: &Server,
     ) -> Result<u32, WorkerError> {
+        let from_date = today_at_reset(&from_date, server);
+
+        // TODO: unit test all of these
         match self {
             RewardSourceType::Daily => Self::get_date_diff(from_date, to_date, server),
             RewardSourceType::Weekly => Self::get_week_diff(from_date, to_date, server),
@@ -149,7 +151,12 @@ impl RewardSourceType {
             return Err(WorkerError::Computation(ComputationType::BadDateComparison));
         }
         let mut diff_weeks = 0;
-        DateRange(today_right_after_reset(&from_date, server), to_date).for_each(|date| {
+        // padding to include monday
+        DateRange(
+            today_right_after_reset(&from_date, server),
+            to_date + Duration::days(1),
+        )
+        .for_each(|date| {
             if date.weekday() == Weekday::Mon {
                 diff_weeks += 1;
             }
@@ -157,6 +164,7 @@ impl RewardSourceType {
         Ok(diff_weeks)
     }
 
+    /// TODO: refactor to better code
     fn get_biweek_diff(
         from_date: DateTime<Utc>,
         to_date: DateTime<Utc>,
@@ -226,58 +234,6 @@ impl RewardSourceType {
     }
 }
 
-impl From<EstimateCfg> for JadeEstimateResponse {
-    fn from(cfg: EstimateCfg) -> Self {
-        // TODO: RESOLVE UNSAFE UNWRAP
-        let rewards = RewardSource::compile_sources(&cfg).unwrap();
-        let (diff_days, _) = get_date_differences(&cfg.server, cfg.get_until_date());
-
-        let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
-        let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
-
-        if let Some(current_jades) = cfg.current_jades {
-            total_jades += current_jades;
-        }
-        let mut total_rolls = (total_jades / 160) + reward_rolls;
-        if let Some(current_rolls) = cfg.current_rolls {
-            total_rolls += current_rolls;
-        }
-
-        Self {
-            total_jades,
-            rolls: total_rolls,
-            days: diff_days.try_into().unwrap(),
-            sources: rewards,
-        }
-    }
-}
-
-impl JadeEstimateResponse {
-    pub fn from_cfg(cfg: EstimateCfg) -> Self {
-        // TODO: RESOLVE UNSAFE UNWRAP
-        let rewards = RewardSource::compile_sources(&cfg).unwrap();
-        let (diff_days, _) = get_date_differences(&cfg.server, cfg.get_until_date());
-
-        let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
-        let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
-
-        if let Some(current_jades) = cfg.current_jades {
-            total_jades += current_jades;
-        }
-        let mut total_rolls = (total_jades / 160) + reward_rolls;
-        if let Some(current_rolls) = cfg.current_rolls {
-            total_rolls += current_rolls;
-        }
-
-        Self {
-            total_jades,
-            rolls: total_rolls,
-            days: diff_days.try_into().unwrap(),
-            sources: rewards,
-        }
-    }
-}
-
 #[derive(Deserialize, Clone, Debug)]
 #[serde(rename_all(deserialize = "camelCase"))]
 pub struct RailPassCfg {
@@ -316,6 +272,9 @@ pub fn today_right_after_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<U
     res
 }
 
+/// Get the reset date time
+///
+/// This will always rewind and never return a reset in the future
 pub fn today_at_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
     let mut res = Utc
         .with_ymd_and_hms(
@@ -339,7 +298,7 @@ impl RewardSource {
         let dt_to = cfg.get_until_date();
         let diff_days = RewardSourceType::Daily.get_difference(Utc::now(), dt_to, &cfg.server)?;
 
-        let src_su = Self::src_su(&cfg.eq, dt_to);
+        let src_su = Self::src_su(&cfg.eq, &cfg.server, dt_to)?;
         let src_bp = Self::src_bp(cfg.battle_pass, dt_to, &cfg.server);
         let src_rail_pass = Self::src_rail_pass(&cfg.rail_pass, diff_days);
         let src_daily_mission = Self::src_daily_mission(diff_days);
@@ -426,7 +385,11 @@ impl RewardSource {
         }
     }
 
-    fn src_su(eq_tier: &EqTier, until_date: DateTime<Utc>) -> Self {
+    fn src_su(
+        eq_tier: &EqTier,
+        server: &Server,
+        until_date: DateTime<Utc>,
+    ) -> Result<Self, WorkerError> {
         let per_weeks = match eq_tier {
             EqTier::Zero | EqTier::One => 75,
             EqTier::Two => 105,
@@ -436,18 +399,13 @@ impl RewardSource {
             // WARN: NEEDS CONFIRM
             EqTier::Six => 225,
         };
-        let mut amount = 0;
-        for date in DateRange(Utc::now(), until_date) {
-            if let chrono::Weekday::Mon = date.weekday() {
-                amount += per_weeks;
-            }
-        }
-        Self {
+        let weeks = RewardSourceType::Weekly.get_difference(Utc::now(), until_date, server)?;
+        Ok(Self {
             source: "Simulated Universe".into(),
-            jades_amount: Some(amount),
+            jades_amount: Some((weeks * per_weeks).try_into().unwrap()),
             rolls_amount: None,
             source_type: RewardSourceType::Weekly,
-        }
+        })
     }
 
     fn src_daily_mission(days: u32) -> Self {

@@ -5,6 +5,7 @@ use crate::handler::{
 use axum::Json;
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use response_derive::JsonResponse;
+use semver::Version;
 use serde::Serialize;
 use vercel_runtime::{Body, Response, StatusCode};
 
@@ -13,7 +14,7 @@ use vercel_runtime::{Body, Response, StatusCode};
 /// Patch's time will always have a 02:00:00 UTC date
 pub struct Patch {
     pub name: String,
-    pub version: String,
+    pub version: Version,
     pub date_start: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
 }
@@ -31,7 +32,8 @@ impl Patch {
         let start_date = Utc
             .with_ymd_and_hms(year, month, day, hour, min, sec)
             .unwrap();
-        Self::new("Galatic Roaming", "1.1", start_date)
+        let version = Version::parse("1.1.0").unwrap();
+        Self::new("Galatic Roaming", version, start_date)
     }
 
     /// get the current patch
@@ -39,7 +41,6 @@ impl Patch {
     pub fn current() -> Self {
         let mut base = Self::base();
         base.name = String::new();
-        base.version = String::new();
         while Utc::now() > base.date_end {
             base.next();
         }
@@ -86,13 +87,14 @@ impl Patch {
     pub fn next(&mut self) {
         self.date_start += Duration::weeks(6);
         self.date_end += Duration::weeks(6);
+        self.version.minor += 1;
     }
 
     /// Creates a patch
     /// WARNING: exact hour and min, sec needed
     pub fn new(
         name: impl Into<String>,
-        version: impl Into<String>,
+        version: impl Into<Version>,
         start_date: DateTime<Utc>,
     ) -> Self {
         let end_date = start_date + Duration::weeks(6);
@@ -157,13 +159,13 @@ impl Patch {
 }
 
 // name and version in Patch
-pub struct PatchInfo(pub String, pub String);
+pub struct PatchInfo(pub String, pub Version);
 impl PatchList {
     pub fn calculate_from_base(base_version: Patch, future_patches: Vec<PatchInfo>) -> Self {
         let mut res: Vec<Patch> = vec![base_version.clone()];
         let mut next_start_date = base_version.date_end;
         for PatchInfo(name, version) in future_patches.iter() {
-            res.push(Patch::new(name, version, next_start_date));
+            res.push(Patch::new(name, version.clone(), next_start_date));
             next_start_date += Duration::weeks(6);
         }
 

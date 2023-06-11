@@ -23,6 +23,7 @@ response_derive = { version = "0.1.0", path = "response_derive" }
 dotfiles-schema = { git = "https://github.com/mnpqraven/dotfiles-install" }
 csv = "1.2.1"
 chrono = { version = "0.4.24", features = ["serde"] }
+semver = { version = "1.0.17", features = ["serde"] }
 
 [[bin]]
 name = "nas-ws"

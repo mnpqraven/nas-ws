@@ -1,6 +1,5 @@
-use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike, Utc, Weekday};
-
-use crate::routes::honkai::types::{DateRange, Server};
+use crate::routes::honkai::jade_estimate::types::{DateRange, Server};
+use chrono::{DateTime, Duration, TimeZone, Timelike, Utc, Weekday, Datelike};
 
 pub fn get_next_monday(current_date: DateTime<Utc>, server: &Server) -> DateTime<Utc> {
     let mut now = current_date;
@@ -29,7 +28,7 @@ pub fn get_next_monday(current_date: DateTime<Utc>, server: &Server) -> DateTime
 mod tests {
     use chrono::{Duration, TimeZone, Utc};
 
-    use crate::routes::honkai::{types::Server, utils::helpers::get_next_monday};
+    use crate::routes::honkai::{jade_estimate::types::Server, utils::helpers::get_next_monday};
 
     #[test]
     fn next_monday() {

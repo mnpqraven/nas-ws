@@ -1,6 +1,4 @@
-use nas_ws::{
-    handler::FromAxumResponse, routes::honkai::utils::patch_date::list_future_patch_date,
-};
+use nas_ws::{handler::FromAxumResponse, routes::honkai::patch::list_future_patch_date};
 use vercel_runtime::{run, Body, Error, Request, Response};
 
 #[tokio::main]

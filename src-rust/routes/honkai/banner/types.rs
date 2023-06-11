@@ -1,10 +1,8 @@
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
 use response_derive::JsonResponse;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use vercel_runtime::{Body, Response, StatusCode};
-
-use super::probability_rate::BannerType;
 
 #[derive(Debug, Serialize, JsonResponse, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -20,6 +18,22 @@ pub struct Banner {
     pub max_pity: i32,
     pub banner_type: BannerType,
 }
+
+#[derive(Serialize, JsonResponse, Clone, Debug)]
+pub struct BannerList {
+    pub banners: Vec<Banner>,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone)]
+pub enum BannerType {
+    #[serde(rename = "SSR")]
+    Ssr,
+    #[serde(rename = "SR")]
+    Sr,
+    #[serde(rename = "LC")]
+    Lc,
+}
+
 impl Banner {
     pub fn char_ssr() -> Self {
         Self {
@@ -110,18 +124,12 @@ pub struct BannerIternal {
     pub rate: Box<dyn Fn(i32) -> f64>, // (pity: number) => number
 }
 
-#[derive(Serialize, JsonResponse, Clone, Debug)]
-pub struct BannerList {
-    pub banners: Vec<Banner>,
-}
-pub async fn gacha_banner_list() -> Result<Json<BannerList>, WorkerError> {
-    let banner_list = BannerList {
-        banners: vec![
-            Banner::char_ssr(),
-            Banner::basic_weapon(),
-            Banner::char_sr(),
-            // dev_weapon uses unreleased pity systems
-        ],
-    };
-    Ok(Json(banner_list))
+impl BannerType {
+    pub fn const_prefix(&self) -> String {
+        match self {
+            BannerType::Ssr => "Eidolon".into(),
+            BannerType::Sr => "Eidolon".into(),
+            BannerType::Lc => "Superimpose".into(),
+        }
+    }
 }

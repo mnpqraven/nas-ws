@@ -1,66 +1,14 @@
 // hutao bot's calc transpiled to rust
 // https://gist.github.com/Tibowl/7ae7395e000843ad4882030b9c4703b5
 
-use crate::handler::{error::WorkerError, FromAxumResponse};
+use self::types::{ProbabilityRatePayload, ProbabilityRateResponse, ReducedSim, Sim};
+use super::banner::types::{Banner, BannerIternal, BannerType};
+use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
-use response_derive::JsonResponse;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::error;
-use vercel_runtime::{Body, Response, StatusCode};
 
-use super::banner::{Banner, BannerIternal};
-
-#[derive(Debug, Clone)]
-struct Sim {
-    eidolon: i32,
-    rate: f64,
-    pity: i32,
-    guaranteed: bool,
-    guaranteed_pity: i32,
-}
-#[derive(Debug, Serialize, JsonResponse, Clone)]
-pub struct ReducedSim {
-    pub eidolon: i32,
-    pub rate: f64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all(deserialize = "camelCase"))]
-pub struct ProbabilityRatePayload {
-    pub current_eidolon: i32,
-    pub pity: i32,
-    pub pulls: i32,
-    pub next_guaranteed: bool,
-    pub enpitomized_pity: Option<i32>,
-    pub banner: BannerType,
-}
-
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone)]
-pub enum BannerType {
-    #[serde(rename = "SSR")]
-    Ssr,
-    #[serde(rename = "SR")]
-    Sr,
-    #[serde(rename = "LC")]
-    Lc,
-}
-impl BannerType {
-    pub fn const_prefix(&self) -> String {
-        match self {
-            BannerType::Ssr => "Eidolon".into(),
-            BannerType::Sr => "Eidolon".into(),
-            BannerType::Lc => "Superimpose".into(),
-        }
-    }
-}
-
-// master struct
-#[derive(Debug, Serialize, JsonResponse, Clone)]
-pub struct ProbabilityRateResponse {
-    pub roll_budget: i32,
-    pub data: Vec<Vec<ReducedSim>>,
-}
+pub mod types;
 
 pub async fn probability_rate(
     rpayload: Result<Json<ProbabilityRatePayload>, JsonRejection>,
@@ -319,7 +267,7 @@ fn calc_sims_exact(sims: &mut Vec<Sim>, pulls: i32, banner: &BannerIternal) -> V
 #[cfg(test)]
 mod test {
     use super::calc_sims_regular;
-    use crate::routes::honkai::{banner::Banner, probability_rate::pity_rate};
+    use crate::routes::honkai::{banner::types::Banner, probability_rate::pity_rate};
 
     #[test]
     fn test() {

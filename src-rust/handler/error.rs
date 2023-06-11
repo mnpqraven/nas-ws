@@ -9,16 +9,22 @@ use std::fmt::Display;
 pub enum WorkerError {
     // reason text
     ParseData(String),
-    Computation,
+    Computation(ComputationType),
     WrongMethod,
     EmptyBody,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub enum ComputationType {
+    BadDateComparison,
+    BadNumberCast,
 }
 
 impl WorkerError {
     pub fn code(&self) -> StatusCode {
         match self {
             WorkerError::ParseData(_) => StatusCode::BAD_REQUEST,
-            WorkerError::Computation => StatusCode::INTERNAL_SERVER_ERROR,
+            WorkerError::Computation(_) => StatusCode::INTERNAL_SERVER_ERROR,
             WorkerError::EmptyBody => StatusCode::BAD_REQUEST,
             WorkerError::WrongMethod => StatusCode::METHOD_NOT_ALLOWED,
         }
@@ -29,7 +35,13 @@ impl Display for WorkerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let fmt = match self {
             Self::ParseData(reason) => format!("Incorrect Data\nReason: {}", reason),
-            Self::Computation => "Computation error from the server".to_owned(),
+            Self::Computation(comp_type) => match comp_type {
+                ComputationType::BadDateComparison => {
+                    "Bad date comparison, past date cannot be greater future date".to_owned()
+                }
+                // ComputationType::BadNumberCast => todo!(),
+                _ => "Computation error from the server".to_owned(),
+            },
             Self::WrongMethod => "Method is not supported".to_owned(),
             Self::EmptyBody => "Missing body data".to_owned(),
         };

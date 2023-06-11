@@ -117,7 +117,7 @@ impl RewardSourceType {
 
         // TODO: unit test all of these
         match self {
-            RewardSourceType::Daily => Self::get_date_diff(from_date, to_date, server),
+            RewardSourceType::Daily => Self::get_date_diff(from_date, to_date),
             RewardSourceType::Weekly => Self::get_week_diff(from_date, to_date, server),
             RewardSourceType::BiWeekly => Self::get_biweek_diff(from_date, to_date, server),
             RewardSourceType::Monthly => Self::get_month_diff(from_date, to_date),
@@ -127,16 +127,12 @@ impl RewardSourceType {
         }
     }
 
-    fn get_date_diff(
-        from_date: DateTime<Utc>,
-        to_date: DateTime<Utc>,
-        server: &Server,
-    ) -> Result<u32, WorkerError> {
+    fn get_date_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> Result<u32, WorkerError> {
         if from_date > to_date {
             return Err(WorkerError::Computation(ComputationType::BadDateComparison));
         }
         let mut diff_days = 0;
-        DateRange(today_right_after_reset(&from_date, server), to_date).for_each(|_| {
+        DateRange(from_date, to_date).for_each(|_| {
             diff_days += 1;
         });
         Ok(diff_days)

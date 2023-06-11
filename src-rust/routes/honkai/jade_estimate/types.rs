@@ -1,6 +1,9 @@
 use super::get_date_differences;
 use crate::{
-    handler::{error::WorkerError, FromAxumResponse},
+    handler::{
+        error::{ComputationType, WorkerError},
+        FromAxumResponse,
+    },
     routes::honkai::{patch::types::Patch, utils::helpers::get_next_monday},
 };
 use axum::Json;
@@ -43,7 +46,7 @@ pub enum EqTier {
 
 impl EqTier {
     #[allow(dead_code)]
-    fn from_level(level: i32) -> Result<EqTier, WorkerError> {
+    fn from_level(level: u32) -> Result<EqTier, WorkerError> {
         match level {
             0..=19 => Ok(EqTier::Zero),
             20..=29 => Ok(EqTier::One),
@@ -110,37 +113,58 @@ impl RewardSourceType {
         from_date: DateTime<Utc>,
         to_date: DateTime<Utc>,
         server: &Server,
-    ) -> u32 {
+    ) -> Result<u32, WorkerError> {
         match self {
             RewardSourceType::Daily => Self::get_date_diff(from_date, to_date, server),
             RewardSourceType::Weekly => Self::get_week_diff(from_date, to_date, server),
             RewardSourceType::BiWeekly => Self::get_biweek_diff(from_date, to_date, server),
             RewardSourceType::Monthly => Self::get_month_diff(from_date, to_date),
-            RewardSourceType::WholePatch => Self::get_patch_diff(from_date, to_date),
-            RewardSourceType::HalfPatch => Self::get_half_patch_diff(from_date, to_date, server),
-            RewardSourceType::OneTime => 1,
+            RewardSourceType::WholePatch => Patch::patch_passed_diff(from_date, to_date),
+            RewardSourceType::HalfPatch => Patch::half_patch_passed_diff(from_date, to_date),
+            RewardSourceType::OneTime => Ok(1),
         }
     }
 
-    fn get_date_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>, server: &Server) -> u32 {
+    fn get_date_diff(
+        from_date: DateTime<Utc>,
+        to_date: DateTime<Utc>,
+        server: &Server,
+    ) -> Result<u32, WorkerError> {
+        if from_date > to_date {
+            return Err(WorkerError::Computation(ComputationType::BadDateComparison));
+        }
         let mut diff_days = 0;
         DateRange(today_right_after_reset(&from_date, server), to_date).for_each(|_| {
             diff_days += 1;
         });
-        diff_days
+        Ok(diff_days)
     }
 
-    fn get_week_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>, server: &Server) -> u32 {
+    fn get_week_diff(
+        from_date: DateTime<Utc>,
+        to_date: DateTime<Utc>,
+        server: &Server,
+    ) -> Result<u32, WorkerError> {
+        if from_date > to_date {
+            return Err(WorkerError::Computation(ComputationType::BadDateComparison));
+        }
         let mut diff_weeks = 0;
         DateRange(today_right_after_reset(&from_date, server), to_date).for_each(|date| {
             if date.weekday() == Weekday::Mon {
                 diff_weeks += 1;
             }
         });
-        diff_weeks
+        Ok(diff_weeks)
     }
 
-    fn get_biweek_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>, server: &Server) -> u32 {
+    fn get_biweek_diff(
+        from_date: DateTime<Utc>,
+        to_date: DateTime<Utc>,
+        server: &Server,
+    ) -> Result<u32, WorkerError> {
+        if from_date > to_date {
+            return Err(WorkerError::Computation(ComputationType::BadDateComparison));
+        }
         let base_moc_time = Utc.with_ymd_and_hms(2023, 5, 29, 19, 0, 0).unwrap();
         let base_moc = today_at_reset(&base_moc_time, server);
 
@@ -179,12 +203,18 @@ impl RewardSourceType {
 
         // in the same week
         match next_biweekly_start < from_date && to_date < last_biweekly_start {
-            true => 0,
-            false => diff_biweeks,
+            true => Ok(0),
+            false => Ok(diff_biweeks),
         }
     }
 
-    pub fn get_month_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> u32 {
+    pub fn get_month_diff(
+        from_date: DateTime<Utc>,
+        to_date: DateTime<Utc>,
+    ) -> Result<u32, WorkerError> {
+        if from_date > to_date {
+            return Err(WorkerError::Computation(ComputationType::BadDateComparison));
+        }
         let mut amount = 0;
         // padding 1 for first day of the month
         for date in DateRange(from_date, to_date + Duration::days(1)) {
@@ -192,58 +222,15 @@ impl RewardSourceType {
                 amount += 1;
             }
         }
-        amount
-    }
-
-    pub fn get_patch_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> u32 {
-        let mut amount = 0;
-        let (patch_start, _, mut patch_end) = Patch::get_patch_boundaries(from_date);
-        while to_date > patch_end {
-            if from_date > patch_start {
-                amount += 1;
-                patch_end += Duration::weeks(6)
-            }
-        }
-        amount
-    }
-
-    pub fn get_half_patch_diff(
-        from_date: DateTime<Utc>,
-        to_date: DateTime<Utc>,
-        _server: &Server,
-    ) -> u32 {
-        let mut diff_banners = 0;
-        let mut patch_at_from = Patch::base();
-        let mut patch_at_to = Patch::base();
-        // update patch to correctly wrap around from and to date
-        while !patch_at_from.contains(from_date) {
-            patch_at_from.next()
-        }
-        while !patch_at_to.contains(to_date) {
-            patch_at_to.next()
-        }
-
-        // next biweekly start after from_date
-        let mut next_banner_start = patch_at_from.date_start;
-        let mut last_banner_start = patch_at_to.date_start + Duration::weeks(3);
-        while next_banner_start < from_date {
-            next_banner_start += Duration::weeks(3);
-            last_banner_start += Duration::weeks(3);
-        }
-        // dbg!(next_banner_start,last_banner_start);
-        while next_banner_start < to_date && to_date <= last_banner_start {
-            diff_banners += 1;
-            next_banner_start += Duration::weeks(3)
-        }
-
-        diff_banners
+        Ok(amount)
     }
 }
 
 impl From<EstimateCfg> for JadeEstimateResponse {
     fn from(cfg: EstimateCfg) -> Self {
-        let rewards = RewardSource::compile_sources(&cfg);
-        let (diff_days, _) = get_date_differences(&cfg.server, cfg.to_date_time());
+        // TODO: RESOLVE UNSAFE UNWRAP
+        let rewards = RewardSource::compile_sources(&cfg).unwrap();
+        let (diff_days, _) = get_date_differences(&cfg.server, cfg.get_until_date());
 
         let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
         let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
@@ -267,8 +254,9 @@ impl From<EstimateCfg> for JadeEstimateResponse {
 
 impl JadeEstimateResponse {
     pub fn from_cfg(cfg: EstimateCfg) -> Self {
-        let rewards = RewardSource::compile_sources(&cfg);
-        let (diff_days, _) = get_date_differences(&cfg.server, cfg.to_date_time());
+        // TODO: RESOLVE UNSAFE UNWRAP
+        let rewards = RewardSource::compile_sources(&cfg).unwrap();
+        let (diff_days, _) = get_date_differences(&cfg.server, cfg.get_until_date());
 
         let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
         let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
@@ -347,9 +335,9 @@ pub fn today_at_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
 }
 
 impl RewardSource {
-    fn compile_sources(cfg: &EstimateCfg) -> Vec<Self> {
-        let dt_to = cfg.to_date_time();
-        let diff_days = RewardSourceType::Daily.get_difference(Utc::now(), dt_to, &cfg.server);
+    pub fn compile_sources(cfg: &EstimateCfg) -> Result<Vec<Self>, WorkerError> {
+        let dt_to = cfg.get_until_date();
+        let diff_days = RewardSourceType::Daily.get_difference(Utc::now(), dt_to, &cfg.server)?;
 
         let src_su = Self::src_su(&cfg.eq, dt_to);
         let src_bp = Self::src_bp(cfg.battle_pass, dt_to, &cfg.server);
@@ -357,11 +345,11 @@ impl RewardSource {
         let src_daily_mission = Self::src_daily_mission(diff_days);
         let src_daily_text = Self::src_daily_text(diff_days);
         let src_hoyolab_checkin = Self::src_hoyolab_checkin(dt_to);
-        let src_moc = Self::src_moc(cfg.moc, dt_to, &cfg.server);
-        let src_char_trial = Self::src_char_trial(dt_to, &cfg.server);
-        let src_ember_trade = Self::src_ember_trade(dt_to, &cfg.server);
+        let src_moc = Self::src_moc(cfg.moc, dt_to, &cfg.server)?;
+        let src_char_trial = Self::src_char_trial(dt_to, &cfg.server)?;
+        let src_ember_trade = Self::src_ember_trade(dt_to, &cfg.server)?;
 
-        vec![
+        Ok(vec![
             src_su,
             src_bp,
             src_rail_pass,
@@ -371,7 +359,7 @@ impl RewardSource {
             src_moc,
             src_char_trial,
             src_ember_trade,
-        ]
+        ])
     }
 
     fn src_bp(bp_config: BattlePassOption, dt_to: DateTime<Utc>, server: &Server) -> Self {
@@ -514,39 +502,43 @@ impl RewardSource {
         }
     }
 
-    fn src_char_trial(until_date: DateTime<Utc>, server: &Server) -> Self {
+    fn src_char_trial(until_date: DateTime<Utc>, server: &Server) -> Result<Self, WorkerError> {
         let freq = RewardSourceType::HalfPatch;
-        let amount = freq.get_difference(Utc::now(), until_date, server) as i32;
-        Self {
+        let amount = freq.get_difference(Utc::now(), until_date, server)? as i32;
+        Ok(Self {
             source: "Character Trials".into(),
             jades_amount: Some(20 * amount),
             rolls_amount: None,
             source_type: RewardSourceType::HalfPatch,
-        }
+        })
     }
 
-    fn src_ember_trade(until_date: DateTime<Utc>, server: &Server) -> Self {
+    fn src_ember_trade(until_date: DateTime<Utc>, server: &Server) -> Result<Self, WorkerError> {
         let freq = RewardSourceType::Monthly;
-        let amount = 5 * freq.get_difference(Utc::now(), until_date, server) as i32;
-        Self {
+        let amount = 5 * freq.get_difference(Utc::now(), until_date, server)? as i32;
+        Ok(Self {
             source: "Monthly ember exchange".into(),
             jades_amount: None,
             rolls_amount: Some(amount),
             source_type: freq,
-        }
+        })
     }
 
-    fn src_moc(stars: u32, until_date: DateTime<Utc>, server: &Server) -> Self {
+    fn src_moc(
+        stars: u32,
+        until_date: DateTime<Utc>,
+        server: &Server,
+    ) -> Result<Self, WorkerError> {
         let freq = RewardSourceType::BiWeekly;
-        let diffs = freq.get_difference(Utc::now(), until_date, server);
+        let diffs = freq.get_difference(Utc::now(), until_date, server)?;
         let amount: i32 = ((stars / 3) * 60 * diffs).try_into().unwrap();
         debug!(diffs, amount);
-        Self {
+        Ok(Self {
             source: "Memory of chaos".into(),
             jades_amount: Some(amount),
             rolls_amount: None,
             source_type: RewardSourceType::BiWeekly,
-        }
+        })
     }
 }
 
@@ -571,7 +563,7 @@ impl Iterator for DateRange {
 }
 
 impl EstimateCfg {
-    pub fn to_date_time(&self) -> DateTime<Utc> {
+    pub fn get_until_date(&self) -> DateTime<Utc> {
         let SimpleDate { day, month, year } = self.until_date;
         match self.server {
             Server::Asia => Utc.with_ymd_and_hms(year as i32, month, day, 19, 0, 0),
@@ -592,7 +584,8 @@ mod tests {
     fn biweek() {
         let from = Utc::now();
         let diff_biweeks =
-            RewardSourceType::get_biweek_diff(from, from + Duration::days(39), &Server::America);
+            RewardSourceType::get_biweek_diff(from, from + Duration::days(39), &Server::America)
+                .unwrap();
         println!("{}", diff_biweeks);
     }
 }

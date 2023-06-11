@@ -1,4 +1,4 @@
-use self::types::{DateRange, EstimateCfg, JadeEstimateResponse, Server};
+use self::types::{DateRange, EstimateCfg, JadeEstimateResponse, RewardSource, Server};
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
@@ -9,10 +9,29 @@ pub mod types;
 pub async fn jade_estimate(
     rpayload: Result<Json<EstimateCfg>, JsonRejection>,
 ) -> Result<Json<JadeEstimateResponse>, WorkerError> {
-    // std::thread::sleep(std::time::Duration::from_secs(5));
     if let Ok(Json(payload)) = rpayload {
-        // TODO: revert into trait, too many indirections
-        Ok(Json(payload.into()))
+        let rewards = RewardSource::compile_sources(&payload).unwrap();
+        let (diff_days, _) = get_date_differences(&payload.server, payload.get_until_date());
+
+        let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
+        let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
+
+        if let Some(current_jades) = payload.current_jades {
+            total_jades += current_jades;
+        }
+        let mut total_rolls = (total_jades / 160) + reward_rolls;
+        if let Some(current_rolls) = payload.current_rolls {
+            total_rolls += current_rolls;
+        }
+
+        let response = JadeEstimateResponse {
+            total_jades,
+            rolls: total_rolls,
+            days: diff_days.try_into().unwrap(),
+            sources: rewards,
+        };
+
+        Ok(Json(response))
     } else {
         let err = rpayload.unwrap_err();
         error!("{}", err.body_text());
@@ -23,8 +42,11 @@ pub async fn jade_estimate(
 /// Get a difference in days and weeks between 2 dates
 ///
 /// WARN: TESTING IS NEEDED FOR WEEK DIFF
+/// TODO: diffing test with RewardSourceType ::Daily.get_difference() and
+/// safely remove this
 ///
-/// returns a tuple of differences in days and weeks, week diff is always rounded up (e.g a difference of 17-18 days would equate to 3 weeks)
+/// returns a tuple of differences in days and weeks, week diff is always
+/// rounded up (e.g a difference of 17-18 days would equate to 3 weeks)
 pub fn get_date_differences(server: &Server, to_date: DateTime<Utc>) -> (u32, i64) {
     // BUG: querying (when late at night/less than 24 hours until the next
     // reset) next day will give a diff day of 0 but we should still receive

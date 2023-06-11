@@ -1,4 +1,7 @@
-use crate::handler::{error::WorkerError, FromAxumResponse};
+use crate::handler::{
+    error::{ComputationType, WorkerError},
+    FromAxumResponse,
+};
 use axum::Json;
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use response_derive::JsonResponse;
@@ -7,6 +10,7 @@ use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Patch's time will always have a 02:00:00 UTC date
 pub struct Patch {
     pub name: String,
     pub version: String,
@@ -20,6 +24,8 @@ pub struct PatchList {
 
 impl Patch {
     const BASE_1_1: (i32, u32, u32, u32, u32, u32) = (2023, 6, 7, 2, 0, 0);
+
+    // TODO: test
     pub fn base() -> Self {
         let (year, month, day, hour, min, sec) = Self::BASE_1_1;
         let start_date = Utc
@@ -29,6 +35,7 @@ impl Patch {
     }
 
     /// get the current patch
+    // TODO: test
     pub fn current() -> Self {
         let mut base = Self::base();
         base.name = String::new();
@@ -39,11 +46,24 @@ impl Patch {
         base
     }
 
-    /// Get the start, middle, end date of a patch
+    /// get the start date of the 1st banner middle and
+    /// the end date of a patch
+    // TODO: test
+    pub fn get_boundaries(&self) -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
+        (
+            self.date_start,
+            self.date_start + Duration::weeks(3),
+            self.date_end,
+        )
+    }
+
+    /// get the start date of the 1st banner middle and
+    /// the end date of a patch
+    // TODO: test
     pub fn get_patch_boundaries(
         current_date: DateTime<Utc>,
     ) -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
-        let base_1_1 = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();
+        let base_1_1 = Self::base().date_start;
         let (mut l_bound, mut m_bound, mut r_bound) = (
             base_1_1,
             base_1_1 + Duration::weeks(3),
@@ -68,6 +88,8 @@ impl Patch {
         self.date_end += Duration::weeks(6);
     }
 
+    /// Creates a patch
+    /// WARNING: exact hour and min, sec needed
     pub fn new(
         name: impl Into<String>,
         version: impl Into<String>,
@@ -80,6 +102,57 @@ impl Patch {
             date_start: start_date,
             date_end: end_date,
         }
+    }
+
+    /// Creates a patch around the specified date
+    pub fn new_around(date: DateTime<Utc>) -> Self {
+        let mut patch = Self::base();
+        while patch.date_end < date {
+            patch.next()
+        }
+        patch
+    }
+
+    pub fn patch_passed_diff(
+        from_date: DateTime<Utc>,
+        to_date: DateTime<Utc>,
+    ) -> Result<u32, WorkerError> {
+        if from_date > to_date {
+            return Err(WorkerError::Computation(ComputationType::BadDateComparison));
+        }
+
+        // get next bp start date (next patch)
+        let mut next_patch = Patch::new_around(from_date);
+        next_patch.next();
+
+        let mut amount: u32 = 0;
+        while next_patch.date_start < to_date {
+            amount += 1;
+            next_patch.next()
+        }
+        Ok(amount)
+    }
+
+    /// get the amount of half-patch (3 weeks) spans that passed between 2 dates
+    pub fn half_patch_passed_diff(
+        from_date: DateTime<Utc>,
+        to_date: DateTime<Utc>,
+    ) -> Result<u32, WorkerError> {
+        if from_date > to_date {
+            return Err(WorkerError::Computation(ComputationType::BadDateComparison));
+        }
+        let (l, m, r) = Patch::current().get_boundaries();
+        let mut next_banner_date = match true {
+            true if l <= from_date && from_date < m => m,
+            true if m <= from_date && from_date < r => r,
+            _ => r + Duration::weeks(3),
+        };
+        let mut amount = 0;
+        while next_banner_date < to_date {
+            amount += 1;
+            next_banner_date += Duration::weeks(3);
+        }
+        Ok(amount)
     }
 }
 
@@ -102,19 +175,35 @@ impl PatchList {
             false => Self { patches: res },
         }
     }
+}
 
-    pub fn patches_passed_number(to_date: DateTime<Utc>) -> u32 {
-        let mut next_bp_start = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();
-        // get next bp start date (next patch)
-        while Utc::now() > next_bp_start {
-            next_bp_start += Duration::weeks(6);
-        }
+#[cfg(test)]
+mod tests {
+    use chrono::{TimeZone, Utc};
 
-        let mut amount: u32 = 0;
-        while next_bp_start < to_date {
-            amount += 1;
-            next_bp_start += Duration::weeks(6);
-        }
-        amount
+    use crate::routes::honkai::patch::types::Patch;
+
+    #[test]
+    fn boundaries() {
+        let today = Utc.with_ymd_and_hms(2023, 6, 30, 1, 9, 48).unwrap();
+
+        let within_patch = Utc.with_ymd_and_hms(2023, 7, 10, 1, 9, 48).unwrap();
+        let next_patch = Utc.with_ymd_and_hms(2023, 7, 22, 1, 9, 48).unwrap();
+
+        assert_eq!(Patch::patch_passed_diff(today, within_patch).unwrap(), 0);
+        assert_eq!(Patch::patch_passed_diff(today, next_patch).unwrap(), 1);
+    }
+
+    #[test]
+    fn half_patch_diffing() {
+        let today = Utc.with_ymd_and_hms(2023, 6, 11, 1, 9, 48).unwrap();
+        let next_patch = Utc.with_ymd_and_hms(2023, 8, 18, 1, 9, 48).unwrap();
+        let next_patch2 = Utc.with_ymd_and_hms(2023, 8, 14, 1, 9, 48).unwrap();
+
+        assert_eq!(Patch::half_patch_passed_diff(today, next_patch).unwrap(), 3);
+        assert_eq!(
+            Patch::half_patch_passed_diff(today, next_patch2).unwrap(),
+            3
+        );
     }
 }

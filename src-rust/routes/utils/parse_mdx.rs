@@ -20,10 +20,12 @@ pub async fn parse_mdx(
 
 fn parse_with_decoder(decoder: Decoder, data: String) -> Result<DecodedDataForm, WorkerError> {
     match decoder {
-        Decoder::RawString => Err(WorkerError::Computation),
+        Decoder::RawString => Err(WorkerError::ParseData(
+            "Raw string decoder not yet implemented".into(),
+        )),
         Decoder::Base64 => {
             let Ok(stream) = engine::general_purpose::STANDARD.decode(data) else {
-                return Err(WorkerError::Computation);
+                return Err(WorkerError::ParseData("decoding data failed".into()));
             };
             let Ok(content_chunk) = String::from_utf8(stream) else {
                 return Err(WorkerError::ParseData("Decoding data failed".to_owned()));

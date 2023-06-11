@@ -3,7 +3,6 @@ use axum::Json;
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use response_derive::JsonResponse;
 use serde::Serialize;
-use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Serialize, Clone, Debug)]
@@ -69,7 +68,11 @@ impl Patch {
         self.date_end += Duration::weeks(6);
     }
 
-    fn new(name: impl Into<String>, version: impl Into<String>, start_date: DateTime<Utc>) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        version: impl Into<String>,
+        start_date: DateTime<Utc>,
+    ) -> Self {
         let end_date = start_date + Duration::weeks(6);
         Self {
             name: name.into(),
@@ -81,9 +84,9 @@ impl Patch {
 }
 
 // name and version in Patch
-struct PatchInfo(String, String);
+pub struct PatchInfo(pub String, pub String);
 impl PatchList {
-    fn calculate_from_base(base_version: Patch, future_patches: Vec<PatchInfo>) -> Self {
+    pub fn calculate_from_base(base_version: Patch, future_patches: Vec<PatchInfo>) -> Self {
         let mut res: Vec<Patch> = vec![base_version.clone()];
         let mut next_start_date = base_version.date_end;
         for PatchInfo(name, version) in future_patches.iter() {
@@ -114,19 +117,4 @@ impl PatchList {
         }
         amount
     }
-}
-
-pub async fn list_future_patch_date() -> Result<Json<PatchList>, WorkerError> {
-    let dt_1_1 = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();
-    let patch_1_1 = Patch::new("Galatic Roaming", "1.1", dt_1_1);
-
-    let patches: Vec<PatchInfo> = vec![
-        PatchInfo("Patch 1.2".into(), "1.2".into()),
-        PatchInfo("Patch 1.3".into(), "1.3".into()),
-        PatchInfo("Patch 1.4".into(), "1.4".into()),
-    ];
-
-    let future_patches = PatchList::calculate_from_base(patch_1_1, patches);
-    debug!("{:?}", future_patches);
-    Ok(Json(future_patches))
 }

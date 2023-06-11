@@ -1,15 +1,17 @@
-use crate::{handler::error::WorkerError, routes::honkai::types::Server};
+use self::types::{DateRange, EstimateCfg, JadeEstimateResponse, Server};
+use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
 use tracing::error;
 
-use super::types::{DateRange, EstimateCfg, JadeEstimateResponse};
+pub mod types;
 
 pub async fn jade_estimate(
     rpayload: Result<Json<EstimateCfg>, JsonRejection>,
 ) -> Result<Json<JadeEstimateResponse>, WorkerError> {
     // std::thread::sleep(std::time::Duration::from_secs(5));
     if let Ok(Json(payload)) = rpayload {
+        // TODO: revert into trait, too many indirections
         Ok(Json(payload.into()))
     } else {
         let err = rpayload.unwrap_err();

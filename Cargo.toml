@@ -28,10 +28,6 @@ chrono = { version = "0.4.24", features = ["serde"] }
 name = "nas-ws"
 path = "src-rust/bin.rs"
 
-[[bin]]
-name = "dev"
-path = "src-rust/dev.rs"
-
 [lib]
 path = "src-rust/lib.rs"
 

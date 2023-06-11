@@ -1,48 +1,14 @@
-use super::{
-    jade_estimate::get_date_differences,
-    utils::{helpers::get_next_monday, patch_date::Patch},
+use super::get_date_differences;
+use crate::{
+    handler::{error::WorkerError, FromAxumResponse},
+    routes::honkai::{patch::types::Patch, utils::helpers::get_next_monday},
 };
-use crate::handler::error::WorkerError;
-use crate::handler::FromAxumResponse;
 use axum::Json;
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
-
-#[derive(Serialize, Deserialize, JsonResponse, Clone)]
-pub struct JadeEstimateResponse {
-    pub sources: Vec<RewardSource>,
-    pub total_jades: i32,
-    pub rolls: i32,
-    pub days: i64,
-}
-
-impl From<EstimateCfg> for JadeEstimateResponse {
-    fn from(cfg: EstimateCfg) -> Self {
-        let rewards = RewardSource::compile_sources(&cfg);
-        let (diff_days, _) = get_date_differences(&cfg.server, cfg.to_date_time());
-
-        let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
-        let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
-
-        if let Some(current_jades) = cfg.current_jades {
-            total_jades += current_jades;
-        }
-        let mut total_rolls = (total_jades / 160) + reward_rolls;
-        if let Some(current_rolls) = cfg.current_rolls {
-            total_rolls += current_rolls;
-        }
-
-        Self {
-            total_jades,
-            rolls: total_rolls,
-            days: diff_days.try_into().unwrap(),
-            sources: rewards,
-        }
-    }
-}
 
 #[derive(Deserialize, Clone, Debug)]
 #[serde(rename_all(deserialize = "camelCase"))]
@@ -56,12 +22,51 @@ pub struct EstimateCfg {
     pub current_rolls: Option<i32>,
     pub current_jades: Option<i32>,
 }
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct SimpleDate {
+    pub day: u32,
+    pub month: u32,
+    pub year: u32,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub enum EqTier {
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+}
+
+impl EqTier {
+    #[allow(dead_code)]
+    fn from_level(level: i32) -> Result<EqTier, WorkerError> {
+        match level {
+            0..=19 => Ok(EqTier::Zero),
+            20..=29 => Ok(EqTier::One),
+            30..=39 => Ok(EqTier::Two),
+            40..=49 => Ok(EqTier::Three),
+            50..=59 => Ok(EqTier::Four),
+            60..=64 => Ok(EqTier::Five),
+            x if x >= 65 => Ok(EqTier::Six),
+            _ => Err(WorkerError::ParseData(format!(
+                "{} is not a valid level value",
+                level
+            ))),
+        }
+    }
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub enum Server {
     Asia,
     America,
     Europe,
 }
+
 impl Server {
     pub fn get_utc_reset_hour(&self) -> u32 {
         match self {
@@ -70,6 +75,14 @@ impl Server {
             Server::Europe => 12,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, JsonResponse, Clone)]
+pub struct JadeEstimateResponse {
+    pub sources: Vec<RewardSource>,
+    pub total_jades: i32,
+    pub rolls: i32,
+    pub days: i64,
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
@@ -105,7 +118,7 @@ impl RewardSourceType {
             RewardSourceType::Monthly => Self::get_month_diff(from_date, to_date),
             RewardSourceType::WholePatch => Self::get_patch_diff(from_date, to_date),
             RewardSourceType::HalfPatch => Self::get_half_patch_diff(from_date, to_date, server),
-            RewardSourceType::OneTime => todo!(),
+            RewardSourceType::OneTime => 1,
         }
     }
 
@@ -227,6 +240,76 @@ impl RewardSourceType {
     }
 }
 
+impl From<EstimateCfg> for JadeEstimateResponse {
+    fn from(cfg: EstimateCfg) -> Self {
+        let rewards = RewardSource::compile_sources(&cfg);
+        let (diff_days, _) = get_date_differences(&cfg.server, cfg.to_date_time());
+
+        let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
+        let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
+
+        if let Some(current_jades) = cfg.current_jades {
+            total_jades += current_jades;
+        }
+        let mut total_rolls = (total_jades / 160) + reward_rolls;
+        if let Some(current_rolls) = cfg.current_rolls {
+            total_rolls += current_rolls;
+        }
+
+        Self {
+            total_jades,
+            rolls: total_rolls,
+            days: diff_days.try_into().unwrap(),
+            sources: rewards,
+        }
+    }
+}
+
+impl JadeEstimateResponse {
+    pub fn from_cfg(cfg: EstimateCfg) -> Self {
+        let rewards = RewardSource::compile_sources(&cfg);
+        let (diff_days, _) = get_date_differences(&cfg.server, cfg.to_date_time());
+
+        let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
+        let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
+
+        if let Some(current_jades) = cfg.current_jades {
+            total_jades += current_jades;
+        }
+        let mut total_rolls = (total_jades / 160) + reward_rolls;
+        if let Some(current_rolls) = cfg.current_rolls {
+            total_rolls += current_rolls;
+        }
+
+        Self {
+            total_jades,
+            rolls: total_rolls,
+            days: diff_days.try_into().unwrap(),
+            sources: rewards,
+        }
+    }
+}
+
+#[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all(deserialize = "camelCase"))]
+pub struct RailPassCfg {
+    pub use_rail_pass: bool,
+    pub days_left: Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
+pub struct BattlePassOption {
+    battle_pass_type: BattlePassType,
+    current_level: u32,
+}
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+pub enum BattlePassType {
+    None,
+    Basic,
+    Premium,
+}
+
 pub fn today_right_after_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
     let mut res = Utc
         .with_ymd_and_hms(
@@ -261,19 +344,6 @@ pub fn today_at_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
         res -= Duration::days(1);
     }
     res
-}
-
-#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy)]
-#[serde(rename_all = "camelCase")]
-pub struct BattlePassOption {
-    battle_pass_type: BattlePassType,
-    current_level: u32,
-}
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-pub enum BattlePassType {
-    None,
-    Basic,
-    Premium,
 }
 
 impl RewardSource {
@@ -480,79 +550,10 @@ impl RewardSource {
     }
 }
 
-#[derive(Deserialize, Clone, Debug)]
-#[serde(rename_all(deserialize = "camelCase"))]
-pub struct RailPassCfg {
-    pub use_rail_pass: bool,
-    pub days_left: Option<u32>,
-}
-
-#[derive(Deserialize, Clone, Debug)]
-pub struct SimpleDate {
-    pub day: u32,
-    pub month: u32,
-    pub year: u32,
-}
-
-#[derive(Deserialize, Clone, Debug)]
-pub enum EqTier {
-    Zero,
-    One,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-}
-
-impl EqTier {
-    #[allow(dead_code)]
-    fn from_level(level: i32) -> Result<EqTier, WorkerError> {
-        match level {
-            0..=19 => Ok(EqTier::Zero),
-            20..=29 => Ok(EqTier::One),
-            30..=39 => Ok(EqTier::Two),
-            40..=49 => Ok(EqTier::Three),
-            50..=59 => Ok(EqTier::Four),
-            60..=64 => Ok(EqTier::Five),
-            x if x >= 65 => Ok(EqTier::Six),
-            _ => Err(WorkerError::ParseData(format!(
-                "{} is not a valid level value",
-                level
-            ))),
-        }
-    }
-}
-
 #[derive(Debug, Deserialize)]
 pub struct Pull {
     pub draw_number: u32,
     pub rate: f32,
-}
-
-impl JadeEstimateResponse {
-    pub fn from_cfg(cfg: EstimateCfg) -> Self {
-        let rewards = RewardSource::compile_sources(&cfg);
-        let (diff_days, _) = get_date_differences(&cfg.server, cfg.to_date_time());
-
-        let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
-        let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
-
-        if let Some(current_jades) = cfg.current_jades {
-            total_jades += current_jades;
-        }
-        let mut total_rolls = (total_jades / 160) + reward_rolls;
-        if let Some(current_rolls) = cfg.current_rolls {
-            total_rolls += current_rolls;
-        }
-
-        Self {
-            total_jades,
-            rolls: total_rolls,
-            days: diff_days.try_into().unwrap(),
-            sources: rewards,
-        }
-    }
 }
 
 pub struct DateRange(pub DateTime<Utc>, pub DateTime<Utc>);

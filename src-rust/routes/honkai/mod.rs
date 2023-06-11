@@ -2,14 +2,14 @@ pub mod banner;
 // pub mod constants;
 pub mod jade_estimate;
 pub mod probability_rate;
-pub mod types;
+pub mod patch;
 pub mod utils;
 
 use axum::{routing::get, Router};
 
 use self::{
-    banner::gacha_banner_list, jade_estimate::jade_estimate, probability_rate::probability_rate,
-    utils::patch_date::list_future_patch_date,
+    banner::gacha_banner_list, jade_estimate::jade_estimate, probability_rate::probability_rate, patch::list_future_patch_date,
+
 };
 
 pub fn honkai_routes() -> Router {

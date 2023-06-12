@@ -1,15 +1,13 @@
 pub mod banner;
-// pub mod constants;
 pub mod jade_estimate;
+pub mod mhy_api;
 pub mod patch;
 pub mod probability_rate;
 pub mod utils;
 
-use axum::{routing::get, Router};
-
-use self::{
-    banner::gacha_banner_list, patch::list_future_patch_date, probability_rate::handle,
-};
+use self::{banner::gacha_banner_list, patch::list_future_patch_date};
+use axum::routing::{get, post};
+use axum::Router;
 
 pub fn honkai_routes() -> Router {
     Router::new()
@@ -23,4 +21,5 @@ pub fn honkai_routes() -> Router {
         )
         .route("/list_future_patch_date", get(list_future_patch_date))
         .route("/gacha_banner_list", get(gacha_banner_list))
+        .route("/mhy", post(mhy_api::handle))
 }

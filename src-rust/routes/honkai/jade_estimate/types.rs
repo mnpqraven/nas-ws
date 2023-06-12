@@ -25,6 +25,14 @@ pub struct EstimateCfg {
     pub current_jades: Option<i32>,
 }
 
+#[derive(Serialize, Deserialize, JsonResponse, Clone)]
+pub struct JadeEstimateResponse {
+    pub sources: Vec<RewardSource>,
+    pub total_jades: i32,
+    pub rolls: i32,
+    pub days: i64,
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct SimpleDate {
     pub day: u32,
@@ -80,23 +88,16 @@ impl Server {
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
-pub struct JadeEstimateResponse {
-    pub sources: Vec<RewardSource>,
-    pub total_jades: i32,
-    pub rolls: i32,
-    pub days: i64,
-}
-
-#[derive(Serialize, Deserialize, JsonResponse, Clone)]
 pub struct RewardSource {
     pub source: String,
     pub jades_amount: Option<i32>,
     pub rolls_amount: Option<i32>,
-    pub source_type: RewardSourceType,
+    pub source_type: RewardFrequency,
+    pub description: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone, Copy)]
-pub enum RewardSourceType {
+pub enum RewardFrequency {
     Daily,
     Weekly,
     BiWeekly,
@@ -106,7 +107,7 @@ pub enum RewardSourceType {
     OneTime,
 }
 
-impl RewardSourceType {
+impl RewardFrequency {
     pub fn get_difference(
         &self,
         from_date: DateTime<Utc>,
@@ -117,13 +118,13 @@ impl RewardSourceType {
 
         // TODO: unit test all of these
         match self {
-            RewardSourceType::Daily => Self::get_date_diff(from_date, to_date),
-            RewardSourceType::Weekly => Self::get_week_diff(from_date, to_date, server),
-            RewardSourceType::BiWeekly => Self::get_biweek_diff(from_date, to_date, server),
-            RewardSourceType::Monthly => Self::get_month_diff(from_date, to_date),
-            RewardSourceType::WholePatch => Patch::patch_passed_diff(from_date, to_date),
-            RewardSourceType::HalfPatch => Patch::half_patch_passed_diff(from_date, to_date),
-            RewardSourceType::OneTime => Ok(1),
+            RewardFrequency::Daily => Self::get_date_diff(from_date, to_date),
+            RewardFrequency::Weekly => Self::get_week_diff(from_date, to_date, server),
+            RewardFrequency::BiWeekly => Self::get_biweek_diff(from_date, to_date, server),
+            RewardFrequency::Monthly => Self::get_month_diff(from_date, to_date),
+            RewardFrequency::WholePatch => Patch::patch_passed_diff(from_date, to_date),
+            RewardFrequency::HalfPatch => Patch::half_patch_passed_diff(from_date, to_date),
+            RewardFrequency::OneTime => Ok(1),
         }
     }
 
@@ -292,7 +293,7 @@ pub fn today_at_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
 impl RewardSource {
     pub fn compile_sources(cfg: &EstimateCfg) -> Result<Vec<Self>, WorkerError> {
         let dt_to = cfg.get_until_date();
-        let diff_days = RewardSourceType::Daily.get_difference(Utc::now(), dt_to, &cfg.server)?;
+        let diff_days = RewardFrequency::Daily.get_difference(Utc::now(), dt_to, &cfg.server)?;
 
         let src_su = Self::src_su(&cfg.eq, &cfg.server, dt_to)?;
         let src_bp = Self::src_bp(cfg.battle_pass, dt_to, &cfg.server);
@@ -377,7 +378,8 @@ impl RewardSource {
             source: "Nameless Honor".into(),
             jades_amount: final_jade,
             rolls_amount: final_roll,
-            source_type: RewardSourceType::WholePatch,
+            source_type: RewardFrequency::WholePatch,
+            description: None,
         }
     }
 
@@ -395,12 +397,13 @@ impl RewardSource {
             // WARN: NEEDS CONFIRM
             EqTier::Six => 225,
         };
-        let weeks = RewardSourceType::Weekly.get_difference(Utc::now(), until_date, server)?;
+        let weeks = RewardFrequency::Weekly.get_difference(Utc::now(), until_date, server)?;
         Ok(Self {
             source: "Simulated Universe".into(),
             jades_amount: Some((weeks * per_weeks).try_into().unwrap()),
             rolls_amount: None,
-            source_type: RewardSourceType::Weekly,
+            source_type: RewardFrequency::Weekly,
+            description: None,
         })
     }
 
@@ -410,7 +413,8 @@ impl RewardSource {
             source: "Daily missions".into(),
             jades_amount: Some(jades),
             rolls_amount: None,
-            source_type: RewardSourceType::Daily,
+            source_type: RewardFrequency::Daily,
+            description: None,
         }
     }
 
@@ -420,7 +424,8 @@ impl RewardSource {
             source: "Daily text messages".into(),
             jades_amount: Some(jades),
             rolls_amount: None,
-            source_type: RewardSourceType::Daily,
+            source_type: RewardFrequency::Daily,
+            description: Some("These text messeages are limited, you can run out of messages and you might get less in-game.".into())
         }
     }
 
@@ -437,7 +442,8 @@ impl RewardSource {
             source: "Rail Pass".into(),
             jades_amount: Some(jades),
             rolls_amount: None,
-            source_type: RewardSourceType::Monthly,
+            source_type: RewardFrequency::Monthly,
+            description: None,
         }
     }
 
@@ -452,29 +458,34 @@ impl RewardSource {
             source: "HoyoLab Check-in".into(),
             jades_amount: Some(amount),
             rolls_amount: None,
-            source_type: RewardSourceType::Monthly,
+            source_type: RewardFrequency::Monthly,
+            description: Some(
+                "20 jades are distributed at the 5th, 13th and 20th every month.".into(),
+            ),
         }
     }
 
     fn src_char_trial(until_date: DateTime<Utc>, server: &Server) -> Result<Self, WorkerError> {
-        let freq = RewardSourceType::HalfPatch;
+        let freq = RewardFrequency::HalfPatch;
         let amount = freq.get_difference(Utc::now(), until_date, server)? as i32;
         Ok(Self {
             source: "Character Trials".into(),
             jades_amount: Some(20 * amount),
             rolls_amount: None,
-            source_type: RewardSourceType::HalfPatch,
+            source_type: RewardFrequency::HalfPatch,
+            description: None,
         })
     }
 
     fn src_ember_trade(until_date: DateTime<Utc>, server: &Server) -> Result<Self, WorkerError> {
-        let freq = RewardSourceType::Monthly;
+        let freq = RewardFrequency::Monthly;
         let amount = 5 * freq.get_difference(Utc::now(), until_date, server)? as i32;
         Ok(Self {
             source: "Monthly ember exchange".into(),
             jades_amount: None,
             rolls_amount: Some(amount),
             source_type: freq,
+            description: None,
         })
     }
 
@@ -483,7 +494,7 @@ impl RewardSource {
         until_date: DateTime<Utc>,
         server: &Server,
     ) -> Result<Self, WorkerError> {
-        let freq = RewardSourceType::BiWeekly;
+        let freq = RewardFrequency::BiWeekly;
         let diffs = freq.get_difference(Utc::now(), until_date, server)?;
         let amount: i32 = ((stars / 3) * 60 * diffs).try_into().unwrap();
         debug!(diffs, amount);
@@ -491,7 +502,8 @@ impl RewardSource {
             source: "Memory of chaos".into(),
             jades_amount: Some(amount),
             rolls_amount: None,
-            source_type: RewardSourceType::BiWeekly,
+            source_type: RewardFrequency::BiWeekly,
+            description: None,
         })
     }
 }
@@ -532,13 +544,13 @@ impl EstimateCfg {
 mod tests {
     use chrono::{Duration, Utc};
 
-    use super::{RewardSourceType, Server};
+    use super::{RewardFrequency, Server};
 
     #[test]
     fn biweek() {
         let from = Utc::now();
         let diff_biweeks =
-            RewardSourceType::get_biweek_diff(from, from + Duration::days(39), &Server::America)
+            RewardFrequency::get_biweek_diff(from, from + Duration::days(39), &Server::America)
                 .unwrap();
         println!("{}", diff_biweeks);
     }

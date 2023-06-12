@@ -5,7 +5,6 @@ use axum::Json;
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use specta::{ts::*, *};
 use vercel_runtime::{Body, Response, StatusCode};
 
 pub mod character;

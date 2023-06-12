@@ -3,7 +3,6 @@ use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
-use specta::{ts::*, *};
 use vercel_runtime::{Body, Response, StatusCode};
 use schemars::JsonSchema;
 

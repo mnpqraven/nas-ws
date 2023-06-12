@@ -25,7 +25,6 @@ csv = "1.2.1"
 chrono = { version = "0.4.24", features = ["serde"] }
 semver = { version = "1.0.17", features = ["serde"] }
 reqwest = { version = "0.11.18", features = ["json"] }
-specta = { version = "1.0.4", features = ["export"] }
 schemars = "0.8.12"
 
 [[bin]]

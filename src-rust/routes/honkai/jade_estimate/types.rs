@@ -8,11 +8,12 @@ use crate::{
 use axum::Json;
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
 use response_derive::JsonResponse;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all(deserialize = "camelCase"))]
 pub struct EstimateCfg {
     pub server: Server,
@@ -33,14 +34,14 @@ pub struct JadeEstimateResponse {
     pub days: i64,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 pub struct SimpleDate {
     pub day: u32,
     pub month: u32,
     pub year: u32,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 pub enum EqTier {
     Zero,
     One,
@@ -70,7 +71,7 @@ impl EqTier {
     }
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 pub enum Server {
     Asia,
     America,
@@ -231,20 +232,20 @@ impl RewardFrequency {
     }
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all(deserialize = "camelCase"))]
 pub struct RailPassCfg {
     pub use_rail_pass: bool,
     pub days_left: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct BattlePassOption {
     battle_pass_type: BattlePassType,
     current_level: u32,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, JsonSchema)]
 pub enum BattlePassType {
     None,
     Basic,

@@ -10,7 +10,7 @@ use tracing::error;
 
 pub mod types;
 
-pub async fn probability_rate(
+pub async fn handle(
     rpayload: Result<Json<ProbabilityRatePayload>, JsonRejection>,
 ) -> Result<Json<ProbabilityRateResponse>, WorkerError> {
     if rpayload.is_err() {

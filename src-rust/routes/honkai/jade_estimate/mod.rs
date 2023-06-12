@@ -8,7 +8,7 @@ use tracing::error;
 mod tests;
 pub mod types;
 
-pub async fn jade_estimate(
+pub async fn handle(
     rpayload: Result<Json<EstimateCfg>, JsonRejection>,
 ) -> Result<Json<JadeEstimateResponse>, WorkerError> {
     if let Ok(Json(payload)) = rpayload {

@@ -1,18 +1,35 @@
-use nas_ws::routes::honkai::{mhy_api::types::MihoResponse, jade_estimate::types::EstimateCfg};
-use schemars::schema_for;
+use nas_ws::routes::honkai::{jade_estimate::types::EstimateCfg, mhy_api::types::MihoResponse};
+use schemars::{schema::RootSchema, schema_for};
+use std::{error::Error, fs, path::Path};
 
-fn main() {
+struct Schema {
+    root: RootSchema,
+    name: String,
+}
+impl Schema {
+    fn new(schema: RootSchema, name: impl Into<String>) -> Self {
+        Self {
+            root: schema,
+            name: name.into(),
+        }
+    }
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
     // ../vercel/jade-tracker-vercel/src/bindings
-    let relative_path = "../vercel/jade-tracker-vercel/.schemas/MihoResponse.json";
-    let relative_path2 = "../vercel/jade-tracker-vercel/.schemas/EstimateCfg.json";
-    std::fs::create_dir_all("../vercel/jade-tracker-vercel/.schemas/").unwrap();
+    let schema_path = Path::new("../vercel/jade-tracker-vercel/.schemas/");
 
-    let schema1 = schema_for!(MihoResponse);
-    let output = serde_json::to_string_pretty(&schema1).unwrap();
+    // create dir if doesn't exist
+    fs::create_dir_all(schema_path).unwrap();
 
-    let schema2 = schema_for!(EstimateCfg);
-    let output2 = serde_json::to_string_pretty(&schema2).unwrap();
+    let type_names = vec![
+        Schema::new(schema_for!(MihoResponse), "MihoResponse"),
+        Schema::new(schema_for!(EstimateCfg), "EstimateCfg"),
+    ];
 
-    std::fs::write(relative_path, output).unwrap();
-    std::fs::write(relative_path2, output2).unwrap();
+    for Schema { root, name } in type_names.into_iter() {
+        let pretty_data = serde_json::to_string_pretty(&root)?;
+        fs::write(schema_path.join(format!("{name}.json")), pretty_data)?;
+    }
+    Ok(())
 }

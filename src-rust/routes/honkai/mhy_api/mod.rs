@@ -13,7 +13,7 @@ pub mod types;
 
 #[derive(Debug, Deserialize)]
 pub struct Payload {
-    id: u32,
+    id: String,
 }
 pub async fn handle(
     rpayload: Result<Json<Payload>, JsonRejection>,

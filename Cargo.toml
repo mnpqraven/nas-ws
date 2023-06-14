@@ -63,5 +63,9 @@ name = "list_future_patch_date"
 path = "api/honkai/list_future_patch_date.rs"
 
 [[bin]]
+name = "list_future_patch_banner"
+path = "api/honkai/list_future_patch_banner.rs"
+
+[[bin]]
 name = "gacha_banner_list"
 path = "api/honkai/gacha_banner_list.rs"

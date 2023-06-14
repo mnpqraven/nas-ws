@@ -16,11 +16,26 @@ pub struct Patch {
     pub name: String,
     pub version: Version,
     pub date_start: DateTime<Utc>,
+    pub date_2nd_banner: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
 }
 #[derive(Serialize, JsonResponse, Clone, Debug)]
 pub struct PatchList {
-    patches: Vec<Patch>,
+    pub patches: Vec<Patch>,
+}
+
+#[derive(Serialize, JsonResponse, Clone, Debug)]
+pub struct BannerList {
+    banners: Vec<PatchBanner>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PatchBanner {
+    pub character_name: String,
+    pub version: Version,
+    pub date_start: DateTime<Utc>,
+    pub date_end: DateTime<Utc>,
 }
 
 impl Patch {
@@ -97,12 +112,14 @@ impl Patch {
         version: impl Into<Version>,
         start_date: DateTime<Utc>,
     ) -> Self {
-        let end_date = start_date + Duration::weeks(6);
+        let date_end = start_date + Duration::weeks(6);
+        let date_2nd_banner = start_date + Duration::weeks(3);
         Self {
             name: name.into(),
             version: version.into(),
             date_start: start_date,
-            date_end: end_date,
+            date_2nd_banner,
+            date_end,
         }
     }
 
@@ -158,24 +175,56 @@ impl Patch {
     }
 }
 
-// name and version in Patch
-pub struct PatchInfo(pub String, pub Version);
 impl PatchList {
-    pub fn calculate_from_base(base_version: Patch, future_patches: Vec<PatchInfo>) -> Self {
-        let mut res: Vec<Patch> = vec![base_version.clone()];
-        let mut next_start_date = base_version.date_end;
-        for PatchInfo(name, version) in future_patches.iter() {
-            res.push(Patch::new(name, version.clone(), next_start_date));
-            next_start_date += Duration::weeks(6);
-        }
+    pub fn generate(index: u32, info: Option<Vec<(&str, Version)>>) -> Self {
+        let mut patches = vec![];
+        let mut current = Patch::current();
+        let mut next_version = current.version.clone();
+        for _ in 0..index {
+            next_version.minor += 1;
+            let name: String = match info.clone() {
+                Some(info) => match info.iter().find(|(_, version)| version.eq(&next_version)) {
+                    Some((name, _)) => name.to_string(),
+                    None => format!("Patch {}.{}", next_version.major, next_version.minor),
+                },
+                None => format!("Patch {}.{}", next_version.major, next_version.minor),
+            };
 
-        match Utc::now() > base_version.date_start {
-            true => {
-                res.remove(0);
-                Self { patches: res }
-            }
-            false => Self { patches: res },
+            let patch = Patch::new(name, next_version.clone(), current.date_end);
+            patches.push(patch);
+            current.next();
         }
+        Self { patches }
+    }
+}
+impl BannerList {
+    pub fn from_patches(
+        patches: Vec<Patch>,
+        banner_info: Vec<(Option<&str>, Option<&str>, Version)>,
+    ) -> Self {
+        let mut banners: Vec<PatchBanner> = vec![];
+        for patch in patches.iter() {
+            let (char1, char2) = match banner_info
+                .iter()
+                .find(|(_, _, version)| patch.version.eq(version))
+            {
+                Some((char1, char2, _)) => (char1.unwrap_or("Unknown"), char2.unwrap_or("Unknown")),
+                None => ("Unknown", "Unknown"),
+            };
+            banners.push(PatchBanner {
+                character_name: char1.to_string(),
+                version: patch.version.clone(),
+                date_start: patch.date_start,
+                date_end: patch.date_2nd_banner,
+            });
+            banners.push(PatchBanner {
+                character_name: char2.to_string(),
+                version: patch.version.clone(),
+                date_start: patch.date_2nd_banner,
+                date_end: patch.date_end,
+            });
+        }
+        Self { banners }
     }
 }
 

@@ -8,11 +8,12 @@ use crate::{
 use axum::Json;
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
 use response_derive::JsonResponse;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all(deserialize = "camelCase"))]
 pub struct EstimateCfg {
     pub server: Server,
@@ -25,14 +26,22 @@ pub struct EstimateCfg {
     pub current_jades: Option<i32>,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, JsonResponse, Clone)]
+pub struct JadeEstimateResponse {
+    pub sources: Vec<RewardSource>,
+    pub total_jades: i32,
+    pub rolls: i32,
+    pub days: i64,
+}
+
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 pub struct SimpleDate {
     pub day: u32,
     pub month: u32,
     pub year: u32,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 pub enum EqTier {
     Zero,
     One,
@@ -62,7 +71,7 @@ impl EqTier {
     }
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 pub enum Server {
     Asia,
     America,
@@ -80,23 +89,16 @@ impl Server {
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
-pub struct JadeEstimateResponse {
-    pub sources: Vec<RewardSource>,
-    pub total_jades: i32,
-    pub rolls: i32,
-    pub days: i64,
-}
-
-#[derive(Serialize, Deserialize, JsonResponse, Clone)]
 pub struct RewardSource {
     pub source: String,
     pub jades_amount: Option<i32>,
     pub rolls_amount: Option<i32>,
-    pub source_type: RewardSourceType,
+    pub source_type: RewardFrequency,
+    pub description: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone, Copy)]
-pub enum RewardSourceType {
+pub enum RewardFrequency {
     Daily,
     Weekly,
     BiWeekly,
@@ -106,7 +108,7 @@ pub enum RewardSourceType {
     OneTime,
 }
 
-impl RewardSourceType {
+impl RewardFrequency {
     pub fn get_difference(
         &self,
         from_date: DateTime<Utc>,
@@ -117,17 +119,18 @@ impl RewardSourceType {
 
         // TODO: unit test all of these
         match self {
-            RewardSourceType::Daily => Self::get_date_diff(from_date, to_date),
-            RewardSourceType::Weekly => Self::get_week_diff(from_date, to_date, server),
-            RewardSourceType::BiWeekly => Self::get_biweek_diff(from_date, to_date, server),
-            RewardSourceType::Monthly => Self::get_month_diff(from_date, to_date),
-            RewardSourceType::WholePatch => Patch::patch_passed_diff(from_date, to_date),
-            RewardSourceType::HalfPatch => Patch::half_patch_passed_diff(from_date, to_date),
-            RewardSourceType::OneTime => Ok(1),
+            RewardFrequency::Daily => Self::get_day_diff(from_date, to_date),
+            RewardFrequency::Weekly => Self::get_week_diff(from_date, to_date, server),
+            RewardFrequency::BiWeekly => Self::get_biweek_diff(from_date, to_date, server),
+            RewardFrequency::Monthly => Self::get_month_diff(from_date, to_date),
+            RewardFrequency::HalfPatch => Patch::half_patch_passed_diff(from_date, to_date),
+            RewardFrequency::WholePatch => Patch::patch_passed_diff(from_date, to_date),
+            RewardFrequency::OneTime => Ok(1),
         }
     }
 
-    fn get_date_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> Result<u32, WorkerError> {
+    /// Counts number of days that has passed between 2 dates
+    fn get_day_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> Result<u32, WorkerError> {
         if from_date > to_date {
             return Err(WorkerError::Computation(ComputationType::BadDateComparison));
         }
@@ -138,6 +141,7 @@ impl RewardSourceType {
         Ok(diff_days)
     }
 
+    /// Counts number of weeks that has passed between 2 dates
     fn get_week_diff(
         from_date: DateTime<Utc>,
         to_date: DateTime<Utc>,
@@ -160,7 +164,10 @@ impl RewardSourceType {
         Ok(diff_weeks)
     }
 
-    /// TODO: refactor to better code
+    /// Counts number of biweekly reset (MoC etc.) that has passed between 2
+    /// dates
+    /// NOTE: this is counted from the start of the game's launch, not from
+    /// `from_date`
     fn get_biweek_diff(
         from_date: DateTime<Utc>,
         to_date: DateTime<Utc>,
@@ -169,47 +176,35 @@ impl RewardSourceType {
         if from_date > to_date {
             return Err(WorkerError::Computation(ComputationType::BadDateComparison));
         }
-        let base_moc_time = Utc.with_ymd_and_hms(2023, 5, 29, 19, 0, 0).unwrap();
-        let base_moc = today_at_reset(&base_moc_time, server);
+        let base_moc = Utc
+            .with_ymd_and_hms(2023, 5, 29, Server::get_utc_reset_hour(server), 0, 0)
+            .unwrap();
+
+        let mut start = base_moc;
+        while start < from_date {
+            start += Duration::weeks(2);
+        }
+        let mut end = base_moc;
+        while end < to_date {
+            if end + Duration::weeks(2) > to_date {
+                break;
+            }
+            end += Duration::weeks(2);
+        }
 
         let mut diff_biweeks = 0;
-        let mut patch_at_from = Patch::base();
-        let mut patch_at_to = Patch::base();
-        // update patch to correctly wrap around from and to date
-        while !patch_at_from.contains(from_date) {
-            patch_at_from.next()
-        }
-        while !patch_at_to.contains(to_date) {
-            patch_at_to.next()
-        }
-
-        // next biweekly start after from_date
-        let mut next_biweekly_start = patch_at_from.date_start;
-        // last biweekly start before to_date
-        let mut last_biweekly_start = patch_at_to.date_start + Duration::weeks(2);
-        // this is to halve the mutation rate of the biweekly block as it
-        // should only mutate once every 2 monday checks
-        let mut modulo_inside = true;
-        // extra 1 day pad for equal or less
-        for current_date in DateRange(base_moc, to_date + Duration::days(1)) {
-            if current_date.weekday() == Weekday::Mon {
-                if modulo_inside {
-                    next_biweekly_start = current_date;
-                    last_biweekly_start = next_biweekly_start + Duration::weeks(2);
-
-                    if current_date >= from_date {
-                        diff_biweeks += 1;
-                    }
+        // this flag is to filter out every other monday that's not the start
+        // of a new moc cycle
+        let mut moc_start = true;
+        for day in DateRange(start, end + Duration::days(1)) {
+            if day.weekday() == Weekday::Mon {
+                if moc_start {
+                    diff_biweeks += 1;
                 }
-                modulo_inside = !modulo_inside;
+                moc_start = !moc_start;
             }
         }
-
-        // in the same week
-        match next_biweekly_start < from_date && to_date < last_biweekly_start {
-            true => Ok(0),
-            false => Ok(diff_biweeks),
-        }
+        Ok(diff_biweeks)
     }
 
     pub fn get_month_diff(
@@ -230,20 +225,20 @@ impl RewardSourceType {
     }
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all(deserialize = "camelCase"))]
 pub struct RailPassCfg {
     pub use_rail_pass: bool,
     pub days_left: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct BattlePassOption {
     battle_pass_type: BattlePassType,
     current_level: u32,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, JsonSchema)]
 pub enum BattlePassType {
     None,
     Basic,
@@ -292,7 +287,7 @@ pub fn today_at_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
 impl RewardSource {
     pub fn compile_sources(cfg: &EstimateCfg) -> Result<Vec<Self>, WorkerError> {
         let dt_to = cfg.get_until_date();
-        let diff_days = RewardSourceType::Daily.get_difference(Utc::now(), dt_to, &cfg.server)?;
+        let diff_days = RewardFrequency::Daily.get_difference(Utc::now(), dt_to, &cfg.server)?;
 
         let src_su = Self::src_su(&cfg.eq, &cfg.server, dt_to)?;
         let src_bp = Self::src_bp(cfg.battle_pass, dt_to, &cfg.server);
@@ -377,7 +372,8 @@ impl RewardSource {
             source: "Nameless Honor".into(),
             jades_amount: final_jade,
             rolls_amount: final_roll,
-            source_type: RewardSourceType::WholePatch,
+            source_type: RewardFrequency::WholePatch,
+            description: None,
         }
     }
 
@@ -395,12 +391,13 @@ impl RewardSource {
             // WARN: NEEDS CONFIRM
             EqTier::Six => 225,
         };
-        let weeks = RewardSourceType::Weekly.get_difference(Utc::now(), until_date, server)?;
+        let weeks = RewardFrequency::Weekly.get_difference(Utc::now(), until_date, server)?;
         Ok(Self {
             source: "Simulated Universe".into(),
             jades_amount: Some((weeks * per_weeks).try_into().unwrap()),
             rolls_amount: None,
-            source_type: RewardSourceType::Weekly,
+            source_type: RewardFrequency::Weekly,
+            description: None,
         })
     }
 
@@ -410,7 +407,8 @@ impl RewardSource {
             source: "Daily missions".into(),
             jades_amount: Some(jades),
             rolls_amount: None,
-            source_type: RewardSourceType::Daily,
+            source_type: RewardFrequency::Daily,
+            description: None,
         }
     }
 
@@ -420,7 +418,8 @@ impl RewardSource {
             source: "Daily text messages".into(),
             jades_amount: Some(jades),
             rolls_amount: None,
-            source_type: RewardSourceType::Daily,
+            source_type: RewardFrequency::Daily,
+            description: Some("These text messeages are limited, you can run out of messages and you might get less in-game.".into())
         }
     }
 
@@ -437,7 +436,8 @@ impl RewardSource {
             source: "Rail Pass".into(),
             jades_amount: Some(jades),
             rolls_amount: None,
-            source_type: RewardSourceType::Monthly,
+            source_type: RewardFrequency::Monthly,
+            description: None,
         }
     }
 
@@ -452,29 +452,34 @@ impl RewardSource {
             source: "HoyoLab Check-in".into(),
             jades_amount: Some(amount),
             rolls_amount: None,
-            source_type: RewardSourceType::Monthly,
+            source_type: RewardFrequency::Monthly,
+            description: Some(
+                "20 jades are distributed at the 5th, 13th and 20th every month.".into(),
+            ),
         }
     }
 
     fn src_char_trial(until_date: DateTime<Utc>, server: &Server) -> Result<Self, WorkerError> {
-        let freq = RewardSourceType::HalfPatch;
+        let freq = RewardFrequency::HalfPatch;
         let amount = freq.get_difference(Utc::now(), until_date, server)? as i32;
         Ok(Self {
             source: "Character Trials".into(),
             jades_amount: Some(20 * amount),
             rolls_amount: None,
-            source_type: RewardSourceType::HalfPatch,
+            source_type: RewardFrequency::HalfPatch,
+            description: None,
         })
     }
 
     fn src_ember_trade(until_date: DateTime<Utc>, server: &Server) -> Result<Self, WorkerError> {
-        let freq = RewardSourceType::Monthly;
+        let freq = RewardFrequency::Monthly;
         let amount = 5 * freq.get_difference(Utc::now(), until_date, server)? as i32;
         Ok(Self {
             source: "Monthly ember exchange".into(),
             jades_amount: None,
             rolls_amount: Some(amount),
             source_type: freq,
+            description: None,
         })
     }
 
@@ -483,7 +488,7 @@ impl RewardSource {
         until_date: DateTime<Utc>,
         server: &Server,
     ) -> Result<Self, WorkerError> {
-        let freq = RewardSourceType::BiWeekly;
+        let freq = RewardFrequency::BiWeekly;
         let diffs = freq.get_difference(Utc::now(), until_date, server)?;
         let amount: i32 = ((stars / 3) * 60 * diffs).try_into().unwrap();
         debug!(diffs, amount);
@@ -491,7 +496,8 @@ impl RewardSource {
             source: "Memory of chaos".into(),
             jades_amount: Some(amount),
             rolls_amount: None,
-            source_type: RewardSourceType::BiWeekly,
+            source_type: RewardFrequency::BiWeekly,
+            description: None,
         })
     }
 }
@@ -532,13 +538,13 @@ impl EstimateCfg {
 mod tests {
     use chrono::{Duration, Utc};
 
-    use super::{RewardSourceType, Server};
+    use super::{RewardFrequency, Server};
 
     #[test]
     fn biweek() {
         let from = Utc::now();
         let diff_biweeks =
-            RewardSourceType::get_biweek_diff(from, from + Duration::days(39), &Server::America)
+            RewardFrequency::get_biweek_diff(from, from + Duration::days(39), &Server::America)
                 .unwrap();
         println!("{}", diff_biweeks);
     }

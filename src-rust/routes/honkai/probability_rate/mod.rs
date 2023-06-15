@@ -10,7 +10,7 @@ use tracing::error;
 
 pub mod types;
 
-pub async fn probability_rate(
+pub async fn handle(
     rpayload: Result<Json<ProbabilityRatePayload>, JsonRejection>,
 ) -> Result<Json<ProbabilityRateResponse>, WorkerError> {
     if rpayload.is_err() {
@@ -145,21 +145,16 @@ fn calc_sims_exact(sims: &mut Vec<Sim>, pulls: i32, banner: &BannerIternal) -> V
 
         let mut add_or_merge = |sim: &Sim| {
             if sim.rate > 0.0 {
-                let guaranteed = match sim.guaranteed {
-                    true => 1,
-                    false => 0,
-                };
-                let v = sim.pity
+                let key = sim.pity
                     + (banner.max_pity + 1)
                         * ((sim.eidolon + 1)
-                            + ((banner.max_const + 2) * (guaranteed + (2 * sim.guaranteed_pity))));
+                            + ((banner.max_const + 2)
+                                * (sim.guaranteed as i32 + (2 * sim.guaranteed_pity))));
 
-                let other = new_sims.get_mut(&v);
-
-                if let Some(existing_sim) = other {
-                    existing_sim.rate += sim.rate;
+                if let Some(existing_sim) = new_sims.get_mut(&key) {
+                    existing_sim.rate += sim.rate; // merge
                 } else {
-                    new_sims.insert(v, sim.clone());
+                    new_sims.insert(key, sim.clone()); // add
                 }
             }
         };
@@ -256,29 +251,9 @@ fn calc_sims_exact(sims: &mut Vec<Sim>, pulls: i32, banner: &BannerIternal) -> V
                 add_or_merge(&sim)
             }
         }
-        // Object.values(newSims);
         let to_append: Vec<Sim> = new_sims.into_iter().map(|e| e.1).collect();
         *sims = to_append.clone();
         all_sims.push(to_append);
     }
     all_sims
-}
-// debug
-#[cfg(test)]
-mod test {
-    use super::calc_sims_regular;
-    use crate::routes::honkai::{banner::types::Banner, probability_rate::pity_rate};
-
-    #[test]
-    fn test() {
-        let calcs = calc_sims_regular(
-            -1,
-            0,
-            5,
-            false,
-            0,
-            Banner::char_ssr().to_internal(pity_rate(0.6, 74)),
-        );
-        dbg!(calcs);
-    }
 }

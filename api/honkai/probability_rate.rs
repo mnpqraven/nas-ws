@@ -1,5 +1,5 @@
 use axum::{extract::FromRequest, Json};
-use nas_ws::{handler::FromAxumResponse, routes::honkai::probability_rate::probability_rate};
+use nas_ws::{handler::FromAxumResponse, routes::honkai::probability_rate::handle};
 use vercel_runtime::{run, Body, Error, Request, Response};
 
 #[tokio::main]
@@ -14,5 +14,5 @@ async fn main() -> Result<(), Error> {
 /// INFO: https://www.reddit.com/r/Genshin_Impact/comments/kdy1ky/everyone_is_misunderstanding_soft_pity/
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     let payload = Json::from_request(req, &()).await;
-    probability_rate(payload).await.as_axum()
+    handle(payload).await.as_axum()
 }

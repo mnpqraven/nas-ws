@@ -1,4 +1,4 @@
-use self::types::{EstimateCfg, JadeEstimateResponse, RewardSource, RewardSourceType};
+use self::types::{EstimateCfg, JadeEstimateResponse, RewardSource, RewardFrequency};
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use chrono::Utc;
@@ -8,13 +8,13 @@ use tracing::error;
 mod tests;
 pub mod types;
 
-pub async fn jade_estimate(
+pub async fn handle(
     rpayload: Result<Json<EstimateCfg>, JsonRejection>,
 ) -> Result<Json<JadeEstimateResponse>, WorkerError> {
     if let Ok(Json(payload)) = rpayload {
         let rewards = RewardSource::compile_sources(&payload)?;
         // let (diff_days, _) = get_date_differences(&payload.server, payload.get_until_date());
-        let diff_days = RewardSourceType::Daily.get_difference(
+        let diff_days = RewardFrequency::Daily.get_difference(
             Utc::now(),
             payload.get_until_date(),
             &payload.server,

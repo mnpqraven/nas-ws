@@ -66,7 +66,7 @@ fn parse_header(chunk: String) -> Result<EncodedFile, WorkerError> {
     if let Some(metaindex) = meta.find(';') {
         let (filetype, binding) = meta.split_at(metaindex);
         let decoder = Decoder::from_str(binding.trim_start_matches(';'))
-            .map_err(|_| WorkerError::ParseData("Unsupporetd encoding engine".into()))?;
+            .map_err(|_| WorkerError::ParseData("Unsupported encoding engine".into()))?;
         Ok(EncodedFile {
             filetype: filetype.into(),
             decoder,

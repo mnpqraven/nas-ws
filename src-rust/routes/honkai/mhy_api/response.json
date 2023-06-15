@@ -1,0 +1,2689 @@
+{
+	"player": {
+		"uid": "805768477",
+		"nickname": "Othi",
+		"level": 58,
+		"world_level": 4,
+		"friend_count": 6,
+		"avatar": {
+			"id": "201102",
+			"name": "Seele",
+			"icon": "icon/avatar/1102.png"
+		},
+		"signature": "powerbottom POV",
+		"is_display": true,
+		"space_info": {
+			"challenge_data": {
+				"maze_group_id": 0,
+				"maze_group_index": 15,
+				"pre_maze_group_index": 0
+			},
+			"pass_area_progress": 6,
+			"light_cone_count": 250,
+			"avatar_count": 19,
+			"achievement_count": 240
+		}
+	},
+	"characters": [
+		{
+			"id": "1102",
+			"name": "Seele",
+			"rarity": 5,
+			"rank": 0,
+			"level": 68,
+			"promotion": 5,
+			"icon": "icon/character/1102.png",
+			"preview": "image/character_preview/1102.png",
+			"portrait": "image/character_portrait/1102.png",
+			"rank_icons": [
+				"icon/skill/1102_rank1.png",
+				"icon/skill/1102_rank2.png",
+				"icon/skill/1102_skill.png",
+				"icon/skill/1102_rank4.png",
+				"icon/skill/1102_ultimate.png",
+				"icon/skill/1102_rank6.png"
+			],
+			"path": {
+				"id": "Rogue",
+				"name": "The Hunt",
+				"icon": "icon/path/Hunt.png"
+			},
+			"element": {
+				"id": "Quantum",
+				"name": "Quantum",
+				"color": "#1C29BA",
+				"icon": "icon/element/Quantum.png"
+			},
+			"skills": [
+				{
+					"id": "110201",
+					"name": "Thwack",
+					"level": 3,
+					"max_level": 9,
+					"element": {
+						"id": "Quantum",
+						"name": "Quantum",
+						"color": "#1C29BA",
+						"icon": "icon/element/Quantum.png"
+					},
+					"type": "Normal",
+					"type_text": "Basic ATK",
+					"effect": "SingleAttack",
+					"effect_text": "Single Target",
+					"simple_desc": "Deals minor Quantum DMG to a single enemy.",
+					"desc": "Deals Quantum DMG equal to 70% of Seele's ATK to a single enemy.",
+					"icon": "icon/skill/1102_basic_atk.png"
+				},
+				{
+					"id": "110202",
+					"name": "Sheathed Blade",
+					"level": 5,
+					"max_level": 15,
+					"element": {
+						"id": "Quantum",
+						"name": "Quantum",
+						"color": "#1C29BA",
+						"icon": "icon/element/Quantum.png"
+					},
+					"type": "BPSkill",
+					"type_text": "Skill",
+					"effect": "SingleAttack",
+					"effect_text": "Single Target",
+					"simple_desc": "Deals Quantum DMG to a single enemy and increases SPD.",
+					"desc": "Increases Seele's SPD by 25% for 2 turn(s) and deals Quantum DMG equal to 154% of Seele's ATK to a single enemy.",
+					"icon": "icon/skill/1102_skill.png"
+				},
+				{
+					"id": "110203",
+					"name": "Butterfly Flurry",
+					"level": 5,
+					"max_level": 15,
+					"element": {
+						"id": "Quantum",
+						"name": "Quantum",
+						"color": "#1C29BA",
+						"icon": "icon/element/Quantum.png"
+					},
+					"type": "Ultra",
+					"type_text": "Ultimate",
+					"effect": "SingleAttack",
+					"effect_text": "Single Target",
+					"simple_desc": "Enters the buffed state and deals massive Quantum DMG to a single enemy.",
+					"desc": "Seele enters the buffed state and deals Quantum DMG equal to 323% of her ATK to a single enemy.",
+					"icon": "icon/skill/1102_ultimate.png"
+				},
+				{
+					"id": "110204",
+					"name": "Resurgence",
+					"level": 5,
+					"max_level": 15,
+					"element": null,
+					"type": "Talent",
+					"type_text": "Talent",
+					"effect": "Enhance",
+					"effect_text": "Enhance",
+					"simple_desc": "",
+					"desc": "Enters the buffed state upon defeating an enemy with Basic ATK, Skill, or Ultimate, and receives an extra turn. While in the buffed state, the DMG of Seele's attacks increases by 56% for 1 turn(s).\nEnemies defeated in the extra turn provided by \"Resurgence\" will not trigger another \"Resurgence.\"",
+					"icon": "icon/skill/1102_talent.png"
+				},
+				{
+					"id": "110206",
+					"name": "110206",
+					"level": 0,
+					"max_level": 1,
+					"element": {
+						"id": "Quantum",
+						"name": "Quantum",
+						"color": "#1C29BA",
+						"icon": "icon/element/Quantum.png"
+					},
+					"type": "MazeNormal",
+					"type_text": "",
+					"effect": "MazeAttack",
+					"effect_text": "",
+					"simple_desc": "",
+					"desc": "",
+					"icon": "icon/skill/1102_basic_atk.png"
+				},
+				{
+					"id": "110207",
+					"name": "Phantom Illusion",
+					"level": 1,
+					"max_level": 1,
+					"element": null,
+					"type": "Maze",
+					"type_text": "Technique",
+					"effect": "Enhance",
+					"effect_text": "Enhance",
+					"simple_desc": "",
+					"desc": "After using her Technique, Seele gains Stealth for 20 second(s). While Stealth is active, Seele cannot be detected by enemies. And when entering battle by attacking enemies, Seele will immediately enter the buffed state.",
+					"icon": "icon/skill/1102_technique.png"
+				}
+			],
+			"skill_trees": [
+				{
+					"id": "1102001",
+					"level": 3,
+					"icon": "icon/skill/1102_basic_atk.png"
+				},
+				{
+					"id": "1102002",
+					"level": 5,
+					"icon": "icon/skill/1102_skill.png"
+				},
+				{
+					"id": "1102003",
+					"level": 5,
+					"icon": "icon/skill/1102_ultimate.png"
+				},
+				{
+					"id": "1102004",
+					"level": 5,
+					"icon": "icon/skill/1102_talent.png"
+				},
+				{
+					"id": "1102007",
+					"level": 1,
+					"icon": "icon/skill/1102_technique.png"
+				},
+				{
+					"id": "1102101",
+					"level": 1,
+					"icon": "icon/skill/1102_skilltree1.png"
+				},
+				{
+					"id": "1102102",
+					"level": 1,
+					"icon": "icon/skill/1102_skilltree2.png"
+				},
+				{
+					"id": "1102201",
+					"level": 1,
+					"icon": "icon/property/IconAttack.png"
+				},
+				{
+					"id": "1102202",
+					"level": 1,
+					"icon": "icon/property/IconCriticalDamage.png"
+				},
+				{
+					"id": "1102203",
+					"level": 1,
+					"icon": "icon/property/IconAttack.png"
+				},
+				{
+					"id": "1102204",
+					"level": 1,
+					"icon": "icon/property/IconDefence.png"
+				}
+			],
+			"light_cone": {
+				"id": "23001",
+				"name": "In the Night",
+				"rarity": 5,
+				"rank": 1,
+				"level": 70,
+				"promotion": 5,
+				"icon": "icon/light_cone/23001.png",
+				"preview": "image/light_cone_preview/23001.png",
+				"portrait": "image/light_cone_portrait/23001.png",
+				"path": {
+					"id": "Rogue",
+					"name": "The Hunt",
+					"icon": "icon/path/Hunt.png"
+				},
+				"attributes": [
+					{
+						"field": "hp",
+						"name": "HP",
+						"icon": "icon/property/IconMaxHP.png",
+						"value": 909.6,
+						"display": "909",
+						"percent": false
+					},
+					{
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 500.28,
+						"display": "500",
+						"percent": false
+					},
+					{
+						"field": "def",
+						"name": "DEF",
+						"icon": "icon/property/IconDefence.png",
+						"value": 397.95,
+						"display": "397",
+						"percent": false
+					}
+				],
+				"properties": [
+					{
+						"type": "CriticalChanceBase",
+						"field": "crit_rate",
+						"name": "CRIT Rate",
+						"icon": "icon/property/IconCriticalChance.png",
+						"value": 0.18,
+						"display": "18.0%",
+						"percent": true
+					}
+				]
+			},
+			"relics": [
+				{
+					"id": "61081",
+					"name": "Genius's Ultraremote Sensing Visor",
+					"set_id": "108",
+					"set_name": "Genius of Brilliant Stars",
+					"rarity": 5,
+					"level": 9,
+					"icon": "icon/relic/108_0.png",
+					"main_affix": {
+						"type": "HPDelta",
+						"field": "hp",
+						"name": "HP",
+						"icon": "icon/property/IconMaxHP.png",
+						"value": 468.51840000622906,
+						"display": "468",
+						"percent": false
+					},
+					"sub_affix": [
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 35.986915002111346,
+							"display": "35",
+							"percent": false,
+							"count": 2,
+							"step": 1
+						},
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.12960000196472102,
+							"display": "12.9%",
+							"percent": true,
+							"count": 3,
+							"step": 6
+						},
+						{
+							"type": "DefenceAddedRatio",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 0.048599999863654,
+							"display": "4.8%",
+							"percent": true,
+							"count": 1,
+							"step": 1
+						},
+						{
+							"type": "StatusProbabilityBase",
+							"field": "effect_hit",
+							"name": "Effect Hit Rate",
+							"icon": "icon/property/IconStatusProbability.png",
+							"value": 0.043200000654907,
+							"display": "4.3%",
+							"percent": true,
+							"count": 1,
+							"step": 2
+						}
+					]
+				},
+				{
+					"id": "61082",
+					"name": "Genius's Frequency Catcher",
+					"set_id": "108",
+					"set_name": "Genius of Brilliant Stars",
+					"rarity": 5,
+					"level": 15,
+					"icon": "icon/relic/108_1.png",
+					"main_affix": {
+						"type": "AttackDelta",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 352.8000000116881,
+						"display": "352",
+						"percent": false
+					},
+					"sub_affix": [
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.120960001833739,
+							"display": "12.0%",
+							"percent": true,
+							"count": 3,
+							"step": 4
+						},
+						{
+							"type": "SpeedDelta",
+							"field": "spd",
+							"name": "SPD",
+							"icon": "icon/property/IconSpeed.png",
+							"value": 4.900000000838191,
+							"display": "4",
+							"percent": false,
+							"count": 2,
+							"step": 3
+						},
+						{
+							"type": "CriticalChanceBase",
+							"field": "crit_rate",
+							"name": "CRIT Rate",
+							"icon": "icon/property/IconCriticalChance.png",
+							"value": 0.05832000123337,
+							"display": "5.8%",
+							"percent": true,
+							"count": 2,
+							"step": 2
+						},
+						{
+							"type": "CriticalDamageBase",
+							"field": "crit_dmg",
+							"name": "CRIT DMG",
+							"icon": "icon/property/IconCriticalDamage.png",
+							"value": 0.051840000785887,
+							"display": "5.1%",
+							"percent": true,
+							"count": 1,
+							"step": 0
+						}
+					]
+				},
+				{
+					"id": "61093",
+					"name": "Band's Leather Jacket With Studs",
+					"set_id": "109",
+					"set_name": "Band of Sizzling Thunder",
+					"rarity": 5,
+					"level": 9,
+					"icon": "icon/relic/109_2.png",
+					"main_affix": {
+						"type": "CriticalChanceBase",
+						"field": "crit_rate",
+						"name": "CRIT Rate",
+						"icon": "icon/property/IconCriticalChance.png",
+						"value": 0.215135999489572,
+						"display": "21.5%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "HPDelta",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 33.870039001107216,
+							"display": "33",
+							"percent": false,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "AttackDelta",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 35.986915002111346,
+							"display": "35",
+							"percent": false,
+							"count": 2,
+							"step": 1
+						},
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.06912000104785,
+							"display": "6.9%",
+							"percent": true,
+							"count": 2,
+							"step": 0
+						},
+						{
+							"type": "StatusProbabilityBase",
+							"field": "effect_hit",
+							"name": "Effect Hit Rate",
+							"icon": "icon/property/IconStatusProbability.png",
+							"value": 0.077760001178832,
+							"display": "7.7%",
+							"percent": true,
+							"count": 2,
+							"step": 2
+						}
+					]
+				},
+				{
+					"id": "61024",
+					"name": "Musketeer's Rivets Riding Boots",
+					"set_id": "102",
+					"set_name": "Musketeer of Wild Wheat",
+					"rarity": 5,
+					"level": 15,
+					"icon": "icon/relic/102_3.png",
+					"main_affix": {
+						"type": "AttackAddedRatio",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 0.43200000724755605,
+						"display": "43.2%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "HPDelta",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 110.07762700505555,
+							"display": "110",
+							"percent": false,
+							"count": 3,
+							"step": 2
+						},
+						{
+							"type": "CriticalChanceBase",
+							"field": "crit_rate",
+							"name": "CRIT Rate",
+							"icon": "icon/property/IconCriticalChance.png",
+							"value": 0.05832000123337,
+							"display": "5.8%",
+							"percent": true,
+							"count": 2,
+							"step": 2
+						},
+						{
+							"type": "CriticalDamageBase",
+							"field": "crit_dmg",
+							"name": "CRIT DMG",
+							"icon": "icon/property/IconCriticalDamage.png",
+							"value": 0.168480003252625,
+							"display": "16.8%",
+							"percent": true,
+							"count": 3,
+							"step": 2
+						},
+						{
+							"type": "BreakDamageAddedRatioBase",
+							"field": "break_dmg",
+							"name": "Break Effect",
+							"icon": "icon/property/IconBreakUp.png",
+							"value": 0.064800001680851,
+							"display": "6.4%",
+							"percent": true,
+							"count": 1,
+							"step": 2
+						}
+					]
+				},
+				{
+					"id": "63015",
+					"name": "Herta's Space Station",
+					"set_id": "301",
+					"set_name": "Space Sealing Station",
+					"rarity": 5,
+					"level": 9,
+					"icon": "icon/relic/301_0.png",
+					"main_affix": {
+						"type": "QuantumAddedRatio",
+						"field": "quantum_dmg",
+						"name": "Quantum DMG Boost",
+						"icon": "icon/property/IconQuantumAddedRatio.png",
+						"value": 0.258165008621286,
+						"display": "25.8%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 19.05189600144513,
+							"display": "19",
+							"percent": false,
+							"count": 1,
+							"step": 1
+						},
+						{
+							"type": "HPAddedRatio",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 0.043200000654907,
+							"display": "4.3%",
+							"percent": true,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.082080001244323,
+							"display": "8.2%",
+							"percent": true,
+							"count": 2,
+							"step": 3
+						},
+						{
+							"type": "BreakDamageAddedRatioBase",
+							"field": "break_dmg",
+							"name": "Break Effect",
+							"icon": "icon/property/IconBreakUp.png",
+							"value": 0.12312000291422,
+							"display": "12.3%",
+							"percent": true,
+							"count": 2,
+							"step": 3
+						}
+					]
+				},
+				{
+					"id": "63016",
+					"name": "Herta's Wandering Trek",
+					"set_id": "301",
+					"set_name": "Space Sealing Station",
+					"rarity": 5,
+					"level": 15,
+					"icon": "icon/relic/301_1.png",
+					"main_affix": {
+						"type": "AttackAddedRatio",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 0.43200000724755605,
+						"display": "43.2%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "HPDelta",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 118.54513700678945,
+							"display": "118",
+							"percent": false,
+							"count": 3,
+							"step": 4
+						},
+						{
+							"type": "AttackDelta",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 21.168773002224043,
+							"display": "21",
+							"percent": false,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "CriticalChanceBase",
+							"field": "crit_rate",
+							"name": "CRIT Rate",
+							"icon": "icon/property/IconCriticalChance.png",
+							"value": 0.025920000392944,
+							"display": "2.5%",
+							"percent": true,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "CriticalDamageBase",
+							"field": "crit_dmg",
+							"name": "CRIT DMG",
+							"icon": "icon/property/IconCriticalDamage.png",
+							"value": 0.162000002805143,
+							"display": "16.2%",
+							"percent": true,
+							"count": 3,
+							"step": 1
+						}
+					]
+				}
+			],
+			"relic_sets": [
+				{
+					"id": "108",
+					"name": "Genius of Brilliant Stars",
+					"icon": "icon/relic/108.png",
+					"num": 2,
+					"desc": "Increases Quantum DMG by 10%.",
+					"properties": [
+						{
+							"type": "QuantumAddedRatio",
+							"field": "quantum_dmg",
+							"name": "Quantum DMG Boost",
+							"icon": "icon/property/IconQuantumAddedRatio.png",
+							"value": 0.1,
+							"display": "10.0%",
+							"percent": true
+						}
+					]
+				},
+				{
+					"id": "301",
+					"name": "Space Sealing Station",
+					"icon": "icon/relic/301.png",
+					"num": 2,
+					"desc": "Increases the wearer's ATK by 12%. When the wearer's SPD reaches 120 or higher, the wearer's ATK increases by an extra 12%.",
+					"properties": [
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.12,
+							"display": "12.0%",
+							"percent": true
+						}
+					]
+				}
+			],
+			"attributes": [
+				{
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 1714.272,
+					"display": "1714",
+					"percent": false
+				},
+				{
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 1053.492,
+					"display": "1053",
+					"percent": false
+				},
+				{
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 712.2750000000001,
+					"display": "712",
+					"percent": false
+				},
+				{
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 115,
+					"display": "115",
+					"percent": false
+				},
+				{
+					"field": "crit_rate",
+					"name": "CRIT Rate",
+					"icon": "icon/property/IconCriticalChance.png",
+					"value": 0.05,
+					"display": "5.0%",
+					"percent": true
+				},
+				{
+					"field": "crit_dmg",
+					"name": "CRIT DMG",
+					"icon": "icon/property/IconCriticalDamage.png",
+					"value": 0.5,
+					"display": "50.0%",
+					"percent": true
+				}
+			],
+			"additions": [
+				{
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 1954.1221436229412,
+					"display": "1954",
+					"percent": false
+				},
+				{
+					"field": "crit_dmg",
+					"name": "CRIT DMG",
+					"icon": "icon/property/IconCriticalDamage.png",
+					"value": 0.435320006843655,
+					"display": "43.5%",
+					"percent": true
+				},
+				{
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 125.26912590644064,
+					"display": "125",
+					"percent": false
+				},
+				{
+					"field": "crit_rate",
+					"name": "CRIT Rate",
+					"icon": "icon/property/IconCriticalChance.png",
+					"value": 0.537696002349256,
+					"display": "53.7%",
+					"percent": true
+				},
+				{
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 805.06775454187,
+					"display": "805",
+					"percent": false
+				},
+				{
+					"field": "effect_hit",
+					"name": "Effect Hit Rate",
+					"icon": "icon/property/IconStatusProbability.png",
+					"value": 0.120960001833739,
+					"display": "12.0%",
+					"percent": true
+				},
+				{
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 4.900000000838191,
+					"display": "4",
+					"percent": false
+				},
+				{
+					"field": "break_dmg",
+					"name": "Break Effect",
+					"icon": "icon/property/IconBreakUp.png",
+					"value": 0.187920004595071,
+					"display": "18.7%",
+					"percent": true
+				},
+				{
+					"field": "quantum_dmg",
+					"name": "Quantum DMG Boost",
+					"icon": "icon/property/IconQuantumAddedRatio.png",
+					"value": 0.358165008621286,
+					"display": "35.8%",
+					"percent": true
+				}
+			],
+			"properties": [
+				{
+					"type": "AttackAddedRatio",
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 1.465760020585745,
+					"display": "146.5%",
+					"percent": true
+				},
+				{
+					"type": "CriticalDamageBase",
+					"field": "crit_dmg",
+					"name": "CRIT DMG",
+					"icon": "icon/property/IconCriticalDamage.png",
+					"value": 0.435320006843655,
+					"display": "43.5%",
+					"percent": true
+				},
+				{
+					"type": "DefenceAddedRatio",
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 0.098599999863654,
+					"display": "9.8%",
+					"percent": true
+				},
+				{
+					"type": "CriticalChanceBase",
+					"field": "crit_rate",
+					"name": "CRIT Rate",
+					"icon": "icon/property/IconCriticalChance.png",
+					"value": 0.537696002349256,
+					"display": "53.7%",
+					"percent": true
+				},
+				{
+					"type": "HPDelta",
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 731.0112030191813,
+					"display": "731",
+					"percent": false
+				},
+				{
+					"type": "DefenceDelta",
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 55.038811003556475,
+					"display": "55",
+					"percent": false,
+					"count": 2,
+					"step": 1
+				},
+				{
+					"type": "StatusProbabilityBase",
+					"field": "effect_hit",
+					"name": "Effect Hit Rate",
+					"icon": "icon/property/IconStatusProbability.png",
+					"value": 0.120960001833739,
+					"display": "12.0%",
+					"percent": true,
+					"count": 1,
+					"step": 2
+				},
+				{
+					"type": "AttackDelta",
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 409.9556880160235,
+					"display": "409",
+					"percent": false
+				},
+				{
+					"type": "SpeedDelta",
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 4.900000000838191,
+					"display": "4",
+					"percent": false,
+					"count": 2,
+					"step": 3
+				},
+				{
+					"type": "BreakDamageAddedRatioBase",
+					"field": "break_dmg",
+					"name": "Break Effect",
+					"icon": "icon/property/IconBreakUp.png",
+					"value": 0.187920004595071,
+					"display": "18.7%",
+					"percent": true,
+					"count": 1,
+					"step": 2
+				},
+				{
+					"type": "QuantumAddedRatio",
+					"field": "quantum_dmg",
+					"name": "Quantum DMG Boost",
+					"icon": "icon/property/IconQuantumAddedRatio.png",
+					"value": 0.358165008621286,
+					"display": "35.8%",
+					"percent": true
+				},
+				{
+					"type": "HPAddedRatio",
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 0.043200000654907,
+					"display": "4.3%",
+					"percent": true,
+					"count": 1,
+					"step": 2
+				}
+			]
+		},
+		{
+			"id": "1101",
+			"name": "Bronya",
+			"rarity": 5,
+			"rank": 2,
+			"level": 62,
+			"promotion": 5,
+			"icon": "icon/character/1101.png",
+			"preview": "image/character_preview/1101.png",
+			"portrait": "image/character_portrait/1101.png",
+			"rank_icons": [
+				"icon/skill/1101_rank1.png",
+				"icon/skill/1101_rank2.png",
+				"icon/skill/1101_skill.png",
+				"icon/skill/1101_rank4.png",
+				"icon/skill/1101_ultimate.png",
+				"icon/skill/1101_rank6.png"
+			],
+			"path": {
+				"id": "Shaman",
+				"name": "Harmony",
+				"icon": "icon/path/Harmony.png"
+			},
+			"element": {
+				"id": "Wind",
+				"name": "Wind",
+				"color": "#00FF9C",
+				"icon": "icon/element/Wind.png"
+			},
+			"skills": [
+				{
+					"id": "110101",
+					"name": "Windrider Bullet",
+					"level": 3,
+					"max_level": 9,
+					"element": {
+						"id": "Wind",
+						"name": "Wind",
+						"color": "#00FF9C",
+						"icon": "icon/element/Wind.png"
+					},
+					"type": "Normal",
+					"type_text": "Basic ATK",
+					"effect": "SingleAttack",
+					"effect_text": "Single Target",
+					"simple_desc": "Deals minor Wind DMG to a single enemy.",
+					"desc": "Deals Wind DMG equal to 70% of Bronya's ATK to a single enemy.",
+					"icon": "icon/skill/1101_basic_atk.png"
+				},
+				{
+					"id": "110102",
+					"name": "Combat Redeployment",
+					"level": 5,
+					"max_level": 15,
+					"element": null,
+					"type": "BPSkill",
+					"type_text": "Skill",
+					"effect": "Support",
+					"effect_text": "Support",
+					"simple_desc": "Removes 1 debuff from a single ally, increases their DMG, and allows them to immediately take action.",
+					"desc": "Dispels a debuff from a single ally, allows them to immediately take action, and increases their DMG by 46% for 1 turn(s).\nWhen this Skill is used on Bronya herself, she cannot immediately take action again.",
+					"icon": "icon/skill/1101_skill.png"
+				},
+				{
+					"id": "110103",
+					"name": "The Belobog March",
+					"level": 5,
+					"max_level": 15,
+					"element": null,
+					"type": "Ultra",
+					"type_text": "Ultimate",
+					"effect": "Support",
+					"effect_text": "Support",
+					"simple_desc": "Increases ATK and CRIT DMG of all allies.",
+					"desc": "Increases the ATK of all allies by 41%, and increases their CRIT DMG equal to 13.6% of Bronya's CRIT DMG plus 15.2% for 2 turn(s).",
+					"icon": "icon/skill/1101_ultimate.png"
+				},
+				{
+					"id": "110104",
+					"name": "Leading the Way",
+					"level": 5,
+					"max_level": 15,
+					"element": {
+						"id": "Wind",
+						"name": "Wind",
+						"color": "#00FF9C",
+						"icon": "icon/element/Wind.png"
+					},
+					"type": "Talent",
+					"type_text": "Talent",
+					"effect": "Enhance",
+					"effect_text": "Enhance",
+					"simple_desc": "",
+					"desc": "After using her Basic ATK, Bronya's next action will be Advanced Forward by 21%.",
+					"icon": "icon/skill/1101_talent.png"
+				},
+				{
+					"id": "110106",
+					"name": "110106",
+					"level": 0,
+					"max_level": 1,
+					"element": {
+						"id": "Wind",
+						"name": "Wind",
+						"color": "#00FF9C",
+						"icon": "icon/element/Wind.png"
+					},
+					"type": "MazeNormal",
+					"type_text": "",
+					"effect": "MazeAttack",
+					"effect_text": "",
+					"simple_desc": "",
+					"desc": "",
+					"icon": "icon/skill/1101_basic_atk.png"
+				},
+				{
+					"id": "110107",
+					"name": "Banner of Command",
+					"level": 1,
+					"max_level": 1,
+					"element": null,
+					"type": "Maze",
+					"type_text": "Technique",
+					"effect": "Support",
+					"effect_text": "Support",
+					"simple_desc": "",
+					"desc": "After using Bronya's Technique, at the start of the next battle, all allies' ATK increases by 15% for 2 turn(s).",
+					"icon": "icon/skill/1101_technique.png"
+				}
+			],
+			"skill_trees": [
+				{
+					"id": "1101001",
+					"level": 3,
+					"icon": "icon/skill/1101_basic_atk.png"
+				},
+				{
+					"id": "1101002",
+					"level": 5,
+					"icon": "icon/skill/1101_skill.png"
+				},
+				{
+					"id": "1101003",
+					"level": 5,
+					"icon": "icon/skill/1101_ultimate.png"
+				},
+				{
+					"id": "1101004",
+					"level": 5,
+					"icon": "icon/skill/1101_talent.png"
+				},
+				{
+					"id": "1101007",
+					"level": 1,
+					"icon": "icon/skill/1101_technique.png"
+				},
+				{
+					"id": "1101101",
+					"level": 1,
+					"icon": "icon/skill/1101_skilltree1.png"
+				},
+				{
+					"id": "1101201",
+					"level": 1,
+					"icon": "icon/property/IconWindAddedRatio.png"
+				},
+				{
+					"id": "1101202",
+					"level": 1,
+					"icon": "icon/property/IconCriticalDamage.png"
+				},
+				{
+					"id": "1101203",
+					"level": 1,
+					"icon": "icon/property/IconWindAddedRatio.png"
+				}
+			],
+			"light_cone": {
+				"id": "23003",
+				"name": "But the Battle Isn't Over",
+				"rarity": 5,
+				"rank": 1,
+				"level": 60,
+				"promotion": 4,
+				"icon": "icon/light_cone/23003.png",
+				"preview": "image/light_cone_preview/23003.png",
+				"portrait": "image/light_cone_portrait/23003.png",
+				"path": {
+					"id": "Shaman",
+					"name": "Harmony",
+					"icon": "icon/path/Harmony.png"
+				},
+				"attributes": [
+					{
+						"field": "hp",
+						"name": "HP",
+						"icon": "icon/property/IconMaxHP.png",
+						"value": 836.88,
+						"display": "836",
+						"percent": false
+					},
+					{
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 380.4,
+						"display": "380",
+						"percent": false
+					},
+					{
+						"field": "def",
+						"name": "DEF",
+						"icon": "icon/property/IconDefence.png",
+						"value": 332.85,
+						"display": "332",
+						"percent": false
+					}
+				],
+				"properties": [
+					{
+						"type": "SPRatioBase",
+						"field": "sp_rate",
+						"name": "Energy Regeneration Rate",
+						"icon": "icon/property/IconEnergyRecovery.png",
+						"value": 0.1,
+						"display": "10.0%",
+						"percent": true
+					}
+				]
+			},
+			"relics": [
+				{
+					"id": "51111",
+					"name": "Thief's Myriad-Faced Mask",
+					"set_id": "111",
+					"set_name": "Thief of Shooting Meteor",
+					"rarity": 4,
+					"level": 6,
+					"icon": "icon/relic/111_0.png",
+					"main_affix": {
+						"type": "HPDelta",
+						"field": "hp",
+						"name": "HP",
+						"icon": "icon/property/IconMaxHP.png",
+						"value": 279.9820800104644,
+						"display": "279",
+						"percent": false
+					},
+					"sub_affix": [
+						{
+							"type": "HPAddedRatio",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 0.031104000750929,
+							"display": "3.1%",
+							"percent": true,
+							"count": 1,
+							"step": 1
+						},
+						{
+							"type": "CriticalDamageBase",
+							"field": "crit_dmg",
+							"name": "CRIT DMG",
+							"icon": "icon/property/IconCriticalDamage.png",
+							"value": 0.046656001126392996,
+							"display": "4.6%",
+							"percent": true,
+							"count": 1,
+							"step": 1
+						},
+						{
+							"type": "StatusProbabilityBase",
+							"field": "effect_hit",
+							"name": "Effect Hit Rate",
+							"icon": "icon/property/IconStatusProbability.png",
+							"value": 0.034560001222417,
+							"display": "3.4%",
+							"percent": true,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "StatusResistanceBase",
+							"field": "effect_res",
+							"name": "Effect RES",
+							"icon": "icon/property/IconStatusResistance.png",
+							"value": 0.069120002444834,
+							"display": "6.9%",
+							"percent": true,
+							"count": 2,
+							"step": 4
+						}
+					]
+				},
+				{
+					"id": "51112",
+					"name": "Thief's Gloves With Prints",
+					"set_id": "111",
+					"set_name": "Thief of Shooting Meteor",
+					"rarity": 4,
+					"level": 9,
+					"icon": "icon/relic/111_1.png",
+					"main_affix": {
+						"type": "AttackDelta",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 187.4073600084521,
+						"display": "187",
+						"percent": false
+					},
+					"sub_affix": [
+						{
+							"type": "HPAddedRatio",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 0.055296000558882,
+							"display": "5.5%",
+							"percent": true,
+							"count": 2,
+							"step": 0
+						},
+						{
+							"type": "SpeedDelta",
+							"field": "spd",
+							"name": "SPD",
+							"icon": "icon/property/IconSpeed.png",
+							"value": 1.800000000745059,
+							"display": "1",
+							"percent": false,
+							"count": 1,
+							"step": 1
+						},
+						{
+							"type": "CriticalDamageBase",
+							"field": "crit_dmg",
+							"name": "CRIT DMG",
+							"icon": "icon/property/IconCriticalDamage.png",
+							"value": 0.046656001126392996,
+							"display": "4.6%",
+							"percent": true,
+							"count": 1,
+							"step": 1
+						},
+						{
+							"type": "StatusResistanceBase",
+							"field": "effect_res",
+							"name": "Effect RES",
+							"icon": "icon/property/IconStatusResistance.png",
+							"value": 0.069120002444834,
+							"display": "6.9%",
+							"percent": true,
+							"count": 2,
+							"step": 4
+						}
+					]
+				},
+				{
+					"id": "51023",
+					"name": "Musketeer's Wind-Hunting Shawl",
+					"set_id": "102",
+					"set_name": "Musketeer of Wild Wheat",
+					"rarity": 4,
+					"level": 9,
+					"icon": "icon/relic/102_2.png",
+					"main_affix": {
+						"type": "AttackAddedRatio",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 0.22948200046084602,
+						"display": "22.9%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "AttackDelta",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 30.483036001678556,
+							"display": "30",
+							"percent": false,
+							"count": 2,
+							"step": 2
+						},
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 16.935020001605153,
+							"display": "16",
+							"percent": false,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "DefenceAddedRatio",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 0.043200000654907,
+							"display": "4.3%",
+							"percent": true,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "SpeedDelta",
+							"field": "spd",
+							"name": "SPD",
+							"icon": "icon/property/IconSpeed.png",
+							"value": 3.600000001490118,
+							"display": "3",
+							"percent": false,
+							"count": 2,
+							"step": 2
+						}
+					]
+				},
+				{
+					"id": "51114",
+					"name": "Thief's Meteor Boots",
+					"set_id": "111",
+					"set_name": "Thief of Shooting Meteor",
+					"rarity": 4,
+					"level": 9,
+					"icon": "icon/relic/111_3.png",
+					"main_affix": {
+						"type": "SpeedDelta",
+						"field": "spd",
+						"name": "SPD",
+						"icon": "icon/property/IconSpeed.png",
+						"value": 13.125600001076235,
+						"display": "13",
+						"percent": false
+					},
+					"sub_affix": [
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 15.241518000839278,
+							"display": "15",
+							"percent": false,
+							"count": 1,
+							"step": 1
+						},
+						{
+							"type": "DefenceAddedRatio",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 0.038880000589416,
+							"display": "3.8%",
+							"percent": true,
+							"count": 1,
+							"step": 1
+						},
+						{
+							"type": "StatusProbabilityBase",
+							"field": "effect_hit",
+							"name": "Effect Hit Rate",
+							"icon": "icon/property/IconStatusProbability.png",
+							"value": 0.05875200103037,
+							"display": "5.8%",
+							"percent": true,
+							"count": 2,
+							"step": 1
+						},
+						{
+							"type": "StatusResistanceBase",
+							"field": "effect_res",
+							"name": "Effect RES",
+							"icon": "icon/property/IconStatusResistance.png",
+							"value": 0.062208001501858,
+							"display": "6.2%",
+							"percent": true,
+							"count": 2,
+							"step": 2
+						}
+					]
+				},
+				{
+					"id": "63085",
+					"name": "Vonwacq's Island of Birth",
+					"set_id": "308",
+					"set_name": "Sprightly Vonwacq",
+					"rarity": 5,
+					"level": 0,
+					"icon": "icon/relic/308_0.png",
+					"main_affix": {
+						"type": "WindAddedRatio",
+						"field": "wind_dmg",
+						"name": "Wind DMG Boost",
+						"icon": "icon/property/IconWindAddedRatio.png",
+						"value": 0.062208000104874,
+						"display": "6.2%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "DefenceAddedRatio",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 0.043199999956414,
+							"display": "4.3%",
+							"percent": true,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "StatusResistanceBase",
+							"field": "effect_res",
+							"name": "Effect RES",
+							"icon": "icon/property/IconStatusResistance.png",
+							"value": 0.034560000523925,
+							"display": "3.4%",
+							"percent": true,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "BreakDamageAddedRatioBase",
+							"field": "break_dmg",
+							"name": "Break Effect",
+							"icon": "icon/property/IconBreakUp.png",
+							"value": 0.058320001233369,
+							"display": "5.8%",
+							"percent": true,
+							"count": 1,
+							"step": 1
+						}
+					]
+				},
+				{
+					"id": "63086",
+					"name": "Vonwacq's Islandic Coast",
+					"set_id": "308",
+					"set_name": "Sprightly Vonwacq",
+					"rarity": 5,
+					"level": 15,
+					"icon": "icon/relic/308_1.png",
+					"main_affix": {
+						"type": "SPRatioBase",
+						"field": "sp_rate",
+						"name": "Energy Regeneration Rate",
+						"icon": "icon/property/IconEnergyRecovery.png",
+						"value": 0.194394017569722,
+						"display": "19.4%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "HPDelta",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 33.870039001107216,
+							"display": "33",
+							"percent": false,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 38.10379200289026,
+							"display": "38",
+							"percent": false,
+							"count": 2,
+							"step": 2
+						},
+						{
+							"type": "HPAddedRatio",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 0.086400001309814,
+							"display": "8.6%",
+							"percent": true,
+							"count": 2,
+							"step": 4
+						},
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.120960001833739,
+							"display": "12.0%",
+							"percent": true,
+							"count": 3,
+							"step": 4
+						}
+					]
+				}
+			],
+			"relic_sets": [
+				{
+					"id": "111",
+					"name": "Thief of Shooting Meteor",
+					"icon": "icon/relic/111.png",
+					"num": 2,
+					"desc": "Increases Break Effect by 16%.",
+					"properties": [
+						{
+							"type": "BreakDamageAddedRatioBase",
+							"field": "break_dmg",
+							"name": "Break Effect",
+							"icon": "icon/property/IconBreakUp.png",
+							"value": 0.16,
+							"display": "16.0%",
+							"percent": true
+						}
+					]
+				},
+				{
+					"id": "308",
+					"name": "Sprightly Vonwacq",
+					"icon": "icon/relic/308.png",
+					"num": 2,
+					"desc": "Increases the wearer's Energy Regeneration Rate by 5%. When the wearer's SPD reaches 120 or higher, the wearer's action is Advanced Forward by 40% immediately upon entering battle.",
+					"properties": [
+						{
+							"type": "SPRatioBase",
+							"field": "sp_rate",
+							"name": "Energy Regeneration Rate",
+							"icon": "icon/property/IconEnergyRecovery.png",
+							"value": 0.05,
+							"display": "5.0%",
+							"percent": true
+						}
+					]
+				}
+			],
+			"attributes": [
+				{
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 1859.088,
+					"display": "1859",
+					"percent": false
+				},
+				{
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 859.56,
+					"display": "859",
+					"percent": false
+				},
+				{
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 772.08,
+					"display": "772",
+					"percent": false
+				},
+				{
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 99,
+					"display": "99",
+					"percent": false
+				},
+				{
+					"field": "crit_rate",
+					"name": "CRIT Rate",
+					"icon": "icon/property/IconCriticalChance.png",
+					"value": 0.05,
+					"display": "5.0%",
+					"percent": true
+				},
+				{
+					"field": "crit_dmg",
+					"name": "CRIT DMG",
+					"icon": "icon/property/IconCriticalDamage.png",
+					"value": 0.5,
+					"display": "50.0%",
+					"percent": true
+				}
+			],
+			"additions": [
+				{
+					"field": "wind_dmg",
+					"name": "Wind DMG Boost",
+					"icon": "icon/property/IconWindAddedRatio.png",
+					"value": 0.12620800010487399,
+					"display": "12.6%",
+					"percent": true
+				},
+				{
+					"field": "crit_dmg",
+					"name": "CRIT DMG",
+					"icon": "icon/property/IconCriticalDamage.png",
+					"value": 0.146312002252786,
+					"display": "14.6%",
+					"percent": true
+				},
+				{
+					"field": "sp_rate",
+					"name": "Energy Regeneration Rate",
+					"icon": "icon/property/IconEnergyRecovery.png",
+					"value": 0.344394017569722,
+					"display": "34.4%",
+					"percent": true
+				},
+				{
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 635.102530281685,
+					"display": "635",
+					"percent": false
+				},
+				{
+					"field": "effect_hit",
+					"name": "Effect Hit Rate",
+					"icon": "icon/property/IconStatusProbability.png",
+					"value": 0.093312002252787,
+					"display": "9.3%",
+					"percent": true
+				},
+				{
+					"field": "effect_res",
+					"name": "Effect RES",
+					"icon": "icon/property/IconStatusResistance.png",
+					"value": 0.23500800691545098,
+					"display": "23.5%",
+					"percent": true
+				},
+				{
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 519.1163235024642,
+					"display": "519",
+					"percent": false
+				},
+				{
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 18.52560000331141,
+					"display": "18",
+					"percent": false
+				},
+				{
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 167.00651333239972,
+					"display": "167",
+					"percent": false
+				},
+				{
+					"field": "break_dmg",
+					"name": "Break Effect",
+					"icon": "icon/property/IconBreakUp.png",
+					"value": 0.218320001233369,
+					"display": "21.8%",
+					"percent": true
+				}
+			],
+			"properties": [
+				{
+					"type": "WindAddedRatio",
+					"field": "wind_dmg",
+					"name": "Wind DMG Boost",
+					"icon": "icon/property/IconWindAddedRatio.png",
+					"value": 0.12620800010487399,
+					"display": "12.6%",
+					"percent": true
+				},
+				{
+					"type": "CriticalDamageBase",
+					"field": "crit_dmg",
+					"name": "CRIT DMG",
+					"icon": "icon/property/IconCriticalDamage.png",
+					"value": 0.146312002252786,
+					"display": "14.6%",
+					"percent": true
+				},
+				{
+					"type": "SPRatioBase",
+					"field": "sp_rate",
+					"name": "Energy Regeneration Rate",
+					"icon": "icon/property/IconEnergyRecovery.png",
+					"value": 0.344394017569722,
+					"display": "34.4%",
+					"percent": true
+				},
+				{
+					"type": "HPDelta",
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 313.85211901157163,
+					"display": "313",
+					"percent": false
+				},
+				{
+					"type": "HPAddedRatio",
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 0.172800002619625,
+					"display": "17.2%",
+					"percent": true,
+					"count": 1,
+					"step": 1
+				},
+				{
+					"type": "StatusProbabilityBase",
+					"field": "effect_hit",
+					"name": "Effect Hit Rate",
+					"icon": "icon/property/IconStatusProbability.png",
+					"value": 0.093312002252787,
+					"display": "9.3%",
+					"percent": true,
+					"count": 1,
+					"step": 2
+				},
+				{
+					"type": "StatusResistanceBase",
+					"field": "effect_res",
+					"name": "Effect RES",
+					"icon": "icon/property/IconStatusResistance.png",
+					"value": 0.23500800691545098,
+					"display": "23.5%",
+					"percent": true,
+					"count": 2,
+					"step": 4
+				},
+				{
+					"type": "AttackDelta",
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 217.89039601013064,
+					"display": "217",
+					"percent": false
+				},
+				{
+					"type": "SpeedDelta",
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 18.52560000331141,
+					"display": "18",
+					"percent": false,
+					"count": 1,
+					"step": 1
+				},
+				{
+					"type": "AttackAddedRatio",
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 0.350442002294585,
+					"display": "35.0%",
+					"percent": true
+				},
+				{
+					"type": "DefenceDelta",
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 70.28033000533469,
+					"display": "70",
+					"percent": false,
+					"count": 1,
+					"step": 2
+				},
+				{
+					"type": "DefenceAddedRatio",
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 0.12528000120073698,
+					"display": "12.5%",
+					"percent": true,
+					"count": 1,
+					"step": 2
+				},
+				{
+					"type": "BreakDamageAddedRatioBase",
+					"field": "break_dmg",
+					"name": "Break Effect",
+					"icon": "icon/property/IconBreakUp.png",
+					"value": 0.218320001233369,
+					"display": "21.8%",
+					"percent": true,
+					"count": 1,
+					"step": 1
+				}
+			]
+		},
+		{
+			"id": "1202",
+			"name": "Tingyun",
+			"rarity": 4,
+			"rank": 2,
+			"level": 60,
+			"promotion": 4,
+			"icon": "icon/character/1202.png",
+			"preview": "image/character_preview/1202.png",
+			"portrait": "image/character_portrait/1202.png",
+			"rank_icons": [
+				"icon/skill/1202_rank1.png",
+				"icon/skill/1202_rank2.png",
+				"icon/skill/1202_skill.png",
+				"icon/skill/1202_rank4.png",
+				"icon/skill/1202_ultimate.png",
+				"icon/skill/1202_rank6.png"
+			],
+			"path": {
+				"id": "Shaman",
+				"name": "Harmony",
+				"icon": "icon/path/Harmony.png"
+			},
+			"element": {
+				"id": "Thunder",
+				"name": "Lightning",
+				"color": "#8872F1",
+				"icon": "icon/element/Lightning.png"
+			},
+			"skills": [
+				{
+					"id": "120201",
+					"name": "Dislodged",
+					"level": 3,
+					"max_level": 9,
+					"element": {
+						"id": "Thunder",
+						"name": "Lightning",
+						"color": "#8872F1",
+						"icon": "icon/element/Lightning.png"
+					},
+					"type": "Normal",
+					"type_text": "Basic ATK",
+					"effect": "SingleAttack",
+					"effect_text": "Single Target",
+					"simple_desc": "Deals minor Lightning DMG to a single enemy.",
+					"desc": "Tingyun deals Lightning DMG equal to 70% of her ATK to a single enemy.",
+					"icon": "icon/skill/1202_basic_atk.png"
+				},
+				{
+					"id": "120202",
+					"name": "Soothing Melody",
+					"level": 4,
+					"max_level": 15,
+					"element": null,
+					"type": "BPSkill",
+					"type_text": "Skill",
+					"effect": "Support",
+					"effect_text": "Support",
+					"simple_desc": "Increases the ATK of a single ally and grants them Benediction.",
+					"desc": "Grants a single ally with Benediction to increase their ATK by 32%, up to 18% of Tingyun's current ATK.\nWhen the ally with Benediction attacks, they will deal Additional Lightning DMG equal to 26% of that ally's ATK for 1 time.\nBenediction lasts for 3 turn(s) and is only effective on the most recent receiver of Tingyun's Skill.",
+					"icon": "icon/skill/1202_skill.png"
+				},
+				{
+					"id": "120203",
+					"name": "Amidst the Rejoicing Clouds",
+					"level": 4,
+					"max_level": 15,
+					"element": null,
+					"type": "Ultra",
+					"type_text": "Ultimate",
+					"effect": "Support",
+					"effect_text": "Support",
+					"simple_desc": "Regenerates Energy for a single ally and increases their DMG dealt.",
+					"desc": "Regenerates 50 Energy for a single ally and increases the target's DMG by 28% for 2 turn(s).",
+					"icon": "icon/skill/1202_ultimate.png"
+				},
+				{
+					"id": "120204",
+					"name": "Violet Sparknado",
+					"level": 4,
+					"max_level": 15,
+					"element": null,
+					"type": "Talent",
+					"type_text": "Talent",
+					"effect": "Enhance",
+					"effect_text": "Enhance",
+					"simple_desc": "",
+					"desc": "When an enemy is attacked by Tingyun, the ally with Benediction immediately deals Additional Lightning DMG equal to 39% of that ally's ATK to the same enemy.",
+					"icon": "icon/skill/1202_talent.png"
+				},
+				{
+					"id": "120206",
+					"name": "120206",
+					"level": 0,
+					"max_level": 1,
+					"element": {
+						"id": "Thunder",
+						"name": "Lightning",
+						"color": "#8872F1",
+						"icon": "icon/element/Lightning.png"
+					},
+					"type": "MazeNormal",
+					"type_text": "",
+					"effect": "MazeAttack",
+					"effect_text": "",
+					"simple_desc": "",
+					"desc": "",
+					"icon": "icon/skill/1202_basic_atk.png"
+				},
+				{
+					"id": "120207",
+					"name": "Gentle Breeze",
+					"level": 1,
+					"max_level": 1,
+					"element": null,
+					"type": "Maze",
+					"type_text": "Technique",
+					"effect": "Support",
+					"effect_text": "Support",
+					"simple_desc": "",
+					"desc": "Tingyun immediately regenerates 50 Energy upon using her Technique.",
+					"icon": "icon/skill/1202_technique.png"
+				}
+			],
+			"skill_trees": [
+				{
+					"id": "1202001",
+					"level": 3,
+					"icon": "icon/skill/1202_basic_atk.png"
+				},
+				{
+					"id": "1202002",
+					"level": 4,
+					"icon": "icon/skill/1202_skill.png"
+				},
+				{
+					"id": "1202003",
+					"level": 4,
+					"icon": "icon/skill/1202_ultimate.png"
+				},
+				{
+					"id": "1202004",
+					"level": 4,
+					"icon": "icon/skill/1202_talent.png"
+				},
+				{
+					"id": "1202007",
+					"level": 1,
+					"icon": "icon/skill/1202_technique.png"
+				},
+				{
+					"id": "1202201",
+					"level": 1,
+					"icon": "icon/property/IconAttack.png"
+				}
+			],
+			"light_cone": {
+				"id": "21018",
+				"name": "Dance! Dance! Dance!",
+				"rarity": 4,
+				"rank": 1,
+				"level": 60,
+				"promotion": 4,
+				"icon": "icon/light_cone/21018.png",
+				"preview": "image/light_cone_preview/21018.png",
+				"portrait": "image/light_cone_portrait/21018.png",
+				"path": {
+					"id": "Shaman",
+					"name": "Harmony",
+					"icon": "icon/path/Harmony.png"
+				},
+				"attributes": [
+					{
+						"field": "hp",
+						"name": "HP",
+						"icon": "icon/property/IconMaxHP.png",
+						"value": 684.72,
+						"display": "684",
+						"percent": false
+					},
+					{
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 304.32,
+						"display": "304",
+						"percent": false
+					},
+					{
+						"field": "def",
+						"name": "DEF",
+						"icon": "icon/property/IconDefence.png",
+						"value": 285.3,
+						"display": "285",
+						"percent": false
+					}
+				],
+				"properties": []
+			},
+			"relics": [
+				{
+					"id": "51021",
+					"name": "Musketeer's Wild Wheat Felt Hat",
+					"set_id": "102",
+					"set_name": "Musketeer of Wild Wheat",
+					"rarity": 4,
+					"level": 0,
+					"icon": "icon/relic/102_0.png",
+					"main_affix": {
+						"type": "HPDelta",
+						"field": "hp",
+						"name": "HP",
+						"icon": "icon/property/IconMaxHP.png",
+						"value": 90.31680000037886,
+						"display": "90",
+						"percent": false
+					},
+					"sub_affix": [
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 16.935020001605153,
+							"display": "16",
+							"percent": false,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "StatusResistanceBase",
+							"field": "effect_res",
+							"name": "Effect RES",
+							"icon": "icon/property/IconStatusResistance.png",
+							"value": 0.027648000279441,
+							"display": "2.7%",
+							"percent": true,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "BreakDamageAddedRatioBase",
+							"field": "break_dmg",
+							"name": "Break Effect",
+							"icon": "icon/property/IconBreakUp.png",
+							"value": 0.041472000768408,
+							"display": "4.1%",
+							"percent": true,
+							"count": 1,
+							"step": 0
+						}
+					]
+				},
+				{
+					"id": "61022",
+					"name": "Musketeer's Coarse Leather Gloves",
+					"set_id": "102",
+					"set_name": "Musketeer of Wild Wheat",
+					"rarity": 5,
+					"level": 9,
+					"icon": "icon/relic/102_1.png",
+					"main_affix": {
+						"type": "AttackDelta",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 234.25920000695623,
+						"display": "234",
+						"percent": false
+					},
+					"sub_affix": [
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 35.986915002111346,
+							"display": "35",
+							"percent": false,
+							"count": 2,
+							"step": 1
+						},
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.043200000654907,
+							"display": "4.3%",
+							"percent": true,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "CriticalChanceBase",
+							"field": "crit_rate",
+							"name": "CRIT Rate",
+							"icon": "icon/property/IconCriticalChance.png",
+							"value": 0.064800001680852,
+							"display": "6.4%",
+							"percent": true,
+							"count": 2,
+							"step": 4
+						},
+						{
+							"type": "BreakDamageAddedRatioBase",
+							"field": "break_dmg",
+							"name": "Break Effect",
+							"icon": "icon/property/IconBreakUp.png",
+							"value": 0.058320001233369,
+							"display": "5.8%",
+							"percent": true,
+							"count": 1,
+							"step": 1
+						}
+					]
+				},
+				{
+					"id": "61023",
+					"name": "Musketeer's Wind-Hunting Shawl",
+					"set_id": "102",
+					"set_name": "Musketeer of Wild Wheat",
+					"rarity": 5,
+					"level": 9,
+					"icon": "icon/relic/102_2.png",
+					"main_affix": {
+						"type": "AttackAddedRatio",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 0.28684800420888,
+						"display": "28.6%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "HPDelta",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 76.20758800394833,
+							"display": "76",
+							"percent": false,
+							"count": 2,
+							"step": 2
+						},
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 21.168773002224043,
+							"display": "21",
+							"percent": false,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "CriticalChanceBase",
+							"field": "crit_rate",
+							"name": "CRIT Rate",
+							"icon": "icon/property/IconCriticalChance.png",
+							"value": 0.090720002073796,
+							"display": "9.0%",
+							"percent": true,
+							"count": 3,
+							"step": 4
+						},
+						{
+							"type": "StatusProbabilityBase",
+							"field": "effect_hit",
+							"name": "Effect Hit Rate",
+							"icon": "icon/property/IconStatusProbability.png",
+							"value": 0.043200000654907,
+							"display": "4.3%",
+							"percent": true,
+							"count": 1,
+							"step": 2
+						}
+					]
+				},
+				{
+					"id": "51024",
+					"name": "Musketeer's Rivets Riding Boots",
+					"set_id": "102",
+					"set_name": "Musketeer of Wild Wheat",
+					"rarity": 4,
+					"level": 9,
+					"icon": "icon/relic/102_3.png",
+					"main_affix": {
+						"type": "SpeedDelta",
+						"field": "spd",
+						"name": "SPD",
+						"icon": "icon/property/IconSpeed.png",
+						"value": 13.125600001076235,
+						"display": "13",
+						"percent": false
+					},
+					"sub_affix": [
+						{
+							"type": "HPDelta",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 60.96606999961659,
+							"display": "60",
+							"percent": false,
+							"count": 2,
+							"step": 2
+						},
+						{
+							"type": "AttackDelta",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 16.935020001605153,
+							"display": "16",
+							"percent": false,
+							"count": 1,
+							"step": 2
+						},
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 13.548016000073403,
+							"display": "13",
+							"percent": false,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.034560001222417,
+							"display": "3.4%",
+							"percent": true,
+							"count": 1,
+							"step": 2
+						}
+					]
+				},
+				{
+					"id": "53025",
+					"name": "The Xianzhou Luofu's Celestial Ark",
+					"set_id": "302",
+					"set_name": "Fleet of the Ageless",
+					"rarity": 4,
+					"level": 0,
+					"icon": "icon/relic/302_0.png",
+					"main_affix": {
+						"type": "AttackAddedRatio",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 0.055296000558883,
+						"display": "5.5%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "AttackDelta",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 13.548016000073403,
+							"display": "13",
+							"percent": false,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "DefenceDelta",
+							"field": "def",
+							"name": "DEF",
+							"icon": "icon/property/IconDefence.png",
+							"value": 15.241518000839278,
+							"display": "15",
+							"percent": false,
+							"count": 1,
+							"step": 1
+						}
+					]
+				},
+				{
+					"id": "63026",
+					"name": "The Xianzhou Luofu's Ambrosial Arbor Vines",
+					"set_id": "302",
+					"set_name": "Fleet of the Ageless",
+					"rarity": 5,
+					"level": 9,
+					"icon": "icon/relic/302_1.png",
+					"main_affix": {
+						"type": "AttackAddedRatio",
+						"field": "atk",
+						"name": "ATK",
+						"icon": "icon/property/IconAttack.png",
+						"value": 0.28684800420888,
+						"display": "28.6%",
+						"percent": true
+					},
+					"sub_affix": [
+						{
+							"type": "AttackDelta",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 35.986915002111346,
+							"display": "35",
+							"percent": false,
+							"count": 2,
+							"step": 1
+						},
+						{
+							"type": "CriticalChanceBase",
+							"field": "crit_rate",
+							"name": "CRIT Rate",
+							"icon": "icon/property/IconCriticalChance.png",
+							"value": 0.025920000392944,
+							"display": "2.5%",
+							"percent": true,
+							"count": 1,
+							"step": 0
+						},
+						{
+							"type": "StatusResistanceBase",
+							"field": "effect_res",
+							"name": "Effect RES",
+							"icon": "icon/property/IconStatusResistance.png",
+							"value": 0.082080001244323,
+							"display": "8.2%",
+							"percent": true,
+							"count": 2,
+							"step": 3
+						},
+						{
+							"type": "BreakDamageAddedRatioBase",
+							"field": "break_dmg",
+							"name": "Break Effect",
+							"icon": "icon/property/IconBreakUp.png",
+							"value": 0.051840000785887,
+							"display": "5.1%",
+							"percent": true,
+							"count": 1,
+							"step": 0
+						}
+					]
+				}
+			],
+			"relic_sets": [
+				{
+					"id": "102",
+					"name": "Musketeer of Wild Wheat",
+					"icon": "icon/relic/102.png",
+					"num": 2,
+					"desc": "ATK increases by 12%.",
+					"properties": [
+						{
+							"type": "AttackAddedRatio",
+							"field": "atk",
+							"name": "ATK",
+							"icon": "icon/property/IconAttack.png",
+							"value": 0.12,
+							"display": "12.0%",
+							"percent": true
+						}
+					]
+				},
+				{
+					"id": "102",
+					"name": "Musketeer of Wild Wheat",
+					"icon": "icon/relic/102.png",
+					"num": 4,
+					"desc": "ATK increases by 12%.",
+					"properties": [
+						{
+							"type": "SpeedAddedRatio",
+							"field": "spd",
+							"name": "SPD",
+							"icon": "icon/property/IconSpeed.png",
+							"value": 0.06,
+							"display": "6.0%",
+							"percent": true
+						}
+					]
+				},
+				{
+					"id": "302",
+					"name": "Fleet of the Ageless",
+					"icon": "icon/relic/302.png",
+					"num": 2,
+					"desc": "Increases the wearer's Max HP by 12%. When the wearer's SPD reaches 120 or higher, all allies' ATK increases by 8%.",
+					"properties": [
+						{
+							"type": "HPAddedRatio",
+							"field": "hp",
+							"name": "HP",
+							"icon": "icon/property/IconMaxHP.png",
+							"value": 0.12,
+							"display": "12.0%",
+							"percent": true
+						}
+					]
+				}
+			],
+			"attributes": [
+				{
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 1324.08,
+					"display": "1324",
+					"percent": false
+				},
+				{
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 703.9200000000001,
+					"display": "703",
+					"percent": false
+				},
+				{
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 585,
+					"display": "585",
+					"percent": false
+				},
+				{
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 112,
+					"display": "112",
+					"percent": false
+				},
+				{
+					"field": "crit_rate",
+					"name": "CRIT Rate",
+					"icon": "icon/property/IconCriticalChance.png",
+					"value": 0.05,
+					"display": "5.0%",
+					"percent": true
+				},
+				{
+					"field": "crit_dmg",
+					"name": "CRIT DMG",
+					"icon": "icon/property/IconCriticalDamage.png",
+					"value": 0.5,
+					"display": "50.0%",
+					"percent": true
+				}
+			],
+			"additions": [
+				{
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 910.8532264910707,
+					"display": "910",
+					"percent": false
+				},
+				{
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 386.38005800394376,
+					"display": "386",
+					"percent": false
+				},
+				{
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 102.88024200685322,
+					"display": "102",
+					"percent": false
+				},
+				{
+					"field": "effect_res",
+					"name": "Effect RES",
+					"icon": "icon/property/IconStatusResistance.png",
+					"value": 0.10972800152376401,
+					"display": "10.9%",
+					"percent": true
+				},
+				{
+					"field": "break_dmg",
+					"name": "Break Effect",
+					"icon": "icon/property/IconBreakUp.png",
+					"value": 0.151632002787664,
+					"display": "15.1%",
+					"percent": true
+				},
+				{
+					"field": "crit_rate",
+					"name": "CRIT Rate",
+					"icon": "icon/property/IconCriticalChance.png",
+					"value": 0.181440004147592,
+					"display": "18.1%",
+					"percent": true
+				},
+				{
+					"field": "effect_hit",
+					"name": "Effect Hit Rate",
+					"icon": "icon/property/IconStatusProbability.png",
+					"value": 0.043200000654907,
+					"display": "4.3%",
+					"percent": true
+				},
+				{
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 19.845600001076235,
+					"display": "19",
+					"percent": false
+				}
+			],
+			"properties": [
+				{
+					"type": "AttackAddedRatio",
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 0.866752010853967,
+					"display": "86.6%",
+					"percent": true
+				},
+				{
+					"type": "HPDelta",
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 227.4904580039438,
+					"display": "227",
+					"percent": false
+				},
+				{
+					"type": "DefenceDelta",
+					"field": "def",
+					"name": "DEF",
+					"icon": "icon/property/IconDefence.png",
+					"value": 102.88024200685322,
+					"display": "102",
+					"percent": false,
+					"count": 1,
+					"step": 2
+				},
+				{
+					"type": "StatusResistanceBase",
+					"field": "effect_res",
+					"name": "Effect RES",
+					"icon": "icon/property/IconStatusResistance.png",
+					"value": 0.10972800152376401,
+					"display": "10.9%",
+					"percent": true,
+					"count": 1,
+					"step": 0
+				},
+				{
+					"type": "BreakDamageAddedRatioBase",
+					"field": "break_dmg",
+					"name": "Break Effect",
+					"icon": "icon/property/IconBreakUp.png",
+					"value": 0.151632002787664,
+					"display": "15.1%",
+					"percent": true,
+					"count": 1,
+					"step": 0
+				},
+				{
+					"type": "AttackDelta",
+					"field": "atk",
+					"name": "ATK",
+					"icon": "icon/property/IconAttack.png",
+					"value": 300.72915101074614,
+					"display": "300",
+					"percent": false
+				},
+				{
+					"type": "CriticalChanceBase",
+					"field": "crit_rate",
+					"name": "CRIT Rate",
+					"icon": "icon/property/IconCriticalChance.png",
+					"value": 0.181440004147592,
+					"display": "18.1%",
+					"percent": true,
+					"count": 2,
+					"step": 4
+				},
+				{
+					"type": "StatusProbabilityBase",
+					"field": "effect_hit",
+					"name": "Effect Hit Rate",
+					"icon": "icon/property/IconStatusProbability.png",
+					"value": 0.043200000654907,
+					"display": "4.3%",
+					"percent": true,
+					"count": 1,
+					"step": 2
+				},
+				{
+					"type": "SpeedDelta",
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 13.125600001076235,
+					"display": "13",
+					"percent": false
+				},
+				{
+					"type": "SpeedAddedRatio",
+					"field": "spd",
+					"name": "SPD",
+					"icon": "icon/property/IconSpeed.png",
+					"value": 0.06,
+					"display": "6.0%",
+					"percent": true
+				},
+				{
+					"type": "HPAddedRatio",
+					"field": "hp",
+					"name": "HP",
+					"icon": "icon/property/IconMaxHP.png",
+					"value": 0.12,
+					"display": "12.0%",
+					"percent": true
+				}
+			]
+		}
+	]
+}

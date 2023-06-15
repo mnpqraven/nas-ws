@@ -16,17 +16,31 @@ pub struct Patch {
     pub name: String,
     pub version: Version,
     pub date_start: DateTime<Utc>,
+    pub date_2nd_banner: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
 }
 #[derive(Serialize, JsonResponse, Clone, Debug)]
 pub struct PatchList {
-    patches: Vec<Patch>,
+    pub patches: Vec<Patch>,
+}
+
+#[derive(Serialize, JsonResponse, Clone, Debug)]
+pub struct BannerList {
+    banners: Vec<PatchBanner>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PatchBanner {
+    pub character_name: String,
+    pub version: Version,
+    pub date_start: DateTime<Utc>,
+    pub date_end: DateTime<Utc>,
 }
 
 impl Patch {
     const BASE_1_1: (i32, u32, u32, u32, u32, u32) = (2023, 6, 7, 2, 0, 0);
 
-    // TODO: test
     pub fn base() -> Self {
         let (year, month, day, hour, min, sec) = Self::BASE_1_1;
         let start_date = Utc
@@ -37,7 +51,6 @@ impl Patch {
     }
 
     /// get the current patch
-    // TODO: test
     pub fn current() -> Self {
         let mut base = Self::base();
         base.name = String::new();
@@ -49,33 +62,12 @@ impl Patch {
 
     /// get the start date of the 1st banner middle and
     /// the end date of a patch
-    // TODO: test
     pub fn get_boundaries(&self) -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
         (
             self.date_start,
             self.date_start + Duration::weeks(3),
             self.date_end,
         )
-    }
-
-    /// get the start date of the 1st banner middle and
-    /// the end date of a patch
-    // TODO: test
-    pub fn get_patch_boundaries(
-        current_date: DateTime<Utc>,
-    ) -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
-        let base_1_1 = Self::base().date_start;
-        let (mut l_bound, mut m_bound, mut r_bound) = (
-            base_1_1,
-            base_1_1 + Duration::weeks(3),
-            base_1_1 + Duration::weeks(6),
-        );
-        while r_bound < current_date {
-            l_bound = r_bound;
-            m_bound += Duration::weeks(3);
-            r_bound += Duration::weeks(6);
-        }
-        (l_bound, m_bound, r_bound)
     }
 
     pub fn contains(&self, date: DateTime<Utc>) -> bool {
@@ -97,12 +89,14 @@ impl Patch {
         version: impl Into<Version>,
         start_date: DateTime<Utc>,
     ) -> Self {
-        let end_date = start_date + Duration::weeks(6);
+        let date_end = start_date + Duration::weeks(6);
+        let date_2nd_banner = start_date + Duration::weeks(3);
         Self {
             name: name.into(),
             version: version.into(),
             date_start: start_date,
-            date_end: end_date,
+            date_2nd_banner,
+            date_end,
         }
     }
 
@@ -158,54 +152,55 @@ impl Patch {
     }
 }
 
-// name and version in Patch
-pub struct PatchInfo(pub String, pub Version);
 impl PatchList {
-    pub fn calculate_from_base(base_version: Patch, future_patches: Vec<PatchInfo>) -> Self {
-        let mut res: Vec<Patch> = vec![base_version.clone()];
-        let mut next_start_date = base_version.date_end;
-        for PatchInfo(name, version) in future_patches.iter() {
-            res.push(Patch::new(name, version.clone(), next_start_date));
-            next_start_date += Duration::weeks(6);
-        }
+    pub fn generate(index: u32, info: Option<Vec<(&str, Version)>>) -> Self {
+        let mut patches = vec![];
+        let mut current = Patch::current();
+        let mut next_version = current.version.clone();
+        for _ in 0..index {
+            next_version.minor += 1;
+            let name: String = match info.clone() {
+                Some(info) => match info.iter().find(|(_, version)| version.eq(&next_version)) {
+                    Some((name, _)) => name.to_string(),
+                    None => format!("Patch {}.{}", next_version.major, next_version.minor),
+                },
+                None => format!("Patch {}.{}", next_version.major, next_version.minor),
+            };
 
-        match Utc::now() > base_version.date_start {
-            true => {
-                res.remove(0);
-                Self { patches: res }
-            }
-            false => Self { patches: res },
+            let patch = Patch::new(name, next_version.clone(), current.date_end);
+            patches.push(patch);
+            current.next();
         }
+        Self { patches }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use chrono::{TimeZone, Utc};
-
-    use crate::routes::honkai::patch::types::Patch;
-
-    #[test]
-    fn boundaries() {
-        let today = Utc.with_ymd_and_hms(2023, 6, 30, 1, 9, 48).unwrap();
-
-        let within_patch = Utc.with_ymd_and_hms(2023, 7, 10, 1, 9, 48).unwrap();
-        let next_patch = Utc.with_ymd_and_hms(2023, 7, 22, 1, 9, 48).unwrap();
-
-        assert_eq!(Patch::patch_passed_diff(today, within_patch).unwrap(), 0);
-        assert_eq!(Patch::patch_passed_diff(today, next_patch).unwrap(), 1);
-    }
-
-    #[test]
-    fn half_patch_diffing() {
-        let today = Utc.with_ymd_and_hms(2023, 6, 11, 1, 9, 48).unwrap();
-        let next_patch = Utc.with_ymd_and_hms(2023, 8, 18, 1, 9, 48).unwrap();
-        let next_patch2 = Utc.with_ymd_and_hms(2023, 8, 14, 1, 9, 48).unwrap();
-
-        assert_eq!(Patch::half_patch_passed_diff(today, next_patch).unwrap(), 3);
-        assert_eq!(
-            Patch::half_patch_passed_diff(today, next_patch2).unwrap(),
-            3
-        );
+impl BannerList {
+    pub fn from_patches(
+        patches: Vec<Patch>,
+        banner_info: Vec<(Option<&str>, Option<&str>, Version)>,
+    ) -> Self {
+        let mut banners: Vec<PatchBanner> = vec![];
+        for patch in patches.iter() {
+            let (char1, char2) = match banner_info
+                .iter()
+                .find(|(_, _, version)| patch.version.eq(version))
+            {
+                Some((char1, char2, _)) => (char1.unwrap_or("Unknown"), char2.unwrap_or("Unknown")),
+                None => ("Unknown", "Unknown"),
+            };
+            banners.push(PatchBanner {
+                character_name: char1.to_string(),
+                version: patch.version.clone(),
+                date_start: patch.date_start,
+                date_end: patch.date_2nd_banner,
+            });
+            banners.push(PatchBanner {
+                character_name: char2.to_string(),
+                version: patch.version.clone(),
+                date_start: patch.date_2nd_banner,
+                date_end: patch.date_end,
+            });
+        }
+        Self { banners }
     }
 }

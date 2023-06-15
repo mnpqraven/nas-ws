@@ -1,7 +1,7 @@
 use axum::{extract::FromRequest, http::Method, Json};
 use nas_ws::{
     handler::{error::WorkerError, FromAxumResponse},
-    routes::honkai::jade_estimate::jade_estimate,
+    routes::honkai::jade_estimate::handle,
 };
 use vercel_runtime::{run, Body, Error, Request, Response};
 
@@ -20,5 +20,5 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     }
     // NOTE: uncomment if payload is used (will be eventually)
     let payload = Json::from_request(req, &()).await;
-    jade_estimate(payload).await.as_axum()
+    handle(payload).await.as_axum()
 }

@@ -2,13 +2,15 @@ use super::shared::*;
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
 use response_derive::JsonResponse;
-use serde::{Deserialize, Serialize};
-use vercel_runtime::{Body, Response, StatusCode};
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use serde_aux::prelude::*;
+use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
 pub struct LightCone {
-    id: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    id: u32,
     name: String,
     rarity: u32,
     rank: u32,
@@ -24,25 +26,28 @@ pub struct LightCone {
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
 pub struct Relic {
-    id: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    id: u32,
     name: String,
-    set_id: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    set_id: u32, // enum mappable
     set_name: String,
     rarity: u32,
     level: u32,
     icon: AssetPath,
-    main_affix: MainAffix,
+    main_affix: AffixProperty,
     sub_affix: Vec<SubAffix>,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
 pub struct RelicSet {
-    id: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    id: u32,
     name: String,
     icon: AssetPath,
     num: u32,
     desc: String,
-    properties: Vec<RelicSetProperty>,
+    properties: Vec<AffixProperty>,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
@@ -67,9 +72,9 @@ struct LightConeProperty {
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
-struct MainAffix {
+struct AffixProperty {
     #[serde(rename = "type")]
-    ttype: String, // HPDelta
+    ttype: MainAffixType, // HPDelta
     field: String,
     name: String,
     icon: AssetPath,
@@ -93,13 +98,60 @@ struct SubAffix {
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
-struct RelicSetProperty {
-    #[serde(rename = "type")]
-    ttype: String, //QuantumAddedRatio
-    field: String,
-    name: String,
-    icon: AssetPath,
-    value: f32,
-    display: String,
-    percent: bool,
+enum MainAffixType {
+    HPDelta,     // hat only
+    AttackDelta, // glove only
+    // body
+    HPAddedRatio,
+    AttackAddedRatio,
+    DefenceAddedRatio,
+    CriticalChanceBase,
+    CriticalDamageBase,
+    HealRatioBase,
+    StatusProbabilityBase, // EHR
+    SpeedDelta,
+    PhysicalAddedRatio,
+    FireAddedRatio,
+    IceAddedRatio,
+    ThunderAddedRatio,
+    WindAddedRatio,
+    QuantumAddedRatio,
+    ImaginaryAddedRatio,
+    BreakDamageAddedRatioBase,
+    SPRatioBase,
 }
+
+// HPDelta,     // hat only
+// AttackDelta, // glove only
+// // body
+// HPAddedRatio,
+// AttackAddedRatio,
+// DefenceAddedRatio,
+// CriticalChanceBase,
+// CriticalDamageBase,
+// HealRatioBase,
+// StatusProbabilityBase, // EHR
+// boots
+// HPAddedRatio
+// AttackAddedRatio
+// DefenceAddedRatio
+// SpeedDelta
+//
+// planar
+// HPAddedRatio
+// AttackAddedRatio
+// DefenceAddedRatio
+// PhysicalAddedRatio
+// FireAddedRatio
+// IceAddedRatio
+// ThunderAddedRatio
+// WindAddedRatio
+// QuantumAddedRatio
+// ImaginaryAddedRatio
+//
+// link robe
+// BreakDamageAddedRatioBase
+// SPRatioBase
+// HPAddedRatio
+// AttackAddedRatio
+// DefenceAddedRatio

@@ -12,6 +12,7 @@ pub enum WorkerError {
     Computation(ComputationType),
     WrongMethod,
     EmptyBody,
+    Unknown(String),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -27,6 +28,7 @@ impl WorkerError {
             WorkerError::Computation(_) => StatusCode::INTERNAL_SERVER_ERROR,
             WorkerError::EmptyBody => StatusCode::BAD_REQUEST,
             WorkerError::WrongMethod => StatusCode::METHOD_NOT_ALLOWED,
+            WorkerError::Unknown(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
@@ -44,6 +46,7 @@ impl Display for WorkerError {
             },
             Self::WrongMethod => "Method is not supported".to_owned(),
             Self::EmptyBody => "Missing body data".to_owned(),
+            Self::Unknown(err) => format!("Unknown error: {}", err),
         };
         write!(f, "{}", fmt)
     }

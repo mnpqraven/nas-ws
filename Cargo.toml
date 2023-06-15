@@ -7,6 +7,7 @@ edition = "2021"
 axum = { version = "0.6.15", features = ["macros"] }
 serde = { version = "1.0.160", features = ["derive"] }
 serde_json = "1.0.96"
+serde_repr = "0.1.12"
 tokio = { version = "1.27.0", features = ["full"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
@@ -26,6 +27,7 @@ chrono = { version = "0.4.24", features = ["serde"] }
 semver = { version = "1.0.17", features = ["serde"] }
 reqwest = { version = "0.11.18", features = ["json"] }
 schemars = "0.8.12"
+serde-aux = "4.2.0"
 
 [[bin]]
 name = "nas-ws"
@@ -65,3 +67,9 @@ path = "api/honkai/list_future_patch_date.rs"
 [[bin]]
 name = "gacha_banner_list"
 path = "api/honkai/gacha_banner_list.rs"
+
+# NOTE: CRON JOBS
+
+[[bin]]
+name = "characters_db"
+path = "api/cron/characters_db.rs"

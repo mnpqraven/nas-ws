@@ -5,6 +5,7 @@ use serde::Deserialize;
 use tracing::error;
 
 pub mod types;
+pub mod internal;
 
 // NOTE: mihoyo public api + assets
 // https://api.mihomo.me/sr_info/700164437

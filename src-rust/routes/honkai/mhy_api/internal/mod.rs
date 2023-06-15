@@ -1,10 +1,10 @@
 use self::{categorizing::Character, constants::CHARACTER_DICT};
-use std::{collections::HashMap, env, error::Error, fs, path::Path};
+use std::{collections::HashMap, error::Error};
 use tracing::debug;
 
 /// holds internal types for mhy's DB
 // TODO: avoid conflicting type names with super::types
-mod categorizing;
+pub mod categorizing;
 mod constants;
 #[cfg(test)]
 mod runnables;

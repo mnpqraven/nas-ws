@@ -17,7 +17,7 @@ pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     Ok(Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "application/json")
-        .header("Cache-Control", "s-maxage=86400")
+        .header("Cache-Control", "max-age=0, s-maxage=86400")
         .body(
             json!({ "characters": get_character_list().await.unwrap() })
                 .to_string()

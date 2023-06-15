@@ -77,3 +77,7 @@ path = "api/honkai/gacha_banner_list.rs"
 [[bin]]
 name = "characters_db"
 path = "api/cron/characters_db.rs"
+
+[[bin]]
+name = "write_characters_db"
+path = "api/cron/write_characters_db.rs"

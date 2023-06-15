@@ -6,6 +6,8 @@ use semver::Version;
 use tracing::debug;
 
 pub mod types;
+#[cfg(test)]
+mod tests;
 
 pub async fn list_future_patch_date() -> Result<Json<PatchList>, WorkerError> {
     let dt_1_1 = Utc.with_ymd_and_hms(2023, 6, 7, 2, 0, 0).unwrap();

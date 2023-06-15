@@ -119,17 +119,18 @@ impl RewardFrequency {
 
         // TODO: unit test all of these
         match self {
-            RewardFrequency::Daily => Self::get_date_diff(from_date, to_date),
+            RewardFrequency::Daily => Self::get_day_diff(from_date, to_date),
             RewardFrequency::Weekly => Self::get_week_diff(from_date, to_date, server),
             RewardFrequency::BiWeekly => Self::get_biweek_diff(from_date, to_date, server),
             RewardFrequency::Monthly => Self::get_month_diff(from_date, to_date),
-            RewardFrequency::WholePatch => Patch::patch_passed_diff(from_date, to_date),
             RewardFrequency::HalfPatch => Patch::half_patch_passed_diff(from_date, to_date),
+            RewardFrequency::WholePatch => Patch::patch_passed_diff(from_date, to_date),
             RewardFrequency::OneTime => Ok(1),
         }
     }
 
-    fn get_date_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> Result<u32, WorkerError> {
+    /// Counts number of days that has passed between 2 dates
+    fn get_day_diff(from_date: DateTime<Utc>, to_date: DateTime<Utc>) -> Result<u32, WorkerError> {
         if from_date > to_date {
             return Err(WorkerError::Computation(ComputationType::BadDateComparison));
         }
@@ -140,6 +141,7 @@ impl RewardFrequency {
         Ok(diff_days)
     }
 
+    /// Counts number of weeks that has passed between 2 dates
     fn get_week_diff(
         from_date: DateTime<Utc>,
         to_date: DateTime<Utc>,
@@ -162,7 +164,10 @@ impl RewardFrequency {
         Ok(diff_weeks)
     }
 
-    /// TODO: refactor to better code
+    /// Counts number of biweekly reset (MoC etc.) that has passed between 2
+    /// dates
+    /// NOTE: this is counted from the start of the game's launch, not from
+    /// `from_date`
     fn get_biweek_diff(
         from_date: DateTime<Utc>,
         to_date: DateTime<Utc>,
@@ -171,47 +176,35 @@ impl RewardFrequency {
         if from_date > to_date {
             return Err(WorkerError::Computation(ComputationType::BadDateComparison));
         }
-        let base_moc_time = Utc.with_ymd_and_hms(2023, 5, 29, 19, 0, 0).unwrap();
-        let base_moc = today_at_reset(&base_moc_time, server);
+        let base_moc = Utc
+            .with_ymd_and_hms(2023, 5, 29, Server::get_utc_reset_hour(server), 0, 0)
+            .unwrap();
+
+        let mut start = base_moc;
+        while start < from_date {
+            start += Duration::weeks(2);
+        }
+        let mut end = base_moc;
+        while end < to_date {
+            if end + Duration::weeks(2) > to_date {
+                break;
+            }
+            end += Duration::weeks(2);
+        }
 
         let mut diff_biweeks = 0;
-        let mut patch_at_from = Patch::base();
-        let mut patch_at_to = Patch::base();
-        // update patch to correctly wrap around from and to date
-        while !patch_at_from.contains(from_date) {
-            patch_at_from.next()
-        }
-        while !patch_at_to.contains(to_date) {
-            patch_at_to.next()
-        }
-
-        // next biweekly start after from_date
-        let mut next_biweekly_start = patch_at_from.date_start;
-        // last biweekly start before to_date
-        let mut last_biweekly_start = patch_at_to.date_start + Duration::weeks(2);
-        // this is to halve the mutation rate of the biweekly block as it
-        // should only mutate once every 2 monday checks
-        let mut modulo_inside = true;
-        // extra 1 day pad for equal or less
-        for current_date in DateRange(base_moc, to_date + Duration::days(1)) {
-            if current_date.weekday() == Weekday::Mon {
-                if modulo_inside {
-                    next_biweekly_start = current_date;
-                    last_biweekly_start = next_biweekly_start + Duration::weeks(2);
-
-                    if current_date >= from_date {
-                        diff_biweeks += 1;
-                    }
+        // this flag is to filter out every other monday that's not the start
+        // of a new moc cycle
+        let mut moc_start = true;
+        for day in DateRange(start, end + Duration::days(1)) {
+            if day.weekday() == Weekday::Mon {
+                if moc_start {
+                    diff_biweeks += 1;
                 }
-                modulo_inside = !modulo_inside;
+                moc_start = !moc_start;
             }
         }
-
-        // in the same week
-        match next_biweekly_start < from_date && to_date < last_biweekly_start {
-            true => Ok(0),
-            false => Ok(diff_biweeks),
-        }
+        Ok(diff_biweeks)
     }
 
     pub fn get_month_diff(

@@ -4,6 +4,8 @@ use axum::Json;
 use semver::Version;
 
 pub mod types;
+#[cfg(test)]
+mod tests;
 
 pub async fn list_future_patch_date() -> Result<Json<PatchList>, WorkerError> {
     let patches_info: Vec<(&str, Version)> = vec![

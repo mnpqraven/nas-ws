@@ -4,5 +4,10 @@
 		"api/**/*.rs": {
 			"runtime": "vercel-rust@4.0.0-beta.4"
 		}
-	}
+	},
+	"crons": [
+		{ "path": "api/cron/write_characters_db",
+			"schedule": "0 * * * *"
+		}
+	]
 }

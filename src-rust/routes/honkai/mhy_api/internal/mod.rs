@@ -9,7 +9,7 @@ mod constants;
 #[cfg(test)]
 mod runnables;
 
-// TODO: set url fetching as fallback, default to dir lookup
+// NOTE: url fetching
 pub async fn get_character_list() -> Result<Vec<Character>, Box<dyn Error>> {
     debug!("fetching from fallback url");
     let res_str: String = reqwest::get(CHARACTER_DICT).await?.text().await?;

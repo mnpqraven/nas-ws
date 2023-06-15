@@ -1,7 +1,8 @@
 use std::{collections::HashMap, fs, path::Path};
 
 use axum::{extract::FromRequest, http::Method, Json};
-use nas_ws::routes::honkai::mhy_api::{internal::get_character_list, types::character::Character};
+use nas_ws::routes::honkai::mhy_api::{internal::get_character_list};
+use nas_ws::routes::honkai::mhy_api::internal::categorizing::Character;
 use serde_json::json;
 use tracing::debug;
 use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};

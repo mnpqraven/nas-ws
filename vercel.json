@@ -6,7 +6,8 @@
 		}
 	},
 	"crons": [
-		{ "path": "api/cron/write_characters_db",
+		{
+			"path": "/api/cron/write_characters_db",
 			"schedule": "0 * * * *"
 		}
 	]

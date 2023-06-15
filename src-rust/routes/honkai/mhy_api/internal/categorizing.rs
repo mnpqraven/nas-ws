@@ -94,16 +94,16 @@ impl FromStr for RelicSetId {
 pub struct Character {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     id: u32,
-    pub(super) name: String,
+    pub name: String,
     tag: String,
     rarity: u8,
     path: Path,
-    element: Element,
+    pub element: Element,
     max_sp: u32,
     ranks: Vec<String>,
     skills: Vec<String>,
     skill_trees: Vec<String>,
-    pub(super) icon: AssetPath,
+    pub icon: AssetPath,
     preview: AssetPath,
     portrait: AssetPath,
     #[serde(skip)]

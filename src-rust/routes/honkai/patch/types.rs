@@ -1,7 +1,14 @@
-use crate::handler::{
-    error::{ComputationType, WorkerError},
-    FromAxumResponse,
+use crate::{
+    handler::{
+        error::{ComputationType, WorkerError},
+        FromAxumResponse,
+    },
+    routes::honkai::mhy_api::{
+        internal::get_character_list,
+        types::shared::{AssetPath, Element},
+    },
 };
+use anyhow::Result;
 use axum::Json;
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use response_derive::JsonResponse;
@@ -32,7 +39,10 @@ pub struct BannerList {
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchBanner {
-    pub character_name: String,
+    pub character_name: String,   // FK cmp with `name`
+    pub icon: Option<AssetPath>,  // FK
+    pub element: Option<Element>, // FK
+    pub element_color: Option<String>,
     pub version: Version,
     pub date_start: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
@@ -175,11 +185,12 @@ impl PatchList {
     }
 }
 impl BannerList {
-    pub fn from_patches(
+    pub async fn from_patches(
         patches: Vec<Patch>,
         banner_info: Vec<(Option<&str>, Option<&str>, Version)>,
-    ) -> Self {
+    ) -> Result<Self> {
         let mut banners: Vec<PatchBanner> = vec![];
+        let character_list = get_character_list().await?;
         for patch in patches.iter() {
             let (char1, char2) = match banner_info
                 .iter()
@@ -188,19 +199,44 @@ impl BannerList {
                 Some((char1, char2, _)) => (char1.unwrap_or("Unknown"), char2.unwrap_or("Unknown")),
                 None => ("Unknown", "Unknown"),
             };
+            let fk1 = character_list.iter().find(|e| e.name.eq(char1));
+            let fk2 = character_list.iter().find(|e| e.name.eq(char2));
+            let (icon1, element1, color1) = match fk1 {
+                Some(x) => (
+                    Some(x.icon.clone()),
+                    Some(x.element.clone()),
+                    Some(x.element.color()),
+                ),
+                None => (None, None, None),
+            };
+            let (icon2, element2, color2) = match fk2 {
+                Some(x) => (
+                    Some(x.icon.clone()),
+                    Some(x.element.clone()),
+                    Some(x.element.color()),
+                ),
+                None => (None, None, None),
+            };
+
             banners.push(PatchBanner {
                 character_name: char1.to_string(),
                 version: patch.version.clone(),
                 date_start: patch.date_start,
                 date_end: patch.date_2nd_banner,
+                icon: icon1,
+                element: element1,
+                element_color: color1,
             });
             banners.push(PatchBanner {
                 character_name: char2.to_string(),
                 version: patch.version.clone(),
                 date_start: patch.date_2nd_banner,
                 date_end: patch.date_end,
+                icon: icon2,
+                element: element2,
+                element_color: color2,
             });
         }
-        Self { banners }
+        Ok(Self { banners })
     }
 }

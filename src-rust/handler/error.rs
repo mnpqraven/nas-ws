@@ -67,3 +67,9 @@ impl From<WorkerError> for vercel_runtime::Response<vercel_runtime::Body> {
             .unwrap()
     }
 }
+
+impl From<anyhow::Error> for WorkerError {
+    fn from(value: anyhow::Error) -> Self {
+        WorkerError::Unknown(value.to_string())
+    }
+}

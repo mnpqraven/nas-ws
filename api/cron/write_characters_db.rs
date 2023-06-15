@@ -1,7 +1,8 @@
-use nas_ws::routes::honkai::mhy_api::internal::categorizing::Character;
-use serde_json::json;
-use std::{collections::HashMap, fs, path::Path};
-use tracing::debug;
+use axum::Json;
+use nas_ws::handler::{error::WorkerError, FromAxumResponse};
+use nas_ws::routes::honkai::mhy_api::internal::write_character_db;
+use response_derive::JsonResponse;
+use serde::Serialize;
 use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 
 #[tokio::main]
@@ -13,39 +14,18 @@ async fn main() -> Result<(), Error> {
     run(handler).await
 }
 
+#[derive(Debug, Clone, Serialize, JsonResponse)]
+struct ResponseData {
+    exist_status: bool,
+    write_status: bool,
+}
+
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
-    // NOTE: uncomment if payload is used (will be eventually)
-    let res_str: String = reqwest::get(
-        "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/characters.json",
-    )
-    .await?
-    .text()
-    .await?;
-    let map: HashMap<String, Character> = serde_json::from_str(&res_str)?;
-    let characters = map.into_values().collect::<Vec<Character>>();
+    let (exist_status, write_status) = write_character_db().await?;
 
-    let exist_status = match Path::new("/tmp/characters.json").exists() {
-        true => "exist",
-        false => "not exist",
-    };
-    let write_attempt = fs::write(
-        "/tmp/characters.json",
-        serde_json::to_vec_pretty(&characters)?,
-    );
-    let write_status = match write_attempt {
-        Ok(_) => "write OK",
-        Err(_) => "write ERROR",
-    };
-    debug!("exist_status: {}", exist_status);
-    debug!("write_status: {}", write_status);
-
-    Ok(Response::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "application/json")
-        // WARN: caching for browsers only, don't debug on postman
-        .body(
-            json!({ "exist": exist_status, "write_status": write_status })
-                .to_string()
-                .into(),
-        )?)
+    Ok(Json(ResponseData {
+        exist_status,
+        write_status,
+    }))
+    .as_axum()
 }

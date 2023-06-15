@@ -29,6 +29,6 @@ pub async fn list_future_patch_banner() -> Result<Json<BannerList>, WorkerError>
     ];
 
     let future_patches = PatchList::generate(5, None);
-    let future_banners = BannerList::from_patches(future_patches.patches, banner_info);
+    let future_banners = BannerList::from_patches(future_patches.patches, banner_info).await?;
     Ok(Json(future_banners))
 }

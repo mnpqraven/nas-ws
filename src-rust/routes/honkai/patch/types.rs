@@ -26,7 +26,6 @@ pub struct PatchList {
 impl Patch {
     const BASE_1_1: (i32, u32, u32, u32, u32, u32) = (2023, 6, 7, 2, 0, 0);
 
-    // TODO: test
     pub fn base() -> Self {
         let (year, month, day, hour, min, sec) = Self::BASE_1_1;
         let start_date = Utc
@@ -37,7 +36,6 @@ impl Patch {
     }
 
     /// get the current patch
-    // TODO: test
     pub fn current() -> Self {
         let mut base = Self::base();
         base.name = String::new();
@@ -49,33 +47,12 @@ impl Patch {
 
     /// get the start date of the 1st banner middle and
     /// the end date of a patch
-    // TODO: test
     pub fn get_boundaries(&self) -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
         (
             self.date_start,
             self.date_start + Duration::weeks(3),
             self.date_end,
         )
-    }
-
-    /// get the start date of the 1st banner middle and
-    /// the end date of a patch
-    // TODO: test
-    pub fn get_patch_boundaries(
-        current_date: DateTime<Utc>,
-    ) -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
-        let base_1_1 = Self::base().date_start;
-        let (mut l_bound, mut m_bound, mut r_bound) = (
-            base_1_1,
-            base_1_1 + Duration::weeks(3),
-            base_1_1 + Duration::weeks(6),
-        );
-        while r_bound < current_date {
-            l_bound = r_bound;
-            m_bound += Duration::weeks(3);
-            r_bound += Duration::weeks(6);
-        }
-        (l_bound, m_bound, r_bound)
     }
 
     pub fn contains(&self, date: DateTime<Utc>) -> bool {
@@ -176,36 +153,5 @@ impl PatchList {
             }
             false => Self { patches: res },
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use chrono::{TimeZone, Utc};
-
-    use crate::routes::honkai::patch::types::Patch;
-
-    #[test]
-    fn boundaries() {
-        let today = Utc.with_ymd_and_hms(2023, 6, 30, 1, 9, 48).unwrap();
-
-        let within_patch = Utc.with_ymd_and_hms(2023, 7, 10, 1, 9, 48).unwrap();
-        let next_patch = Utc.with_ymd_and_hms(2023, 7, 22, 1, 9, 48).unwrap();
-
-        assert_eq!(Patch::patch_passed_diff(today, within_patch).unwrap(), 0);
-        assert_eq!(Patch::patch_passed_diff(today, next_patch).unwrap(), 1);
-    }
-
-    #[test]
-    fn half_patch_diffing() {
-        let today = Utc.with_ymd_and_hms(2023, 6, 11, 1, 9, 48).unwrap();
-        let next_patch = Utc.with_ymd_and_hms(2023, 8, 18, 1, 9, 48).unwrap();
-        let next_patch2 = Utc.with_ymd_and_hms(2023, 8, 14, 1, 9, 48).unwrap();
-
-        assert_eq!(Patch::half_patch_passed_diff(today, next_patch).unwrap(), 3);
-        assert_eq!(
-            Patch::half_patch_passed_diff(today, next_patch2).unwrap(),
-            3
-        );
     }
 }

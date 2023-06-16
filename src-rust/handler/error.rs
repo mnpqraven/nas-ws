@@ -5,7 +5,7 @@ use axum::{
 use serde::Serialize;
 use std::fmt::Display;
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Debug, Serialize, Clone)]
 pub enum WorkerError {
     // reason text
     ParseData(String),
@@ -65,6 +65,12 @@ impl From<WorkerError> for vercel_runtime::Response<vercel_runtime::Body> {
             .status(value.code())
             .body(value.to_string().into())
             .unwrap()
+    }
+}
+
+impl From<WorkerError> for vercel_runtime::Error {
+    fn from(value: WorkerError) -> Self {
+        vercel_runtime::Error::from(value.to_string())
     }
 }
 

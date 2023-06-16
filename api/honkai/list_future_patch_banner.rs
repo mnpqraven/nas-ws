@@ -1,6 +1,16 @@
-use nas_ws::{handler::FromAxumResponse, routes::honkai::patch::list_future_patch_banner};
-use vercel_runtime::{run, Body, Error, Request, Response};
+use axum::Json;
+use nas_ws::{
+    handler::{error::WorkerError, FromAxumResponse},
+    routes::honkai::patch::{list_future_patch_banner, types::PatchBanner},
+};
+use response_derive::JsonResponse;
+use serde::Serialize;
+use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 
+#[derive(Serialize, JsonResponse, Clone, Debug)]
+pub struct BannerList {
+    banners: Vec<PatchBanner>,
+}
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt()
@@ -11,5 +21,6 @@ async fn main() -> Result<(), Error> {
 }
 
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
-    list_future_patch_banner().await.as_axum()
+    let Json(data) = list_future_patch_banner().await?;
+    Ok(Json(BannerList { banners: data })).as_axum()
 }

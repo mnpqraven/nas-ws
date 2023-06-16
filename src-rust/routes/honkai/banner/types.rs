@@ -110,6 +110,7 @@ impl Banner {
             rate: pity_rate_fn,
         }
     }
+
 }
 
 /// struct that is used in the backend

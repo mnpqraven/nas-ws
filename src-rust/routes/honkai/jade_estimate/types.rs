@@ -24,7 +24,7 @@ pub struct EstimateCfg {
     pub moc: u32,
     pub current_rolls: Option<i32>,
     pub current_jades: Option<i32>,
-    pub daily_refills: Option<i32>
+    pub daily_refills: Option<u32>,
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]
@@ -299,8 +299,7 @@ impl RewardSource {
         let src_moc = Self::src_moc(cfg.moc, dt_to, &cfg.server)?;
         let src_char_trial = Self::src_char_trial(dt_to, &cfg.server)?;
         let src_ember_trade = Self::src_ember_trade(dt_to, &cfg.server)?;
-
-        Ok(vec![
+        let mut sources = vec![
             src_su,
             src_bp,
             src_rail_pass,
@@ -310,7 +309,31 @@ impl RewardSource {
             src_moc,
             src_char_trial,
             src_ember_trade,
-        ])
+        ];
+        if let Some(refills) = cfg.daily_refills {
+            if refills != 0 {
+                sources.push(Self::src_daily_refill(diff_days, refills));
+            }
+        }
+
+        Ok(sources)
+    }
+    fn src_daily_refill(days: u32, amount: u32) -> Self {
+        let refill_cost: i32 = match amount as i32 {
+            1 => -50,
+            2 | 3 => -75,
+            4 | 5 => -100,
+            6 | 7 => -150,
+            8 => -200,
+            _ => 0,
+        };
+        Self {
+            source: "Daily Refills".into(),
+            jades_amount: Some(refill_cost * days as i32),
+            rolls_amount: None,
+            source_type: RewardFrequency::Daily,
+            description: None,
+        }
     }
 
     fn src_bp(bp_config: BattlePassOption, dt_to: DateTime<Utc>, server: &Server) -> Self {

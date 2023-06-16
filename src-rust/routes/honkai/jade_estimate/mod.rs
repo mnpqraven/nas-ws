@@ -1,4 +1,4 @@
-use self::types::{EstimateCfg, JadeEstimateResponse, RewardSource, RewardFrequency};
+use self::types::{EstimateCfg, JadeEstimateResponse, RewardFrequency, RewardSource};
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use chrono::Utc;
@@ -22,9 +22,18 @@ pub async fn handle(
 
         let mut total_jades: i32 = rewards.iter().map(|e| e.jades_amount.unwrap_or(0)).sum();
         let reward_rolls: i32 = rewards.iter().map(|e| e.rolls_amount.unwrap_or(0)).sum();
+        let refill_cost = match payload.daily_refills.unwrap_or(0) {
+            1 => 50,
+            2 | 3 => 75,
+            4 | 5 => 100,
+            6 | 7 => 150,
+            8 => 200,
+            _ => 0,
+        };
+        let refill_cost = refill_cost * diff_days as i32;
 
         if let Some(current_jades) = payload.current_jades {
-            total_jades += current_jades;
+            total_jades += current_jades - refill_cost;
         }
         let mut total_rolls = (total_jades / 160) + reward_rolls;
         if let Some(current_rolls) = payload.current_rolls {

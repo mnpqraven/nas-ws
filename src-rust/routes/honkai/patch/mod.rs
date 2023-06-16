@@ -6,6 +6,8 @@ use semver::Version;
 #[cfg(test)]
 mod tests;
 pub mod types;
+pub mod future_date;
+pub mod future_banner;
 
 pub async fn list_future_patch_date() -> Result<Json<Vec<Patch>>, WorkerError> {
     let patches_info: Vec<(&str, Version)> = vec![

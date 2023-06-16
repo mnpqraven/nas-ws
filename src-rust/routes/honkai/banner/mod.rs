@@ -6,7 +6,7 @@ pub mod types;
 
 pub async fn gacha_banner_list() -> Result<Json<BannerList>, WorkerError> {
     let banner_list = BannerList {
-        banners: vec![
+        list: vec![
             Banner::char_ssr(),
             Banner::basic_weapon(),
             Banner::char_sr(),

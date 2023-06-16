@@ -1,16 +1,10 @@
 use axum::Json;
 use nas_ws::{
-    handler::{error::WorkerError, FromAxumResponse},
-    routes::honkai::patch::{list_future_patch_date, types::Patch},
+    handler::FromAxumResponse,
+    routes::{endpoint_types::List, honkai::patch::list_future_patch_date},
 };
-use response_derive::JsonResponse;
-use serde::Serialize;
-use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
+use vercel_runtime::{run, Body, Error, Request, Response};
 
-#[derive(Serialize, JsonResponse, Clone, Debug)]
-pub struct PatchList {
-    pub patches: Vec<Patch>,
-}
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt()
@@ -22,6 +16,6 @@ async fn main() -> Result<(), Error> {
 
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     // let payload = Json::from_request(req, &()).await;
-    let Json(data) = list_future_patch_date().await?;
-    Ok(Json(PatchList { patches: data })).as_axum()
+    let data = List::new(list_future_patch_date().await?.to_vec());
+    Ok(Json(data)).as_axum()
 }

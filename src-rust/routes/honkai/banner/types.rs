@@ -22,7 +22,7 @@ pub struct Banner {
 
 #[derive(Serialize, JsonResponse, Clone, Debug)]
 pub struct BannerList {
-    pub banners: Vec<Banner>,
+    pub list: Vec<Banner>,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone)]

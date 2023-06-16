@@ -24,6 +24,7 @@ pub struct EstimateCfg {
     pub moc: u32,
     pub current_rolls: Option<i32>,
     pub current_jades: Option<i32>,
+    pub daily_refills: Option<i32>
 }
 
 #[derive(Serialize, Deserialize, JsonResponse, Clone)]

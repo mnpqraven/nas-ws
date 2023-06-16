@@ -29,6 +29,7 @@ reqwest = { version = "0.11.18", features = ["json"] }
 schemars = { version = "0.8.12", features = ["chrono"] }
 serde-aux = "4.2.0"
 anyhow = "1.0.71"
+serde_with = "3.0.0"
 
 [[bin]]
 name = "nas-ws"
@@ -45,3 +46,6 @@ path = "src-rust/lib.rs"
 name = "main"
 path = "api/main.rs"
 
+[[bin]]
+name = "json_writer"
+path = "src-rust/json_writer.rs"

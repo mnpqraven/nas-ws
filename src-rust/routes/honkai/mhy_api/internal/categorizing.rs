@@ -1,3 +1,4 @@
+use serde_with::{serde_as, NoneAsEmptyString};
 use std::{num::ParseIntError, str::FromStr};
 
 use crate::routes::honkai::mhy_api::types::shared::{AssetPath, Element, Path};
@@ -112,4 +113,38 @@ pub struct DbCharacter {
     guide_material: Vec<String>,
     #[serde(skip)]
     guide_evaluation: Vec<String>,
+}
+
+#[allow(dead_code)]
+#[serde_as]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DbCharacterSkill {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    id: u32, // characterId + skillId
+    name: String,
+    max_level: u32,
+    #[serde_as(as = "NoneAsEmptyString")]
+    element: Option<Element>,
+    #[serde(rename = "type")]
+    ttype: SkillType,
+    type_text: String,
+    effect: String,
+    effect_text: String,
+    simple_desc: String,
+    desc: ParameterizedFmt,
+    params: Vec<Vec<f64>>,
+    icon: AssetPath,
+}
+#[derive(Debug, Serialize, Deserialize)]
+struct ParameterizedFmt(String);
+
+#[derive(Debug, Serialize, Deserialize)]
+enum SkillType {
+    // id listing should always be in this order
+    Normal,     // basic attack
+    BPSkill,    // Skill
+    Ultra,      // Ultimate
+    Talent,     // Talent
+    MazeNormal, // overworld normal
+    Maze,       // overworld Technique
 }

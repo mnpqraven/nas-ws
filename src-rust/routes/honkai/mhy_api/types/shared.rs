@@ -4,18 +4,20 @@ use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+use strum_macros::EnumString;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
 pub struct AssetPath(pub String);
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, EnumString)]
 pub enum Element {
     Fire,
     Ice,
     Physical,
     Wind,
     #[serde(alias = "Thunder")]
+    #[strum(serialize = "Thunder")]
     Lightning,
     Quantum,
     Imaginary,

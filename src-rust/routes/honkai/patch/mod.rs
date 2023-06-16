@@ -23,6 +23,11 @@ pub async fn list_future_patch_date() -> Result<Json<Vec<Patch>>, WorkerError> {
 pub async fn list_future_patch_banner() -> Result<Json<Vec<PatchBanner>>, WorkerError> {
     let banner_info: Vec<(Option<&str>, Option<&str>, Version)> = vec![
         (
+            Some("Silver Wolf"),
+            Some("Luocha"),
+            Version::parse("1.1.0").unwrap(),
+        ),
+        (
             Some("Blade"),
             Some("Kafka"),
             Version::parse("1.2.0").unwrap(),

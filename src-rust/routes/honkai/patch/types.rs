@@ -51,6 +51,9 @@ impl PatchBanner {
     ) -> Result<Vec<Self>> {
         let mut banners: Vec<PatchBanner> = vec![];
         let character_list = get_character_list().await?;
+        let mut patches = patches;
+        patches.push(Patch::current());
+
         for patch in patches.iter() {
             let (char1, char2) = match banner_info
                 .iter()

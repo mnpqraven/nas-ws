@@ -3,12 +3,20 @@ use nas_ws::handler::{error::WorkerError, FromAxumResponse};
 use nas_ws::routes::honkai::mhy_api::internal::write_character_db;
 use response_derive::JsonResponse;
 use serde::Serialize;
-use vercel_runtime::{Body, Error, Request, Response, StatusCode};
+use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 
 #[derive(Debug, Clone, Serialize, JsonResponse)]
 struct ResponseData {
     exist_status: bool,
     write_status: bool,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+    run(handler).await
 }
 
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {

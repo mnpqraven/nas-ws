@@ -1,5 +1,5 @@
 use nas_ws::routes::dotfiles::dotfiles_install_schema_get;
-use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
+use vercel_runtime::{Body, Error, Request, Response, StatusCode};
 
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     Ok(Response::builder()

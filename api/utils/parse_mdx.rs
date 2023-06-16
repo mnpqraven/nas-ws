@@ -10,7 +10,7 @@
 use axum::{extract::FromRequest, http::Method, Json};
 use nas_ws::handler::{error::WorkerError, FromAxumResponse};
 use nas_ws::routes::utils::parse_mdx::parse_mdx;
-use vercel_runtime::{run, Body, Error, Request, Response};
+use vercel_runtime::{Body, Error, Request, Response};
 
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     if *req.method() != Method::POST {

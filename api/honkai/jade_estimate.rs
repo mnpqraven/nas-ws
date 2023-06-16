@@ -3,7 +3,7 @@ use nas_ws::{
     handler::{error::WorkerError, FromAxumResponse},
     routes::honkai::jade_estimate::handle,
 };
-use vercel_runtime::{run, Body, Error, Request, Response};
+use vercel_runtime::{Body, Error, Request, Response};
 
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     if *req.method() != Method::POST {

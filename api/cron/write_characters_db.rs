@@ -3,7 +3,7 @@ use nas_ws::handler::{error::WorkerError, FromAxumResponse};
 use nas_ws::routes::honkai::mhy_api::internal::write_character_db;
 use response_derive::JsonResponse;
 use serde::Serialize;
-use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
+use vercel_runtime::{Body, Error, Request, Response, StatusCode};
 
 #[derive(Debug, Clone, Serialize, JsonResponse)]
 struct ResponseData {

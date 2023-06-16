@@ -45,12 +45,3 @@ path = "src-rust/lib.rs"
 name = "main"
 path = "api/main.rs"
 
-# NOTE: CRON JOBS
-
-[[bin]]
-name = "characters_db"
-path = "api/cron/characters_db.rs"
-
-[[bin]]
-name = "write_characters_db"
-path = "api/cron/write_characters_db.rs"

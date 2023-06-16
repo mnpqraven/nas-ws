@@ -1,4 +1,4 @@
-use self::types::{EstimateCfg, JadeEstimateResponse, RewardSource, RewardFrequency};
+use self::types::{EstimateCfg, JadeEstimateResponse, RewardFrequency, RewardSource};
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use chrono::Utc;

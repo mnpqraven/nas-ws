@@ -1,4 +1,8 @@
-use nas_ws::{handler::FromAxumResponse, routes::honkai::patch::list_future_patch_date};
+use axum::Json;
+use nas_ws::{
+    handler::FromAxumResponse,
+    routes::{endpoint_types::List, honkai::patch::list_future_patch_date},
+};
 use vercel_runtime::{run, Body, Error, Request, Response};
 
 #[tokio::main]
@@ -12,5 +16,6 @@ async fn main() -> Result<(), Error> {
 
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     // let payload = Json::from_request(req, &()).await;
-    list_future_patch_date().await.as_axum()
+    let data = List::new(list_future_patch_date().await?.to_vec());
+    Ok(Json(data)).as_axum()
 }

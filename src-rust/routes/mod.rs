@@ -8,6 +8,7 @@ pub mod dotfiles;
 mod foo;
 pub mod honkai;
 pub mod utils;
+pub mod endpoint_types;
 
 pub fn app_router() -> Router {
     Router::new()

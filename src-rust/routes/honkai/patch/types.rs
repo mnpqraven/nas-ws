@@ -1,13 +1,18 @@
-use crate::handler::{
-    error::{ComputationType, WorkerError},
-    FromAxumResponse,
+use crate::{
+    handler::error::{ComputationType, WorkerError},
+    routes::honkai::mhy_api::{
+        internal::{categorizing::DbCharacter, get_character_list},
+        types::{character::CharacterElement, shared::AssetPath},
+    },
 };
-use axum::Json;
+use anyhow::Result;
 use chrono::{DateTime, Duration, TimeZone, Utc};
-use response_derive::JsonResponse;
+use schemars::{
+    schema::{InstanceType, SchemaObject},
+    JsonSchema,
+};
 use semver::Version;
 use serde::Serialize;
-use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -19,23 +24,68 @@ pub struct Patch {
     pub date_2nd_banner: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
 }
-#[derive(Serialize, JsonResponse, Clone, Debug)]
-pub struct PatchList {
-    pub patches: Vec<Patch>,
-}
 
-#[derive(Serialize, JsonResponse, Clone, Debug)]
-pub struct BannerList {
-    banners: Vec<PatchBanner>,
+#[derive(Serialize, Clone, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct PatchBanner {
+    pub character_name: String,            // FK cmp with `name`
+    pub icon: Option<AssetPath>,           // FK
+    pub element: Option<CharacterElement>, // FK
+    pub version: PatchVersion,
+    pub date_start: DateTime<Utc>,
+    pub date_end: DateTime<Utc>,
 }
 
 #[derive(Serialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct PatchBanner {
-    pub character_name: String,
-    pub version: Version,
-    pub date_start: DateTime<Utc>,
-    pub date_end: DateTime<Utc>,
+pub struct PatchVersion(pub Version);
+impl From<Version> for PatchVersion {
+    fn from(value: Version) -> Self {
+        Self(value)
+    }
+}
+
+impl PatchBanner {
+    pub async fn from_patches(
+        patches: Vec<Patch>,
+        banner_info: Vec<(Option<&str>, Option<&str>, Version)>,
+    ) -> Result<Vec<Self>> {
+        let mut banners: Vec<PatchBanner> = vec![];
+        let character_list = get_character_list().await?;
+        for patch in patches.iter() {
+            let (char1, char2) = match banner_info
+                .iter()
+                .find(|(_, _, version)| patch.version.eq(version))
+            {
+                Some((char1, char2, _)) => (char1.unwrap_or("Unknown"), char2.unwrap_or("Unknown")),
+                None => ("Unknown", "Unknown"),
+            };
+            let fk1 = character_list.iter().find(|e| e.name.eq(char1));
+            let fk2 = character_list.iter().find(|e| e.name.eq(char2));
+            let split = |fk: Option<&DbCharacter>| match fk {
+                Some(x) => (Some(x.icon.clone()), Some(x.element.clone().into())),
+                None => (None, None),
+            };
+            let (icon, element) = split(fk1);
+            banners.push(PatchBanner {
+                character_name: char1.to_string(),
+                version: patch.version.clone().into(),
+                date_start: patch.date_start,
+                date_end: patch.date_2nd_banner,
+                icon,
+                element,
+            });
+            let (icon, element) = split(fk2);
+            banners.push(PatchBanner {
+                character_name: char2.to_string(),
+                version: patch.version.clone().into(),
+                date_start: patch.date_2nd_banner,
+                date_end: patch.date_end,
+                icon,
+                element,
+            });
+        }
+        Ok(banners)
+    }
 }
 
 impl Patch {
@@ -150,10 +200,8 @@ impl Patch {
         }
         Ok(amount)
     }
-}
 
-impl PatchList {
-    pub fn generate(index: u32, info: Option<Vec<(&str, Version)>>) -> Self {
+    pub fn generate(index: u32, info: Option<Vec<(&str, Version)>>) -> Vec<Self> {
         let mut patches = vec![];
         let mut current = Patch::current();
         let mut next_version = current.version.clone();
@@ -171,36 +219,20 @@ impl PatchList {
             patches.push(patch);
             current.next();
         }
-        Self { patches }
+        patches
     }
 }
-impl BannerList {
-    pub fn from_patches(
-        patches: Vec<Patch>,
-        banner_info: Vec<(Option<&str>, Option<&str>, Version)>,
-    ) -> Self {
-        let mut banners: Vec<PatchBanner> = vec![];
-        for patch in patches.iter() {
-            let (char1, char2) = match banner_info
-                .iter()
-                .find(|(_, _, version)| patch.version.eq(version))
-            {
-                Some((char1, char2, _)) => (char1.unwrap_or("Unknown"), char2.unwrap_or("Unknown")),
-                None => ("Unknown", "Unknown"),
-            };
-            banners.push(PatchBanner {
-                character_name: char1.to_string(),
-                version: patch.version.clone(),
-                date_start: patch.date_start,
-                date_end: patch.date_2nd_banner,
-            });
-            banners.push(PatchBanner {
-                character_name: char2.to_string(),
-                version: patch.version.clone(),
-                date_start: patch.date_2nd_banner,
-                date_end: patch.date_end,
-            });
+
+impl JsonSchema for PatchVersion {
+    fn schema_name() -> String {
+        "PatchVersion".to_owned()
+    }
+
+    fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        SchemaObject {
+            instance_type: Some(InstanceType::String.into()),
+            ..Default::default()
         }
-        Self { banners }
+        .into()
     }
 }

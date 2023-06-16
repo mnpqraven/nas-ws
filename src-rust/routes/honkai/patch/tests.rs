@@ -1,4 +1,4 @@
-use crate::routes::honkai::patch::Patch;
+use crate::routes::honkai::patch::types::Patch;
 use chrono::{TimeZone, Utc};
 
 #[test]

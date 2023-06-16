@@ -2,7 +2,7 @@ use nas_ws::routes::honkai::mhy_api::internal::get_character_list;
 use serde_json::json;
 use vercel_runtime::{Body, Error, Request, Response, StatusCode};
 
-pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
+pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     // NOTE: uncomment if payload is used (will be eventually)
     Ok(Response::builder()
         .status(StatusCode::OK)

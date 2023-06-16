@@ -11,7 +11,7 @@ struct ResponseData {
     write_status: bool,
 }
 
-pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
+pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     let (exist_status, write_status) = write_character_db().await?;
 
     Ok(Json(ResponseData {

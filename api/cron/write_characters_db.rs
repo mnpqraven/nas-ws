@@ -5,15 +5,6 @@ use response_derive::JsonResponse;
 use serde::Serialize;
 use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
-        .with_ansi(false)
-        .init();
-    run(handler).await
-}
-
 #[derive(Debug, Clone, Serialize, JsonResponse)]
 struct ResponseData {
     exist_status: bool,

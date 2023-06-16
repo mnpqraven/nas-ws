@@ -2,6 +2,10 @@ use vercel_runtime::{bundled_api, run, Body, Error, Request, Response};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_ansi(false)
+        .init();
     run(handler).await
 }
 

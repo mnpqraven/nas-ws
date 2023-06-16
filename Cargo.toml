@@ -42,36 +42,8 @@ path = "src-rust/codegen.rs"
 path = "src-rust/lib.rs"
 
 [[bin]]
-name = "hello"
-path = "api/hello.rs"
-
-[[bin]]
-name = "parse_mdx"
-path = "api/utils/parse_mdx.rs"
-
-[[bin]]
-name = "install_schema"
-path = "api/dotfiles/install_schema.rs"
-
-[[bin]]
-name = "jade_estimate"
-path = "api/honkai/jade_estimate.rs"
-
-[[bin]]
-name = "probability_rate"
-path = "api/honkai/probability_rate.rs"
-
-[[bin]]
-name = "list_future_patch_date"
-path = "api/honkai/list_future_patch_date.rs"
-
-[[bin]]
-name = "list_future_patch_banner"
-path = "api/honkai/list_future_patch_banner.rs"
-
-[[bin]]
-name = "gacha_banner_list"
-path = "api/honkai/gacha_banner_list.rs"
+name = "main"
+path = "api/main.rs"
 
 # NOTE: CRON JOBS
 

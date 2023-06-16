@@ -10,6 +10,15 @@ pub fn response_derive_macro(input: TokenStream) -> TokenStream {
     let DeriveInput { ident, .. } = parse_macro_input!(input);
     let name = &ident;
     let gen = quote! {
+        impl From<&#name> for vercel_runtime::Response<Body> {
+            fn from(value: &#name) -> Self {
+                Response::builder()
+                    .status(StatusCode::OK)
+                    .header("Content-Type", "application/json")
+                    .body::<Body>(serde_json::to_string(value).unwrap().into())
+                    .unwrap()
+                }
+        }
         impl From<#name> for vercel_runtime::Response<Body> {
             fn from(value: #name) -> Self {
                 Response::builder()

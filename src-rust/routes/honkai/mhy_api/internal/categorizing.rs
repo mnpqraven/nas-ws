@@ -91,7 +91,7 @@ impl FromStr for RelicSetId {
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Character {
+pub struct DbCharacter {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     id: u32,
     pub name: String,

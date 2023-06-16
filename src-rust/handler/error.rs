@@ -5,9 +5,13 @@ use axum::{
 use serde::Serialize;
 use std::fmt::Display;
 
+/// general error type of the application, this should be used in junctions
+/// between api handler methods (axum, vercel runtime etc.)
+/// Within the application, for deep/small functions it is okay to use
+/// `anyhow::Error` then convert to `WorkerError` by using
+/// `Into<WorkerError>`
 #[derive(Debug, Serialize, Clone)]
 pub enum WorkerError {
-    // reason text
     ParseData(String),
     Computation(ComputationType),
     WrongMethod,

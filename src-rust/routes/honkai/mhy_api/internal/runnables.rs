@@ -2,7 +2,7 @@ use crate::routes::honkai::mhy_api::internal::constants::{
     CHARACTER_DICT, RELIC_PIECES_DICT, RELIC_SET_DICT,
 };
 
-use super::categorizing::{Character, RelicInfo, RelicSet};
+use super::categorizing::{DbCharacter, RelicInfo, RelicSet};
 use std::{collections::HashMap, error::Error};
 
 #[tokio::test]
@@ -31,8 +31,8 @@ async fn get_relic_pieces() -> Result<(), Box<dyn Error>> {
 async fn get_character_list() -> Result<(), Box<dyn Error>> {
     let res_str = reqwest::get(CHARACTER_DICT).await?.text().await?;
 
-    let map: HashMap<String, Character> = serde_json::from_str(&res_str)?;
-    let characters: Vec<Character> = map.into_values().collect();
+    let map: HashMap<String, DbCharacter> = serde_json::from_str(&res_str)?;
+    let characters: Vec<DbCharacter> = map.into_values().collect();
     for character in characters.iter() {
         println!("{}", character.name);
     }

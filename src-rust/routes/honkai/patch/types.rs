@@ -1,12 +1,16 @@
 use crate::{
     handler::error::{ComputationType, WorkerError},
     routes::honkai::mhy_api::{
-        internal::{categorizing::Character, get_character_list},
-        types::shared::{AssetPath, Element},
+        internal::{categorizing::DbCharacter, get_character_list},
+        types::{character::CharacterElement, shared::AssetPath},
     },
 };
 use anyhow::Result;
 use chrono::{DateTime, Duration, TimeZone, Utc};
+use schemars::{
+    schema::{InstanceType, SchemaObject},
+    JsonSchema,
+};
 use semver::Version;
 use serde::Serialize;
 
@@ -21,16 +25,23 @@ pub struct Patch {
     pub date_end: DateTime<Utc>,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchBanner {
-    pub character_name: String,   // FK cmp with `name`
-    pub icon: Option<AssetPath>,  // FK
-    pub element: Option<Element>, // FK
-    pub element_color: Option<String>,
-    pub version: Version,
+    pub character_name: String,            // FK cmp with `name`
+    pub icon: Option<AssetPath>,           // FK
+    pub element: Option<CharacterElement>, // FK
+    pub version: PatchVersion,
     pub date_start: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct PatchVersion(pub Version);
+impl From<Version> for PatchVersion {
+    fn from(value: Version) -> Self {
+        Self(value)
+    }
 }
 
 impl PatchBanner {
@@ -50,33 +61,27 @@ impl PatchBanner {
             };
             let fk1 = character_list.iter().find(|e| e.name.eq(char1));
             let fk2 = character_list.iter().find(|e| e.name.eq(char2));
-            let split = |fk: Option<&Character>| match fk {
-                Some(x) => (
-                    Some(x.icon.clone()),
-                    Some(x.element.clone()),
-                    Some(x.element.color()),
-                ),
-                None => (None, None, None),
+            let split = |fk: Option<&DbCharacter>| match fk {
+                Some(x) => (Some(x.icon.clone()), Some(x.element.clone().into())),
+                None => (None, None),
             };
-            let (icon, element, element_color) = split(fk1);
+            let (icon, element) = split(fk1);
             banners.push(PatchBanner {
                 character_name: char1.to_string(),
-                version: patch.version.clone(),
+                version: patch.version.clone().into(),
                 date_start: patch.date_start,
                 date_end: patch.date_2nd_banner,
                 icon,
                 element,
-                element_color,
             });
-            let (icon, element, element_color) = split(fk2);
+            let (icon, element) = split(fk2);
             banners.push(PatchBanner {
                 character_name: char2.to_string(),
-                version: patch.version.clone(),
+                version: patch.version.clone().into(),
                 date_start: patch.date_2nd_banner,
                 date_end: patch.date_end,
                 icon,
                 element,
-                element_color,
             });
         }
         Ok(banners)
@@ -215,5 +220,19 @@ impl Patch {
             current.next();
         }
         patches
+    }
+}
+
+impl JsonSchema for PatchVersion {
+    fn schema_name() -> String {
+        "PatchVersion".to_owned()
+    }
+
+    fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        SchemaObject {
+            instance_type: Some(InstanceType::String.into()),
+            ..Default::default()
+        }
+        .into()
     }
 }

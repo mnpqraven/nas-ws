@@ -7,7 +7,7 @@ use std::fmt::Display;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
-pub struct AssetPath(String);
+pub struct AssetPath(pub String);
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
 pub enum Element {

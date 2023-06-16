@@ -1,4 +1,4 @@
-use self::{categorizing::Character, constants::CHARACTER_DICT};
+use self::{categorizing::DbCharacter, constants::CHARACTER_DICT};
 use anyhow::Result;
 use std::{collections::HashMap, fs, path::Path};
 use tracing::debug;
@@ -11,16 +11,16 @@ pub mod constants;
 mod runnables;
 
 // NOTE: url fetching
-pub async fn get_character_list() -> Result<Vec<Character>> {
+pub async fn get_character_list() -> Result<Vec<DbCharacter>> {
     let pathname = "/tmp/characters.json";
-    let data: Vec<Character> = match Path::new(pathname).exists() {
+    let data: Vec<DbCharacter> = match Path::new(pathname).exists() {
         true => {
             let t = fs::read_to_string(pathname)?;
             serde_json::from_str(&t)?
         }
         false => {
             let res_str: String = reqwest::get(CHARACTER_DICT).await?.text().await?;
-            let map: HashMap<String, Character> = serde_json::from_str(&res_str)?;
+            let map: HashMap<String, DbCharacter> = serde_json::from_str(&res_str)?;
             map.into_values().collect()
         }
     };
@@ -32,8 +32,8 @@ pub async fn get_character_list() -> Result<Vec<Character>> {
 #[allow(dead_code)]
 pub async fn write_character_db() -> Result<(bool, bool)> {
     let res_str: String = reqwest::get(CHARACTER_DICT).await?.text().await?;
-    let map: HashMap<String, Character> = serde_json::from_str(&res_str)?;
-    let characters = map.into_values().collect::<Vec<Character>>();
+    let map: HashMap<String, DbCharacter> = serde_json::from_str(&res_str)?;
+    let characters = map.into_values().collect::<Vec<DbCharacter>>();
     let pathname = "/tmp/characters.json";
     let write_attempt = std::fs::write(pathname, serde_json::to_vec_pretty(&characters)?);
 

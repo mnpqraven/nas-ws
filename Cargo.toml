@@ -30,7 +30,7 @@ schemars = { version = "0.8.12", features = ["chrono"] }
 serde-aux = "4.2.0"
 anyhow = "1.0.71"
 serde_with = "3.0.0"
-regex = "1.8.4"
+regex = { version = "1.8.4", features = ["pattern"] }
 
 [[bin]]
 name = "nas-ws"

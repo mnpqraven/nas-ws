@@ -96,7 +96,7 @@ impl FromStr for RelicSetId {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DbCharacter {
     #[serde(deserialize_with = "deserialize_number_from_string")]
-    id: u32,
+    pub id: u32,
     pub name: String,
     tag: String,
     rarity: u8,
@@ -181,7 +181,7 @@ pub enum SkillType {
 }
 
 impl DbCharacterSkill {
-    const DESC_IDENT: &str = r"#\d\[i\]%?";
+    const DESC_IDENT: &str = r"#\d\[.\d?\]%?";
     #[allow(dead_code)]
     pub fn parse_description(&self) -> Vec<String> {
         // desc
@@ -197,11 +197,11 @@ impl DbCharacterSkill {
                     if let Some(cap) = cap {
                         let is_percent: bool = cap.as_str().ends_with('%');
                         let index = cap
-                            .as_str()
-                            .replace('#', "")
-                            .replace("[i]", "")
-                            .replace("%", "");
-                        let index = index.parse::<usize>().unwrap();
+                            .as_str();
+                            // .replace('#', "")
+                            // .replace(&Regex::new(r"[.*]").unwrap(), "")
+                            // .replace("%", "");
+                        let index = index.chars().nth(1).unwrap().to_digit(10).unwrap() as usize;
                         // TODO: safe unwrap, check with params length
                         // first index is slv index, 2nd index is value index
                         let params_data = match is_percent {

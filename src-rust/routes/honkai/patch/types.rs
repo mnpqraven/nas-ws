@@ -37,6 +37,7 @@ pub struct Patch {
 #[serde(rename_all = "camelCase")]
 pub struct PatchBanner {
     pub character_name: String,            // FK cmp with `name`
+    pub character_id: Option<u32>,
     pub icon: Option<AssetPath>,           // FK
     pub element: Option<CharacterElement>, // FK
     pub version: PatchVersion,
@@ -123,6 +124,7 @@ impl PatchBanner {
             let (icon, element) = split(fk1);
             banners.push(PatchBanner {
                 character_name: char1.to_string(),
+                character_id: fk1.map(|e| e.id),
                 version: patch.version.clone().into(),
                 date_start: patch.date_start,
                 date_end: patch.date_2nd_banner,
@@ -133,6 +135,7 @@ impl PatchBanner {
             let (icon, element) = split(fk2);
             banners.push(PatchBanner {
                 character_name: char2.to_string(),
+                character_id: fk2.map(|e| e.id),
                 version: patch.version.clone().into(),
                 date_start: patch.date_2nd_banner,
                 date_end: patch.date_end,

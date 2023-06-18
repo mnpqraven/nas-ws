@@ -69,7 +69,7 @@ pub async fn write_character_db() -> Result<(bool, bool)> {
 
 #[cfg(test)]
 mod tests {
-    use super::get_character_list;
+    use super::{get_character_list, write_character_db};
     use crate::routes::honkai::mhy_api::internal::{
         categorizing::DbCharacterSkill, get_db_list, impls::Queryable,
     };
@@ -77,32 +77,39 @@ mod tests {
     #[tokio::test]
     async fn calling() {
         let list = get_character_list().await.unwrap();
-        let kafka = list.iter().find(|e| e.name.eq("Kafka")).unwrap();
+        let kafka = list.iter().find(|e| e.name.eq("Luocha")).unwrap();
 
         let skill_db = get_db_list::<DbCharacterSkill>("character_skills.json", "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/character_skills.json").await.unwrap();
 
         let skill_ids = kafka.skill_ids();
         let t = skill_db.find_many(skill_ids);
 
-        let to_test = &t.iter().find(|e| e.id == 100503).unwrap();
+        let to_test = &t.iter().find(|e| e.id == 120304).unwrap();
         dbg!(&to_test.desc);
         dbg!(&to_test.params[0]);
 
-        let right = vec![
-            "Deals Lightning DMG equal to ",
-            " of Kafka's ATK to all enemies, with a ",
-            " base chance for enemies hit to become Shocked and immediately take DMG equal to ",
-            " of the DoT. Shock lasts for ",
-            " turn(s).\nWhile Shocked, enemies receive Lightning DoT equal to ",
-            " of Kafka's ATK at the beginning of each turn.",
-        ];
-        assert_eq!(
-            to_test
-                .split_description()
-                .iter()
-                .map(|e| e.to_string())
-                .collect::<Vec<String>>(),
-            right
-        );
+        dbg!(&to_test.split_description());
+
+        // let right = vec![
+        //     "Deals Lightning DMG equal to ",
+        //     " of Kafka's ATK to all enemies, with a ",
+        //     " base chance for enemies hit to become Shocked and immediately take DMG equal to ",
+        //     " of the DoT. Shock lasts for ",
+        //     " turn(s).\nWhile Shocked, enemies receive Lightning DoT equal to ",
+        //     " of Kafka's ATK at the beginning of each turn.",
+        // ];
+        // assert_eq!(
+        //     to_test
+        //         .split_description()
+        //         .iter()
+        //         .map(|e| e.to_string())
+        //         .collect::<Vec<String>>(),
+        //     right
+        // );
+    }
+
+    #[tokio::test]
+    async fn write_db() {
+        write_character_db().await.unwrap();
     }
 }

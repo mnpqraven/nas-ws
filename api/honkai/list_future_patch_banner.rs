@@ -12,7 +12,7 @@ async fn main() -> Result<(), Error> {
         .init();
     run(handler).await
 }
-pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
+pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     let data = List::new(list_future_patch_banner().await?.to_vec());
     Ok(Json(data)).as_axum()
 }

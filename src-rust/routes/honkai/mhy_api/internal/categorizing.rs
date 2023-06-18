@@ -1,8 +1,10 @@
-use serde_with::{serde_as, NoneAsEmptyString};
-use std::{num::ParseIntError, str::FromStr};
+use core::fmt;
+use regex::{Captures, Regex};
+use schemars::JsonSchema;
+use std::{fmt::Display, num::ParseIntError, str::FromStr, sync::Arc, marker::PhantomData};
 
 use crate::routes::honkai::mhy_api::types::shared::{AssetPath, Element, Path};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Deserializer, de::{Visitor, Error}};
 use serde_aux::prelude::*;
 use serde_repr::Deserialize_repr;
 
@@ -91,7 +93,7 @@ impl FromStr for RelicSetId {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DbCharacter {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     id: u32,
@@ -102,7 +104,8 @@ pub struct DbCharacter {
     pub element: Element,
     max_sp: u32,
     ranks: Vec<String>,
-    skills: Vec<String>,
+    /// skillIds
+    pub skills: Vec<String>,
     skill_trees: Vec<String>,
     pub icon: AssetPath,
     preview: AssetPath,
@@ -116,30 +119,58 @@ pub struct DbCharacter {
 }
 
 #[allow(dead_code)]
-#[serde_as]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct DbCharacterSkill {
     #[serde(deserialize_with = "deserialize_number_from_string")]
-    id: u32, // characterId + skillId
-    name: String,
+    pub id: u32, // characterId + skillId
+    pub name: String,
     max_level: u32,
-    #[serde_as(as = "NoneAsEmptyString")]
+    #[serde(deserialize_with = "string_empty_as_none")]
     element: Option<Element>,
     #[serde(rename = "type")]
-    ttype: SkillType,
+    pub ttype: SkillType,
     type_text: String,
     effect: String,
     effect_text: String,
     simple_desc: String,
-    desc: ParameterizedFmt,
-    params: Vec<Vec<f64>>,
+    pub desc: ParameterizedFmt,
+    pub params: Arc<[Parameter]>,
     icon: AssetPath,
 }
-#[derive(Debug, Serialize, Deserialize)]
-struct ParameterizedFmt(String);
 
-#[derive(Debug, Serialize, Deserialize)]
-enum SkillType {
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct Parameter(pub Arc<[f64]>);
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct ParameterValue(pub (f64, bool));
+
+impl Parameter {
+    pub fn sort_by_tuple(&self, sorter: Vec<(usize, bool)>) -> Vec<ParameterValue> {
+        // get index from a and b
+        // do normal sort rule but for our tuple vec using a,b index
+        let mut params: Vec<ParameterValue> = vec![];
+        for (key, is_percent) in sorter.into_iter() {
+            params.push(ParameterValue((*self.0.get(key).unwrap(), is_percent)));
+        }
+        params
+    }
+}
+
+impl Display for ParameterValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let is_percent = self.0 .1;
+        let fmt = match is_percent {
+            true => format!("{:.2} %", self.0 .0 * 100.0),
+            false => format!("{:.0}", self.0 .0),
+        };
+        write!(f, "{}", fmt)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct ParameterizedFmt(pub String);
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Eq, PartialEq, Copy)]
+pub enum SkillType {
     // id listing should always be in this order
     Normal,     // basic attack
     BPSkill,    // Skill
@@ -147,4 +178,125 @@ enum SkillType {
     Talent,     // Talent
     MazeNormal, // overworld normal
     Maze,       // overworld Technique
+}
+
+impl DbCharacterSkill {
+    const DESC_IDENT: &str = r"#\d\[i\]%?";
+    #[allow(dead_code)]
+    pub fn parse_description(&self) -> Vec<String> {
+        // desc
+        // "Deals Lightning DMG equal to #1[i]% of Kafka's ATK to a single enemy.",
+        // params
+        // [ [0.5], [0.6] ,.. , [] ]
+        let regex = Regex::new(Self::DESC_IDENT).unwrap();
+        let mut res: Vec<String> = vec![];
+        for level in self.params.iter() {
+            let result = regex.replace_all(&self.desc.0, |caps: &Captures| {
+                let mut res = String::new();
+                for cap in caps.iter() {
+                    if let Some(cap) = cap {
+                        let is_percent: bool = cap.as_str().ends_with('%');
+                        let index = cap
+                            .as_str()
+                            .replace('#', "")
+                            .replace("[i]", "")
+                            .replace("%", "");
+                        let index = index.parse::<usize>().unwrap();
+                        // TODO: safe unwrap, check with params length
+                        // first index is slv index, 2nd index is value index
+                        let params_data = match is_percent {
+                            true => level.0.get(index - 1).unwrap() * 100.0,
+                            false => *level.0.get(index - 1).unwrap(),
+                        };
+                        match is_percent {
+                            true => res.push_str(&format!("{:.2}%", &params_data)),
+                            false => res.push_str(&format!("{:.2}", &params_data)),
+                        }
+                    }
+                }
+                res
+            });
+            res.push(result.to_string());
+        }
+        res
+    }
+
+    pub fn split_description(&self) -> Arc<[Arc<str>]> {
+        let regex = Regex::new(Self::DESC_IDENT).unwrap();
+        let t: Arc<[Arc<str>]> = regex
+            .split(&self.desc.0)
+            .into_iter()
+            .map(|e| e.into())
+            .collect();
+        t
+    }
+
+    /// returns a tuple of
+    /// 1. index of the params value
+    /// 2. whether the params value should be displayed as percentage
+    pub fn get_sorted_params_inds(&self) -> Vec<(usize, bool)> {
+        let regex = Regex::new(Self::DESC_IDENT).unwrap();
+        let inds = regex
+            .find_iter(&self.desc.0)
+            .map(|e| {
+                let ind: usize = (e.as_str().chars().nth(1).unwrap().to_digit(10).unwrap() - 1)
+                    .try_into()
+                    .unwrap();
+                let is_percent = e.as_str().ends_with("%");
+                (ind, is_percent)
+            })
+            .collect::<Vec<(usize, bool)>>();
+        inds
+    }
+}
+
+/// https://tikv.github.io/doc/src/serde_with/rust.rs.html#874-940
+pub fn string_empty_as_none<'de, D, S>(deserializer: D) -> Result<Option<S>, D::Error>
+where
+    D: Deserializer<'de>,
+    S: FromStr,
+    S::Err: Display,
+{
+    struct OptionStringEmptyNone<S>(PhantomData<S>);
+    impl<'de, S> Visitor<'de> for OptionStringEmptyNone<S>
+    where
+        S: FromStr,
+        S::Err: Display,
+    {
+        type Value = Option<S>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("any string")
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: Error,
+        {
+            match value {
+                "" => Ok(None),
+                v => S::from_str(v).map(Some).map_err(Error::custom),
+            }
+        }
+
+        fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
+        where
+            E: Error,
+        {
+            match &*value {
+                "" => Ok(None),
+                v => S::from_str(v).map(Some).map_err(Error::custom),
+            }
+        }
+
+        // handles the `null` case
+        fn visit_unit<E>(self) -> Result<Self::Value, E>
+        where
+            E: Error,
+        {
+            Ok(None)
+        }
+    }
+
+    deserializer.deserialize_any(OptionStringEmptyNone(PhantomData))
 }

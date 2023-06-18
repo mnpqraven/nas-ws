@@ -2,6 +2,7 @@ use self::types::{Patch, PatchBanner};
 use crate::handler::error::WorkerError;
 use axum::Json;
 use semver::Version;
+use tracing::info;
 
 #[cfg(test)]
 mod tests;
@@ -21,6 +22,7 @@ pub async fn list_future_patch_date() -> Result<Json<Vec<Patch>>, WorkerError> {
 }
 
 pub async fn list_future_patch_banner() -> Result<Json<Vec<PatchBanner>>, WorkerError> {
+    let now = std::time::Instant::now();
     let banner_info: Vec<(Option<&str>, Option<&str>, Version)> = vec![
         (
             Some("Silver Wolf"),
@@ -37,5 +39,7 @@ pub async fn list_future_patch_banner() -> Result<Json<Vec<PatchBanner>>, Worker
 
     let patches = Patch::generate(5, None);
     let future_banners = PatchBanner::from_patches(patches, banner_info).await?;
+
+    info!("Total elapsed: {:.2?}", now.elapsed());
     Ok(Json(future_banners))
 }

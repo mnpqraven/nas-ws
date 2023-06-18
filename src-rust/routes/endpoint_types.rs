@@ -1,7 +1,5 @@
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
-use response_derive::JsonResponse;
-use schemars::JsonSchema;
 use serde::Serialize;
 use vercel_runtime::{Body, Response, StatusCode};
 

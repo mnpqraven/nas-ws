@@ -10,7 +10,7 @@ async fn main() -> Result<(), Error> {
     run(handler).await
 }
 
-pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
+pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     // NOTE: uncomment if payload is used (will be eventually)
     Ok(Response::builder()
         .status(StatusCode::OK)

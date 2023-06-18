@@ -8,6 +8,6 @@ async fn main() -> Result<(), Error> {
         .init();
     run(handler).await
 }
-pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
+pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     gacha_banner_list().await.as_axum()
 }

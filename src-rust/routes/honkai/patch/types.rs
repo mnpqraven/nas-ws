@@ -1,7 +1,14 @@
+use std::sync::Arc;
+
 use crate::{
     handler::error::{ComputationType, WorkerError},
     routes::honkai::mhy_api::{
-        internal::{categorizing::DbCharacter, get_character_list},
+        internal::{
+            categorizing::{DbCharacter, DbCharacterSkill, Parameter, SkillType},
+            constants::{CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE},
+            get_character_list, get_db_list,
+            impls::Queryable,
+        },
         types::{character::CharacterElement, shared::AssetPath},
     },
 };
@@ -13,6 +20,7 @@ use schemars::{
 };
 use semver::Version;
 use serde::Serialize;
+use tracing::info;
 
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -34,6 +42,15 @@ pub struct PatchBanner {
     pub version: PatchVersion,
     pub date_start: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
+    pub skills: Vec<SimpleSkill>,
+}
+#[derive(Serialize, Clone, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SimpleSkill {
+    pub name: String,
+    pub ttype: SkillType,
+    pub description: Vec<String>,
+    pub params: Vec<Vec<String>>,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -50,7 +67,15 @@ impl PatchBanner {
         banner_info: Vec<(Option<&str>, Option<&str>, Version)>,
     ) -> Result<Vec<Self>> {
         let mut banners: Vec<PatchBanner> = vec![];
+
+        let now = std::time::Instant::now();
+
         let character_list = get_character_list().await?;
+
+        info!("get_character_list {:.2?}", now.elapsed());
+
+        let skill_db =
+            get_db_list::<DbCharacterSkill>(CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE).await?;
         let mut patches = patches;
         patches.push(Patch::current());
 
@@ -62,12 +87,39 @@ impl PatchBanner {
                 Some((char1, char2, _)) => (char1.unwrap_or("Unknown"), char2.unwrap_or("Unknown")),
                 None => ("Unknown", "Unknown"),
             };
+
             let fk1 = character_list.iter().find(|e| e.name.eq(char1));
             let fk2 = character_list.iter().find(|e| e.name.eq(char2));
             let split = |fk: Option<&DbCharacter>| match fk {
                 Some(x) => (Some(x.icon.clone()), Some(x.element.clone().into())),
                 None => (None, None),
             };
+            let char_skill = |fk_char: Option<&DbCharacter>| match fk_char {
+                Some(character) => skill_db
+                    .find_many(character.skill_ids())
+                    .iter()
+                    .map(|db_character_skill| SimpleSkill {
+                        description: db_character_skill
+                            .split_description()
+                            .iter()
+                            .map(|e| e.to_string())
+                            .collect::<Vec<String>>(),
+                        params: db_character_skill
+                            .params
+                            .iter()
+                            .map(|skill_by_slv: &Parameter| {
+                                let sorter = db_character_skill.get_sorted_params_inds();
+                                let t = skill_by_slv.sort_by_tuple(sorter);
+                                t.iter().map(|e| e.to_string()).collect()
+                            })
+                            .collect(),
+                        name: db_character_skill.name.clone(),
+                        ttype: db_character_skill.ttype,
+                    })
+                    .collect::<Arc<[SimpleSkill]>>(),
+                None => vec![].into(),
+            };
+
             let (icon, element) = split(fk1);
             banners.push(PatchBanner {
                 character_name: char1.to_string(),
@@ -76,6 +128,7 @@ impl PatchBanner {
                 date_end: patch.date_2nd_banner,
                 icon,
                 element,
+                skills: char_skill(fk1).to_vec(),
             });
             let (icon, element) = split(fk2);
             banners.push(PatchBanner {
@@ -85,6 +138,7 @@ impl PatchBanner {
                 date_end: patch.date_end,
                 icon,
                 element,
+                skills: char_skill(fk2).to_vec(),
             });
         }
         Ok(banners)

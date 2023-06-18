@@ -5,8 +5,8 @@ pub mod patch;
 pub mod probability_rate;
 pub mod utils;
 
-use self::patch::{future_banner, future_date, list_future_patch_banner};
-use self::{banner::gacha_banner_list, patch::list_future_patch_date};
+use self::banner::gacha_banner_list;
+use self::patch::{future_banner, future_date};
 use axum::routing::{get, post};
 use axum::Router;
 

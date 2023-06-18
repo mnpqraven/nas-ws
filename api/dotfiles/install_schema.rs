@@ -8,7 +8,7 @@ async fn main() -> Result<(), Error> {
         .init();
     run(handler).await
 }
-pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
+pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     Ok(Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "application/json")

@@ -16,8 +16,8 @@ pub enum Element {
     Ice,
     Physical,
     Wind,
-    #[serde(alias = "Thunder")]
-    #[strum(serialize = "Thunder")]
+    #[serde(alias = "Thunder", alias = "Lightning")]
+    #[strum(serialize = "Thunder", serialize = "Lightning")]
     Lightning,
     Quantum,
     Imaginary,

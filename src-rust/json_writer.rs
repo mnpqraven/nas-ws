@@ -1,11 +1,8 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, path::Path, fs::create_dir_all};
 
 use anyhow::Result;
-use nas_ws::routes::honkai::mhy_api::{
-    internal::categorizing::{DbCharacter, DbCharacterSkill},
-    types::character::Character,
-};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use nas_ws::routes::honkai::mhy_api::internal::categorizing::{DbCharacter, DbCharacterSkill};
+use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
 const URL: &str = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/";
@@ -13,10 +10,13 @@ const DICT_PATH: &str = "index_new/en/";
 const CHARACTERS: &str = "characters.json";
 const CHARACTER_SKILLS: &str = "character_skills.json";
 
+#[cfg(target_os = "windows")]
+const TARGET_PATH: &str = "../dump_data";
+#[cfg(target_os = "linux")]
+const TARGET_PATH: &str = "/tmp/";
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    let filenames = [CHARACTERS, CHARACTER_SKILLS];
-
     write_data::<DbCharacter>(CHARACTERS).await?;
     write_data::<DbCharacterSkill>(CHARACTER_SKILLS).await?;
 
@@ -36,7 +36,12 @@ where
     let url = Url::parse(URL)?.join(DICT_PATH)?.join(filename)?;
     println!("{:?}", url.as_str());
     let data: Vec<T> = hashed(url).await?;
-    let path = Path::new("/tmp/").join(filename);
+    #[cfg(target_os = "windows")]
+    {
+        create_dir_all(TARGET_PATH)?
+    }
+
+    let path = Path::new(TARGET_PATH).join(filename);
     let data_vec = serde_json::to_vec_pretty(&data)?;
     std::fs::write(path, data_vec)?;
     Ok(())

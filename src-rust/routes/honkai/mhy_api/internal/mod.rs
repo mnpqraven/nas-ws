@@ -1,28 +1,40 @@
-use self::{categorizing::DbCharacter, constants::CHARACTER_DICT};
-use anyhow::Result;
+use self::{
+    categorizing::{CharacterSkillTree, DbCharacter},
+    constants::{
+        CHARACTER_REMOTE, CHARACTER_SKILL_REMOTE, CHARACTER_SKILL_TREE_LOCAL,
+        CHARACTER_SKILL_TREE_REMOTE,
+    },
+};
+use crate::routes::honkai::mhy_api::internal::runnables::DbData;
+use crate::{
+    handler::error::WorkerError,
+    routes::{endpoint_types::List, honkai::mhy_api::internal::constants::CHARACTER_LOCAL},
+};
+use anyhow::{bail, Result};
+use axum::{extract::Path, Json};
 use serde::de::DeserializeOwned;
-use std::{collections::HashMap, fs, path::Path, sync::Arc};
-use tracing::{debug, info};
+use serde_json::json;
+use std::{collections::HashMap, fs, sync::Arc};
+use tracing::{debug, info, instrument};
 
 /// holds internal types for mhy's DB
 // TODO: avoid conflicting type names with super::types
 pub mod categorizing;
 pub mod constants;
 pub mod impls;
-#[cfg(test)]
-mod runnables;
+pub mod runnables;
 
 // NOTE: url fetching
 pub async fn get_character_list() -> Result<Arc<[DbCharacter]>> {
     let now = std::time::Instant::now();
     let pathname = "/tmp/characters.json";
-    let data: Vec<DbCharacter> = match Path::new(pathname).exists() {
+    let data: Vec<DbCharacter> = match std::path::Path::new(pathname).exists() {
         true => {
             let t = fs::read_to_string(pathname)?;
             serde_json::from_str(&t)?
         }
         false => {
-            let res_str: String = reqwest::get(CHARACTER_DICT).await?.text().await?;
+            let res_str: String = reqwest::get(CHARACTER_REMOTE).await?.text().await?;
             let map: HashMap<String, DbCharacter> = serde_json::from_str(&res_str)?;
             map.into_values().collect()
         }
@@ -31,11 +43,50 @@ pub async fn get_character_list() -> Result<Arc<[DbCharacter]>> {
     Ok(data.into())
 }
 
+pub async fn character_by_id(Path(id): Path<u32>) -> Result<Json<DbCharacter>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let characters = DbCharacter::read().await?;
+
+    let db_char = characters.get(&id.to_string()).cloned();
+
+    info!("{:?}", now.elapsed());
+    match db_char {
+        Some(t) => Ok(Json(t)),
+        None => Err(WorkerError::EmptyBody),
+    }
+}
+
+// TODO: change params (?)
+#[instrument(ret)]
+pub async fn skill_tree_by_character_id(
+    Path(char_id): Path<u32>,
+) -> Result<Json<Vec<CharacterSkillTree>>, WorkerError> {
+    let Json(character) = character_by_id(Path(char_id)).await.unwrap();
+
+    let binding = reqwest::get(CHARACTER_SKILL_TREE_REMOTE)
+        .await?
+        .text()
+        .await?;
+    let db_list: HashMap<String, CharacterSkillTree> = serde_json::from_str(&binding).unwrap();
+
+    let res: Arc<[CharacterSkillTree]> = character
+        .skill_trees
+        .iter()
+        .map(|key| db_list.get(key).cloned().unwrap())
+        .collect();
+    let list = res.to_vec();
+    Ok(Json(list))
+}
+
+/// TODO: needs a lighter KV map
+/// TODO: needs a faster lookup method
+/// try returning hashmap directly and get keys from there
 pub async fn get_db_list<T>(filename: &str, fallback_url: &str) -> Result<Arc<[T]>>
 where
     T: DeserializeOwned,
 {
-    let data: Vec<T> = match Path::new(filename).exists() {
+    let data: Vec<T> = match std::path::Path::new(filename).exists() {
         true => {
             info!("reading from file");
             let t = fs::read_to_string(filename)?;
@@ -51,27 +102,9 @@ where
     Ok(data.into())
 }
 
-/// attempts to get character data from github and writes to /tmp
-/// @returns: tuple of whether the file already exists and whether writing has succeeded
-#[allow(dead_code)]
-pub async fn write_character_db() -> Result<(bool, bool)> {
-    let res_str: String = reqwest::get(CHARACTER_DICT).await?.text().await?;
-    let map: HashMap<String, DbCharacter> = serde_json::from_str(&res_str)?;
-    let characters = map.into_values().collect::<Vec<DbCharacter>>();
-    let pathname = "/tmp/characters.json";
-    let write_attempt = std::fs::write(pathname, serde_json::to_vec_pretty(&characters)?);
-
-    let exist_status = Path::new(pathname).exists();
-    let write_status = write_attempt.is_ok();
-    debug!("exist_status: {}", exist_status);
-    debug!("write_status: {}", write_status);
-
-    Ok((exist_status, write_status))
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{get_character_list, write_character_db};
+    use super::get_character_list;
     use crate::routes::honkai::mhy_api::internal::{
         categorizing::DbCharacterSkill, get_db_list, impls::Queryable,
     };
@@ -108,10 +141,5 @@ mod tests {
         //         .collect::<Vec<String>>(),
         //     right
         // );
-    }
-
-    #[tokio::test]
-    async fn write_db() {
-        write_character_db().await.unwrap();
     }
 }

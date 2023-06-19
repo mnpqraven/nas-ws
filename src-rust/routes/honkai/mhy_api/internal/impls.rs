@@ -1,6 +1,9 @@
+use super::{
+    categorizing::{DbCharacter, DbCharacterSkill, SkillType},
+    runnables::{DbData, HasPath},
+};
+use crate::handler::error::WorkerError;
 use std::sync::Arc;
-
-use super::categorizing::{DbCharacter, DbCharacterSkill, SkillType};
 
 impl DbCharacter {
     // TODO: handle unwrap
@@ -10,6 +13,17 @@ impl DbCharacter {
             .map(|e| e.parse::<u32>().unwrap())
             .collect()
     }
+}
+
+impl HasPath for DbCharacter {
+    type T = DbCharacter;
+    fn path_data() -> (&'static str, &'static str) {
+        ("/tmp/characters.json", "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/characters.json")
+    }
+}
+
+impl DbData for DbCharacter {
+    type TValue = DbCharacter;
 }
 
 pub trait Queryable<T, U> {

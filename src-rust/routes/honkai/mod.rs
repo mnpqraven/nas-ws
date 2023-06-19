@@ -24,4 +24,6 @@ pub fn honkai_routes() -> Router {
         .route("/list_future_patch_banner", get(future_banner::handle))
         .route("/gacha_banner_list", get(gacha_banner_list))
         .route("/mhy", post(mhy_api::handle))
+        .route("/mhy/character/:id", get(mhy_api::internal::character_by_id))
+        .route("/mhy/skill_tree/:char_id", get(mhy_api::internal::skill_tree_by_character_id))
 }

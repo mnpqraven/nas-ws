@@ -109,7 +109,7 @@ pub struct DbCharacter {
     ranks: Vec<String>,
     /// skillIds
     pub skills: Vec<String>,
-    skill_trees: Vec<String>,
+    pub skill_trees: Vec<String>,
     pub icon: AssetPath,
     preview: AssetPath,
     portrait: AssetPath,
@@ -145,6 +145,44 @@ pub struct DbCharacterSkill {
 pub struct Parameter(pub Arc<[f64]>);
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct ParameterValue(pub (f64, bool));
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct CharacterSkillTree {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    id: u32,
+    max_level: u32,
+    anchor: String, // point13
+    pre_points: Vec<String>,
+    level_up_skills: Vec<SkillKV>,
+    levels: Vec<SkillLevel>,
+    icon: AssetPath,
+}
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+struct SkillLevel {
+    promotion: u32,
+    properties: Vec<PropertyKV>,
+    materials: Vec<MaterialKV>,
+}
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+struct PropertyKV {
+    #[serde(alias = "type")]
+    ttype: String, // ICEADDEDRATIO
+    value: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+struct SkillKV {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    id: u32,
+    num: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+struct MaterialKV {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    id: u32,
+    num: i32,
+}
 
 impl Parameter {
     pub fn sort_by_tuple(&self, sorter: Vec<(usize, bool)>) -> Vec<ParameterValue> {

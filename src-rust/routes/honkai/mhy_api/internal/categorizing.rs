@@ -241,11 +241,9 @@ impl DbCharacterSkill {
                 let mut res = String::new();
                 for cap in caps.iter().flatten() {
                     let is_percent: bool = cap.as_str().ends_with('%');
-                    let index = cap.as_str();
-                    // .replace('#', "")
-                    // .replace(&Regex::new(r"[.*]").unwrap(), "")
-                    // .replace("%", "");
-                    let index = index.chars().nth(1).unwrap().to_digit(10).unwrap() as usize;
+
+                    let index = cap.as_str().chars().nth(1).unwrap().to_digit(10).unwrap() as usize;
+
                     // TODO: safe unwrap, check with params length
                     // first index is slv index, 2nd index is value index
                     let params_data = match is_percent {

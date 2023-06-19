@@ -1,28 +1,19 @@
 use self::{
     categorizing::{CharacterSkillTree, DbCharacter},
-    constants::{
-        CHARACTER_REMOTE, CHARACTER_SKILL_REMOTE, CHARACTER_SKILL_TREE_LOCAL,
-        CHARACTER_SKILL_TREE_REMOTE,
-    },
+    constants::{CHARACTER_REMOTE, CHARACTER_SKILL_TREE_REMOTE},
 };
-use crate::routes::honkai::mhy_api::internal::runnables::DbData;
-use crate::{
-    handler::error::WorkerError,
-    routes::{endpoint_types::List, honkai::mhy_api::internal::constants::CHARACTER_LOCAL},
-};
-use anyhow::{bail, Result};
+use crate::{handler::error::WorkerError, routes::honkai::mhy_api::internal::impls::DbData};
+use anyhow::Result;
 use axum::{extract::Path, Json};
 use serde::de::DeserializeOwned;
-use serde_json::json;
 use std::{collections::HashMap, fs, sync::Arc};
-use tracing::{debug, info, instrument};
+use tracing::{info, instrument};
 
 /// holds internal types for mhy's DB
 // TODO: avoid conflicting type names with super::types
 pub mod categorizing;
 pub mod constants;
 pub mod impls;
-pub mod runnables;
 
 // NOTE: url fetching
 pub async fn get_character_list() -> Result<Arc<[DbCharacter]>> {
@@ -81,6 +72,7 @@ pub async fn skill_tree_by_character_id(
 
 /// TODO: needs a lighter KV map
 /// TODO: needs a faster lookup method
+/// NOTE: probably can deprecate this
 /// try returning hashmap directly and get keys from there
 pub async fn get_db_list<T>(filename: &str, fallback_url: &str) -> Result<Arc<[T]>>
 where

@@ -6,7 +6,11 @@ pub const RELIC_SET_DICT: &str =
 pub const RELIC_PIECES_DICT: &str =
     "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/relics.json";
 
+#[cfg(target_os = "windows")]
+pub const CHARACTER_LOCAL: &str = "../dump_data/characters.json";
+#[cfg(target_os = "linux")]
 pub const CHARACTER_LOCAL: &str = "/tmp/characters.json";
+
 pub const CHARACTER_REMOTE: &str =
     "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/characters.json";
 

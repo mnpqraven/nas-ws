@@ -88,8 +88,13 @@ impl From<WorkerError> for vercel_runtime::Error {
     }
 }
 
-impl From<anyhow::Error> for WorkerError {
-    fn from(value: anyhow::Error) -> Self {
-        WorkerError::Unknown(value)
+// This enables using `?` on functions that return `Result<_, anyhow::Error>` to turn them into
+// `Result<_, AppError>`. That way you don't need to do that manually.
+impl<E> From<E> for WorkerError
+where
+    E: Into<anyhow::Error>,
+{
+    fn from(err: E) -> Self {
+        Self::Unknown(err.into())
     }
 }

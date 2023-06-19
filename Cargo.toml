@@ -31,6 +31,7 @@ serde-aux = "4.2.0"
 anyhow = { version = "1.0.71", features = ["backtrace"] }
 serde_with = "3.0.0"
 regex = "1.8.4"
+async-trait = "0.1.68"
 
 [[bin]]
 name = "nas-ws"
@@ -44,11 +45,8 @@ path = "src-rust/codegen.rs"
 path = "src-rust/lib.rs"
 
 [[bin]]
-name = "characters_db"
-path = "api/cron/characters_db.rs"
-[[bin]]
-name = "write_characters_db"
-path = "api/cron/write_characters_db.rs"
+name = "write_db"
+path = "api/cron/write_db.rs"
 [[bin]]
 name = "install_schema"
 path = "api/dotfiles/install_schema.rs"
@@ -67,6 +65,9 @@ path = "api/honkai/list_future_patch_date.rs"
 [[bin]]
 name = "probability_rate"
 path = "api/honkai/probability_rate.rs"
+[[bin]]
+name = "_id_"
+path = "api/honkai/mhy/character/[id].rs"
 [[bin]]
 name = "parse_mdx"
 path = "api/utils/parse_mdx.rs"

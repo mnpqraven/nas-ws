@@ -8,7 +8,7 @@ use tracing::{error, instrument};
 mod tests;
 pub mod types;
 
-#[instrument(ret)]
+#[instrument(ret, err)]
 pub async fn handle(
     rpayload: Result<Json<EstimateCfg>, JsonRejection>,
 ) -> Result<Json<JadeEstimateResponse>, WorkerError> {

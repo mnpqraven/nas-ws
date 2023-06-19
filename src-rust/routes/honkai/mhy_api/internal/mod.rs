@@ -1,8 +1,8 @@
-use self::{
-    categorizing::{CharacterSkillTree, DbCharacter},
-    constants::{CHARACTER_REMOTE, CHARACTER_SKILL_TREE_REMOTE},
+use self::categorizing::{DbCharacter, DbCharacterSkillTree};
+use crate::{
+    handler::error::WorkerError,
+    routes::{endpoint_types::List, honkai::mhy_api::internal::impls::DbData},
 };
-use crate::{handler::error::WorkerError, routes::honkai::mhy_api::internal::impls::DbData};
 use anyhow::Result;
 use axum::{extract::Path, Json};
 use serde::de::DeserializeOwned;
@@ -15,59 +15,36 @@ pub mod categorizing;
 pub mod constants;
 pub mod impls;
 
-// NOTE: url fetching
-pub async fn get_character_list() -> Result<Arc<[DbCharacter]>> {
-    let now = std::time::Instant::now();
-    let pathname = "/tmp/characters.json";
-    let data: Vec<DbCharacter> = match std::path::Path::new(pathname).exists() {
-        true => {
-            let t = fs::read_to_string(pathname)?;
-            serde_json::from_str(&t)?
-        }
-        false => {
-            let res_str: String = reqwest::get(CHARACTER_REMOTE).await?.text().await?;
-            let map: HashMap<String, DbCharacter> = serde_json::from_str(&res_str)?;
-            map.into_values().collect()
-        }
-    };
-    info!("get_character_list {:?}", now.elapsed());
-    Ok(data.into())
-}
-
+#[instrument(ret, err)]
 pub async fn character_by_id(Path(id): Path<u32>) -> Result<Json<DbCharacter>, WorkerError> {
     let now = std::time::Instant::now();
 
     let characters = DbCharacter::read().await?;
-
     let db_char = characters.get(&id.to_string()).cloned();
 
-    info!("{:?}", now.elapsed());
+    info!("Duration {:?}", now.elapsed());
     match db_char {
         Some(t) => Ok(Json(t)),
         None => Err(WorkerError::EmptyBody),
     }
 }
 
-// TODO: change params (?)
-#[instrument(ret)]
-pub async fn skill_tree_by_character_id(
-    Path(char_id): Path<u32>,
-) -> Result<Json<Vec<CharacterSkillTree>>, WorkerError> {
-    let Json(character) = character_by_id(Path(char_id)).await.unwrap();
+#[instrument(ret, err)]
+pub async fn trace_by_char_id(
+    Path(id): Path<u32>,
+) -> Result<Json<List<DbCharacterSkillTree>>, WorkerError> {
+    let now = std::time::Instant::now();
 
-    let binding = reqwest::get(CHARACTER_SKILL_TREE_REMOTE)
-        .await?
-        .text()
-        .await?;
-    let db_list: HashMap<String, CharacterSkillTree> = serde_json::from_str(&binding).unwrap();
+    let db: HashMap<String, DbCharacterSkillTree> = DbCharacterSkillTree::read().await?;
 
-    let res: Arc<[CharacterSkillTree]> = character
-        .skill_trees
+    let traces: Arc<[DbCharacterSkillTree]> = db
         .iter()
-        .map(|key| db_list.get(key).cloned().unwrap())
+        .filter(|(k, _)| k.starts_with(&id.to_string()))
+        .map(|(_, v)| v.to_owned().into())
         .collect();
-    let list = res.to_vec();
-    Ok(Json(list))
+
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(traces.into()))
 }
 
 /// TODO: needs a lighter KV map
@@ -96,15 +73,18 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::get_character_list;
+    use std::collections::HashMap;
+
     use crate::routes::honkai::mhy_api::internal::{
-        categorizing::DbCharacterSkill, get_db_list, impls::Queryable,
+        categorizing::{DbCharacter, DbCharacterSkill},
+        get_db_list,
+        impls::{DbData, Queryable},
     };
 
     #[tokio::test]
     async fn calling() {
-        let list = get_character_list().await.unwrap();
-        let kafka = list.iter().find(|e| e.name.eq("Luocha")).unwrap();
+        let list: HashMap<String, DbCharacter> = DbCharacter::read().await.unwrap();
+        let (_, kafka) = list.iter().find(|(_, e)| e.name.eq("Luocha")).unwrap();
 
         let skill_db = get_db_list::<DbCharacterSkill>("character_skills.json", "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/character_skills.json").await.unwrap();
 

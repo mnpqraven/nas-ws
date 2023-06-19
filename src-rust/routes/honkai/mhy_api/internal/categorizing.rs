@@ -6,9 +6,9 @@ use regex::{Captures, Regex};
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use std::{fmt::Display, marker::PhantomData, num::ParseIntError, str::FromStr, sync::Arc};
-use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
+use vercel_runtime::{Body, Response, StatusCode};
 
-use crate::routes::honkai::mhy_api::types::shared::{AssetPath, Element, Path};
+use crate::routes::honkai::mhy_api::types_parsed::shared::{AssetPath, Element, Path};
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize,
@@ -152,7 +152,7 @@ pub struct Parameter(pub Arc<[f64]>);
 pub struct ParameterValue(pub (f64, bool));
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-pub struct CharacterSkillTree {
+pub struct DbCharacterSkillTree {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     id: u32,
     max_level: u32,

@@ -16,6 +16,8 @@ struct ResponseData {
 async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
+        .with_ansi(false)
+        .pretty()
         .init();
     run(handler).await
 }

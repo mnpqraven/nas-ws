@@ -1,11 +1,18 @@
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
 use serde::Serialize;
+use std::sync::Arc;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Serialize, Debug)]
 pub struct List<T> {
     pub list: Vec<T>,
+}
+
+impl<T: Clone> From<Arc<[T]>> for List<T> {
+    fn from(list: Arc<[T]>) -> Self {
+        List { list: list.to_vec() }
+    }
 }
 
 impl<T> From<Vec<T>> for List<T> {

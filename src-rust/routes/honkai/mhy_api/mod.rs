@@ -1,10 +1,10 @@
-use self::types::MihoResponse;
+use self::types_parsed::MihoResponse;
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use serde::Deserialize;
 use tracing::error;
 
-pub mod types;
+pub mod types_parsed;
 pub mod internal;
 
 // NOTE: mihoyo public api + assets

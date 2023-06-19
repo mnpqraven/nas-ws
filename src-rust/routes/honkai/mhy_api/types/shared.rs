@@ -7,7 +7,7 @@ use std::fmt::Display;
 use strum_macros::EnumString;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, Clone, JsonResponse, JsonSchema)]
 pub struct AssetPath(pub String);
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, EnumString)]

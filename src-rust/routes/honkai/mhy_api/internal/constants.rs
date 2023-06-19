@@ -14,4 +14,4 @@ pub const CHARACTER_SKILL_LOCAL: &str = "../dump_data/character_skills.json";
 #[cfg(target_os = "linux")]
 pub const CHARACTER_SKILL_LOCAL: &str = "/tmp/character_skills.json";
 pub const CHARACTER_SKILL_REMOTE: &str =
-    "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/characters.json";
+    "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/character_skills.json";

@@ -36,7 +36,7 @@ pub struct Patch {
 #[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchBanner {
-    pub character_name: String,            // FK cmp with `name`
+    pub character_name: String, // FK cmp with `name`
     pub character_id: Option<u32>,
     pub icon: Option<AssetPath>,           // FK
     pub element: Option<CharacterElement>, // FK

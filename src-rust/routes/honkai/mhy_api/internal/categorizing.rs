@@ -1,11 +1,16 @@
+use crate::handler::FromAxumResponse;
+use crate::routes::honkai::mhy_api::WorkerError;
+use axum::Json;
 use core::fmt;
 use regex::{Captures, Regex};
+use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use std::{fmt::Display, marker::PhantomData, num::ParseIntError, str::FromStr, sync::Arc};
+use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 
 use crate::routes::honkai::mhy_api::types::shared::{AssetPath, Element, Path};
 use serde::{
-    de::{Error, Visitor},
+    de::{self, Visitor},
     Deserialize, Deserializer, Serialize,
 };
 use serde_aux::prelude::*;
@@ -96,7 +101,7 @@ impl FromStr for RelicSetId {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonResponse)]
 pub struct DbCharacter {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub id: u32,
@@ -305,28 +310,28 @@ where
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
-            E: Error,
+            E: de::Error,
         {
             match value {
                 "" => Ok(None),
-                v => S::from_str(v).map(Some).map_err(Error::custom),
+                v => S::from_str(v).map(Some).map_err(de::Error::custom),
             }
         }
 
         fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
         where
-            E: Error,
+            E: de::Error,
         {
             match &*value {
                 "" => Ok(None),
-                v => S::from_str(v).map(Some).map_err(Error::custom),
+                v => S::from_str(v).map(Some).map_err(de::Error::custom),
             }
         }
 
         // handles the `null` case
         fn visit_unit<E>(self) -> Result<Self::Value, E>
         where
-            E: Error,
+            E: de::Error,
         {
             Ok(None)
         }

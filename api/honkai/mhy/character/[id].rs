@@ -1,4 +1,8 @@
-use nas_ws::{handler::FromAxumResponse, routes::honkai::banner::gacha_banner_list};
+use axum::{extract::Path, Json};
+use nas_ws::{
+    handler::FromAxumResponse,
+    routes::honkai::{banner::gacha_banner_list, mhy_api::internal::character_by_id},
+};
 use serde_json::json;
 use std::collections::HashMap;
 use tracing::info;
@@ -26,9 +30,10 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
                 "message": "Query string is invalid",
             }));
         }
-        Some(id) => Ok(Response::builder()
-            .status(StatusCode::OK)
-            .header("Content-Type", "application/json")
-            .body(Body::Text(id.to_owned()))?),
+        Some(id) => {
+            let id: u32 = id.parse()?;
+            let jsoned = character_by_id(Path(id)).await?;
+            Ok(jsoned).as_axum()
+        }
     }
 }

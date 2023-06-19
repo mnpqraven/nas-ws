@@ -19,7 +19,7 @@ pub trait Queryable<T, U> {
 // impl Queryable for DbCharacter { }
 impl Queryable<Arc<[u32]>, DbCharacterSkill> for Arc<[DbCharacterSkill]> {
     fn find_many(&self, skill_ids: Arc<[u32]>) -> Self {
-        self.into_iter()
+        self.iter()
             .filter(|e| skill_ids.contains(&e.id) && e.ttype != SkillType::MazeNormal)
             .cloned()
             .collect()

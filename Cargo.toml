@@ -11,8 +11,8 @@ serde_repr = "0.1.12"
 tokio = { version = "1.27.0", features = ["full"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
-strum_macros = "0.24"
-strum = { version = "0.24", features = ["derive"] }
+strum_macros = "0.25"
+strum = { version = "0.25", features = ["derive"] }
 base64 = "0.21.0"
 gray_matter = "0.2.6"
 tower = "0.4.13"
@@ -30,7 +30,7 @@ schemars = { version = "0.8.12", features = ["chrono"] }
 serde-aux = "4.2.0"
 anyhow = "1.0.71"
 serde_with = "3.0.0"
-regex = { version = "1.8.4", features = ["pattern"] }
+regex = "1.8.4"
 
 [[bin]]
 name = "nas-ws"

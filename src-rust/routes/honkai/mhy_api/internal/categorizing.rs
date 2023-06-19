@@ -1,10 +1,13 @@
 use core::fmt;
 use regex::{Captures, Regex};
 use schemars::JsonSchema;
-use std::{fmt::Display, num::ParseIntError, str::FromStr, sync::Arc, marker::PhantomData};
+use std::{fmt::Display, marker::PhantomData, num::ParseIntError, str::FromStr, sync::Arc};
 
 use crate::routes::honkai::mhy_api::types::shared::{AssetPath, Element, Path};
-use serde::{Deserialize, Serialize, Deserializer, de::{Visitor, Error}};
+use serde::{
+    de::{Error, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
 use serde_aux::prelude::*;
 use serde_repr::Deserialize_repr;
 
@@ -193,25 +196,22 @@ impl DbCharacterSkill {
         for level in self.params.iter() {
             let result = regex.replace_all(&self.desc.0, |caps: &Captures| {
                 let mut res = String::new();
-                for cap in caps.iter() {
-                    if let Some(cap) = cap {
-                        let is_percent: bool = cap.as_str().ends_with('%');
-                        let index = cap
-                            .as_str();
-                            // .replace('#', "")
-                            // .replace(&Regex::new(r"[.*]").unwrap(), "")
-                            // .replace("%", "");
-                        let index = index.chars().nth(1).unwrap().to_digit(10).unwrap() as usize;
-                        // TODO: safe unwrap, check with params length
-                        // first index is slv index, 2nd index is value index
-                        let params_data = match is_percent {
-                            true => level.0.get(index - 1).unwrap() * 100.0,
-                            false => *level.0.get(index - 1).unwrap(),
-                        };
-                        match is_percent {
-                            true => res.push_str(&format!("{:.2}%", &params_data)),
-                            false => res.push_str(&format!("{:.2}", &params_data)),
-                        }
+                for cap in caps.iter().flatten() {
+                    let is_percent: bool = cap.as_str().ends_with('%');
+                    let index = cap.as_str();
+                    // .replace('#', "")
+                    // .replace(&Regex::new(r"[.*]").unwrap(), "")
+                    // .replace("%", "");
+                    let index = index.chars().nth(1).unwrap().to_digit(10).unwrap() as usize;
+                    // TODO: safe unwrap, check with params length
+                    // first index is slv index, 2nd index is value index
+                    let params_data = match is_percent {
+                        true => level.0.get(index - 1).unwrap() * 100.0,
+                        false => *level.0.get(index - 1).unwrap(),
+                    };
+                    match is_percent {
+                        true => res.push_str(&format!("{:.2}%", &params_data)),
+                        false => res.push_str(&format!("{:.2}", &params_data)),
                     }
                 }
                 res
@@ -223,11 +223,7 @@ impl DbCharacterSkill {
 
     pub fn split_description(&self) -> Arc<[Arc<str>]> {
         let regex = Regex::new(Self::DESC_IDENT).unwrap();
-        let t: Arc<[Arc<str>]> = regex
-            .split(&self.desc.0)
-            .into_iter()
-            .map(|e| e.into())
-            .collect();
+        let t: Arc<[Arc<str>]> = regex.split(&self.desc.0).map(|e| e.into()).collect();
         t
     }
 
@@ -242,7 +238,7 @@ impl DbCharacterSkill {
                 let ind: usize = (e.as_str().chars().nth(1).unwrap().to_digit(10).unwrap() - 1)
                     .try_into()
                     .unwrap();
-                let is_percent = e.as_str().ends_with("%");
+                let is_percent = e.as_str().ends_with('%');
                 (ind, is_percent)
             })
             .collect::<Vec<(usize, bool)>>();

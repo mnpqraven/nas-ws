@@ -14,6 +14,7 @@ mod runnables;
 
 // NOTE: url fetching
 pub async fn get_character_list() -> Result<Arc<[DbCharacter]>> {
+    let now = std::time::Instant::now();
     let pathname = "/tmp/characters.json";
     let data: Vec<DbCharacter> = match Path::new(pathname).exists() {
         true => {
@@ -26,6 +27,7 @@ pub async fn get_character_list() -> Result<Arc<[DbCharacter]>> {
             map.into_values().collect()
         }
     };
+    info!("get_character_list {:?}", now.elapsed());
     Ok(data.into())
 }
 

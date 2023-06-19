@@ -20,7 +20,6 @@ use schemars::{
 };
 use semver::Version;
 use serde::Serialize;
-use tracing::info;
 
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -69,11 +68,7 @@ impl PatchBanner {
     ) -> Result<Vec<Self>> {
         let mut banners: Vec<PatchBanner> = vec![];
 
-        let now = std::time::Instant::now();
-
         let character_list = get_character_list().await?;
-
-        info!("get_character_list {:.2?}", now.elapsed());
 
         let skill_db =
             get_db_list::<DbCharacterSkill>(CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE).await?;

@@ -5,11 +5,11 @@ use axum::Json;
 use semver::Version;
 use tracing::info;
 
+pub mod future_banner;
+pub mod future_date;
 #[cfg(test)]
 mod tests;
 pub mod types;
-pub mod future_date;
-pub mod future_banner;
 
 pub async fn list_future_patch_date() -> Result<Json<Vec<Patch>>, WorkerError> {
     let patches_info: Vec<(&str, Version)> = vec![
@@ -18,7 +18,6 @@ pub async fn list_future_patch_date() -> Result<Json<Vec<Patch>>, WorkerError> {
     ];
 
     let future_patches = Patch::generate(5, Some(patches_info));
-    tracing::info!("{:?}", future_patches);
     Ok(Json(future_patches))
 }
 
@@ -40,7 +39,6 @@ pub async fn list_future_patch_banner() -> Result<Json<Vec<PatchBanner>>> {
 
     let patches = Patch::generate(5, None);
     let future_banners = PatchBanner::from_patches(patches, banner_info).await?;
-    info!("{:?}", future_banners);
     info!("Total elapsed: {:.2?}", now.elapsed());
     Ok(Json(future_banners))
 }

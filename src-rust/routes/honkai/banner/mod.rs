@@ -1,9 +1,11 @@
 use self::types::{Banner, BannerList};
 use crate::handler::error::WorkerError;
 use axum::Json;
+use tracing::instrument;
 
 pub mod types;
 
+#[instrument(ret)]
 pub async fn gacha_banner_list() -> Result<Json<BannerList>, WorkerError> {
     let banner_list = BannerList {
         list: vec![

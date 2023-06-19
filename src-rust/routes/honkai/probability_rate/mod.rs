@@ -6,10 +6,11 @@ use super::banner::types::{Banner, BannerIternal, BannerType};
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use std::collections::HashMap;
-use tracing::error;
+use tracing::{error, instrument};
 
 pub mod types;
 
+#[instrument(ret)]
 pub async fn handle(
     rpayload: Result<Json<ProbabilityRatePayload>, JsonRejection>,
 ) -> Result<Json<ProbabilityRateResponse>, WorkerError> {

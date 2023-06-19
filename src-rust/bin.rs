@@ -1,6 +1,6 @@
 mod builder;
-mod routes;
 mod handler;
+mod routes;
 
 use crate::routes::app_router;
 use std::net::SocketAddr;
@@ -9,6 +9,7 @@ use std::net::SocketAddr;
 async fn main() {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
+        .pretty()
         .init();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5005));

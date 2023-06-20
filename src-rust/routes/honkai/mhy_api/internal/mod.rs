@@ -40,7 +40,7 @@ pub async fn trace_by_char_id(
     let traces: Arc<[DbCharacterSkillTree]> = db
         .iter()
         .filter(|(k, _)| k.starts_with(&id.to_string()))
-        .map(|(_, v)| v.to_owned().into())
+        .map(|(_, v)| v.to_owned())
         .collect();
 
     info!("Duration: {:?}", now.elapsed());

@@ -63,7 +63,7 @@ fn to_accumulated_rates(data: &[Vec<ReducedSim>]) -> Vec<Vec<ReducedSim>> {
             // transform separate rate of each eidolon into accumulated rate
             // for lower eidolons
             let cloned_ref = eidolons_by_pull.clone();
-            eidolons_by_pull.iter_mut().for_each(|mut cell| {
+            eidolons_by_pull.iter_mut().for_each(|cell| {
                 let higher_eid_cells: Vec<&ReducedSim> = cloned_ref
                     .iter()
                     .filter(|e| e.eidolon > cell.eidolon)

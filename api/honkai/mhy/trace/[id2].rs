@@ -8,7 +8,7 @@ use vercel_runtime::{http::bad_request, run, Body, Error, Request, Response};
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .with_ansi(false)
         .pretty()
         .init();

@@ -26,6 +26,12 @@ impl<T: DbDataLike> DbData<T> for DbCharacter {
     }
 }
 
+impl<T: DbDataLike> DbData<T> for DbCharacterSkill {
+    fn path_data() -> (&'static str, &'static str) {
+        (CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE)
+    }
+}
+
 impl<T: DbDataLike> DbData<T> for DbCharacterSkillTree {
     fn path_data() -> (&'static str, &'static str) {
         (CHARACTER_SKILL_TREE_LOCAL, CHARACTER_SKILL_TREE_REMOTE)

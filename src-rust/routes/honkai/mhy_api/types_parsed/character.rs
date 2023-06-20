@@ -93,7 +93,7 @@ impl From<Element> for CharacterElement {
                 id: "Lightning".into(),
                 name: Element::Lightning,
                 color: "#8872F1".into(),
-                icon: AssetPath("icon/element/Wind.png".into()),
+                icon: AssetPath("icon/element/Lightning.png".into()),
             },
             Element::Quantum => Self {
                 id: "Quantum".into(),

@@ -1,4 +1,4 @@
-use nas_ws::routes::honkai::{jade_estimate::types::EstimateCfg, mhy_api::types::MihoResponse, patch::types::PatchBanner};
+use nas_ws::routes::honkai::{jade_estimate::types::EstimateCfg, mhy_api::types_parsed::MihoResponse, patch::types::PatchBanner};
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
 

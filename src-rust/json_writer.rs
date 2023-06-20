@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, fs::create_dir_all, path::Path};
 
 use anyhow::Result;
 use nas_ws::routes::honkai::mhy_api::internal::categorizing::{DbCharacter, DbCharacterSkill};

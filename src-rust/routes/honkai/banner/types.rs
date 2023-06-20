@@ -20,11 +20,6 @@ pub struct Banner {
     pub banner_type: BannerType,
 }
 
-#[derive(Serialize, JsonResponse, Clone, Debug)]
-pub struct BannerList {
-    pub list: Vec<Banner>,
-}
-
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone)]
 pub enum BannerType {
     #[serde(rename = "SSR")]
@@ -110,7 +105,6 @@ impl Banner {
             rate: pity_rate_fn,
         }
     }
-
 }
 
 /// struct that is used in the backend

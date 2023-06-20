@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     handler::error::{ComputationType, WorkerError},
@@ -6,13 +6,12 @@ use crate::{
         internal::{
             categorizing::{DbCharacter, DbCharacterSkill, Parameter, SkillType},
             constants::{CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE},
-            get_character_list, get_db_list,
-            impls::Queryable,
+            get_db_list,
+            impls::{DbData, Queryable},
         },
-        types::{character::CharacterElement, shared::AssetPath},
+        types_parsed::{character::CharacterElement, shared::AssetPath},
     },
 };
-use anyhow::Result;
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use schemars::{
     schema::{InstanceType, SchemaObject},
@@ -43,7 +42,7 @@ pub struct PatchBanner {
 
 #[derive(Serialize, Clone, Debug, JsonSchema)]
 pub struct Character {
-    pub character_name: String, // FK cmp with `name`
+    pub character_name: Option<String>, // FK cmp with `name`
     pub character_id: Option<u32>,
     pub icon: Option<AssetPath>,           // FK
     pub element: Option<CharacterElement>, // FK
@@ -68,13 +67,14 @@ impl From<Version> for PatchVersion {
 }
 
 impl PatchBanner {
+    // TODO: REFACTOR
     pub async fn from_patches(
         patches: Vec<Patch>,
         banner_info: Vec<(Option<&str>, Option<&str>, Version)>,
-    ) -> Result<Vec<Self>> {
+    ) -> Result<Vec<Self>, WorkerError> {
         let mut banners: Vec<PatchBanner> = vec![];
 
-        let character_list = get_character_list().await?;
+        let character_list: HashMap<String, DbCharacter> = DbCharacter::read().await?;
 
         let skill_db =
             get_db_list::<DbCharacterSkill>(CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE).await?;
@@ -82,22 +82,26 @@ impl PatchBanner {
         patches.push(Patch::current());
 
         for patch in patches.iter() {
-            let (char1, char2) = match banner_info
+            let (char1, char2): (Option<&str>, Option<&str>) = match banner_info
                 .iter()
                 .find(|(_, _, version)| patch.version.eq(version))
             {
-                Some((char1, char2, _)) => (char1.unwrap_or("Unknown"), char2.unwrap_or("Unknown")),
-                None => ("Unknown", "Unknown"),
-            };
-
-            let fk1 = character_list.iter().find(|e| e.name.eq(char1));
-            let fk2 = character_list.iter().find(|e| e.name.eq(char2));
-            let split = |fk: Option<&DbCharacter>| match fk {
-                Some(x) => (Some(x.icon.clone()), Some(x.element.clone().into())),
+                Some((char1, char2, _)) => (*char1, *char2),
                 None => (None, None),
             };
-            let char_skill = |fk_char: Option<&DbCharacter>| match fk_char {
-                Some(character) => skill_db
+
+            let fk1 = character_list
+                .iter()
+                .find(|(_, e)| char1.is_some() && e.name.eq(char1.unwrap()));
+            let fk2 = character_list
+                .iter()
+                .find(|(_, e)| char2.is_some() && e.name.eq(char2.unwrap()));
+            let split = |fk: Option<(&String, &DbCharacter)>| match fk {
+                Some((_, x)) => (Some(x.icon.clone()), Some(x.element.clone().into())),
+                None => (None, None),
+            };
+            let char_skill = |fk_char: Option<(&String, &DbCharacter)>| match fk_char {
+                Some((_, character)) => skill_db
                     .find_many(character.skill_ids())
                     .iter()
                     .map(|db_character_skill| SimpleSkill {
@@ -125,8 +129,8 @@ impl PatchBanner {
             let (icon, element) = split(fk1);
             banners.push(PatchBanner {
                 character_data: Character {
-                    character_name: char1.to_string(),
-                    character_id: fk1.map(|e| e.id),
+                    character_name: char1.map(|e| e.into()),
+                    character_id: fk1.map(|(_, e)| e.id),
                     icon,
                     element,
                     skills: char_skill(fk1).to_vec(),
@@ -138,8 +142,8 @@ impl PatchBanner {
             let (icon, element) = split(fk2);
             banners.push(PatchBanner {
                 character_data: Character {
-                    character_name: char2.to_string(),
-                    character_id: fk2.map(|e| e.id),
+                    character_name: char2.map(|e| e.into()),
+                    character_id: fk2.map(|(_, e)| e.id),
                     icon,
                     element,
                     skills: char_skill(fk2).to_vec(),

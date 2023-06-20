@@ -1,7 +1,10 @@
 use self::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree};
 use crate::{
     handler::error::WorkerError,
-    routes::{endpoint_types::List, honkai::mhy_api::internal::impls::DbData},
+    routes::{
+        endpoint_types::List,
+        honkai::mhy_api::{internal::impls::DbData, types_parsed::shared::DbAttributeProperty},
+    },
 };
 use anyhow::Result;
 use axum::{extract::Path, Json};
@@ -62,6 +65,15 @@ pub async fn eidolon_by_char_id(
 
     info!("Duration: {:?}", now.elapsed());
     Ok(Json(eidolons.into()))
+}
+
+pub async fn properties() -> Result<Json<List<DbAttributeProperty>>, WorkerError> {
+    let now = std::time::Instant::now();
+    let db: HashMap<String, DbAttributeProperty> = DbAttributeProperty::read().await?;
+    let data: Arc<[DbAttributeProperty]> = db.into_values().collect();
+
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(data.into()))
 }
 
 /// TODO: needs a lighter KV map

@@ -1,4 +1,6 @@
-use crate::handler::error::WorkerError;
+use crate::{
+    handler::error::WorkerError, routes::honkai::mhy_api::types_parsed::shared::DbAttributeProperty,
+};
 
 use super::{
     categorizing::{
@@ -43,6 +45,12 @@ impl<T: DbDataLike> DbData<T> for DbCharacterSkillTree {
 impl<T: DbDataLike> DbData<T> for DbCharacterEidolon {
     fn path_data() -> (&'static str, &'static str) {
         (CHARACTER_EIDOLON_LOCAL, CHARACTER_EIDOLON_REMOTE)
+    }
+}
+
+impl<T: DbDataLike> DbData<T> for DbAttributeProperty {
+    fn path_data() -> (&'static str, &'static str) {
+        (ATTRIBUTE_PROPERTY_LOCAL, ATTRIBUTE_PROPERTY_REMOTE)
     }
 }
 

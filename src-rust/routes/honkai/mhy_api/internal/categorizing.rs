@@ -1,4 +1,4 @@
-use crate::handler::FromAxumResponse;
+use crate::{handler::FromAxumResponse, routes::honkai::mhy_api::types_parsed::shared::Property};
 use crate::routes::honkai::mhy_api::WorkerError;
 use axum::Json;
 use core::fmt;
@@ -101,7 +101,7 @@ impl FromStr for RelicSetId {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize, Clone, JsonResponse)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonResponse, JsonSchema)]
 pub struct DbCharacter {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub id: u32,
@@ -205,7 +205,7 @@ struct SkillLevel {
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 struct PropertyKV {
     #[serde(alias = "type")]
-    ttype: String, // ICEADDEDRATIO
+    ttype: Property, // ICEADDEDRATIO
     value: f64,
 }
 

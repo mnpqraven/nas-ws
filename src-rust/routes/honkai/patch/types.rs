@@ -20,12 +20,12 @@ use schemars::{
 use semver::Version;
 use serde::Serialize;
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 /// Patch's time will always have a 02:00:00 UTC date
 pub struct Patch {
     pub name: String,
-    pub version: Version,
+    pub version: PatchVersion,
     pub date_start: DateTime<Utc>,
     pub date_2nd_banner: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
@@ -60,6 +60,7 @@ pub struct SimpleSkill {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct PatchVersion(pub Version);
+
 impl From<Version> for PatchVersion {
     fn from(value: Version) -> Self {
         Self(value)
@@ -84,7 +85,7 @@ impl PatchBanner {
         for patch in patches.iter() {
             let (char1, char2): (Option<&str>, Option<&str>) = match banner_info
                 .iter()
-                .find(|(_, _, version)| patch.version.eq(version))
+                .find(|(_, _, version)| patch.version.0.eq(version))
             {
                 Some((char1, char2, _)) => (*char1, *char2),
                 None => (None, None),
@@ -135,7 +136,7 @@ impl PatchBanner {
                     element,
                     skills: char_skill(fk1).to_vec(),
                 },
-                version: patch.version.clone().into(),
+                version: patch.version.clone(),
                 date_start: patch.date_start,
                 date_end: patch.date_2nd_banner,
             });
@@ -148,7 +149,7 @@ impl PatchBanner {
                     element,
                     skills: char_skill(fk2).to_vec(),
                 },
-                version: patch.version.clone().into(),
+                version: patch.version.clone(),
                 date_start: patch.date_2nd_banner,
                 date_end: patch.date_end,
             });
@@ -198,7 +199,7 @@ impl Patch {
     pub fn next(&mut self) {
         self.date_start += Duration::weeks(6);
         self.date_end += Duration::weeks(6);
-        self.version.minor += 1;
+        self.version.0.minor += 1;
     }
 
     /// Creates a patch
@@ -212,7 +213,7 @@ impl Patch {
         let date_2nd_banner = start_date + Duration::weeks(3);
         Self {
             name: name.into(),
-            version: version.into(),
+            version: PatchVersion(version.into()),
             date_start: start_date,
             date_2nd_banner,
             date_end,
@@ -273,7 +274,7 @@ impl Patch {
     pub fn generate(index: u32, info: Option<Vec<(&str, Version)>>) -> Vec<Self> {
         let mut patches = vec![];
         let mut current = Patch::current();
-        let mut next_version = current.version.clone();
+        let PatchVersion(mut next_version) = current.version.clone();
         for _ in 0..index {
             next_version.minor += 1;
             let name: String = match info.clone() {

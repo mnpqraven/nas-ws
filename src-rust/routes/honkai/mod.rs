@@ -25,4 +25,5 @@ pub fn honkai_routes() -> Router {
         .route("/mhy", post(mhy_api::handle))
         .route("/mhy/character/:id", get(internal::character_by_id))
         .route("/mhy/trace/:char_id", get(internal::trace_by_char_id))
+        .route("/mhy/eidolon/:char_id", get(internal::eidolon_by_char_id))
 }

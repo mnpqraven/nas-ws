@@ -1,14 +1,15 @@
 use std::{collections::HashMap, path::Path};
 
 use anyhow::Result;
-use nas_ws::routes::honkai::mhy_api::internal::categorizing::{DbCharacter, DbCharacterSkill};
+use nas_ws::routes::honkai::mhy_api::internal::categorizing::{
+    DbCharacter, DbCharacterSkill, DbCharacterSkillTree,
+};
 use serde::{de::DeserializeOwned, Serialize};
+use tracing::instrument;
 use url::Url;
 
 const URL: &str = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/";
 const DICT_PATH: &str = "index_new/en/";
-const CHARACTERS: &str = "characters.json";
-const CHARACTER_SKILLS: &str = "character_skills.json";
 
 #[cfg(target_os = "windows")]
 const TARGET_PATH: &str = "../dump_data";
@@ -17,8 +18,9 @@ const TARGET_PATH: &str = "/tmp/";
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    write_data::<DbCharacter>(CHARACTERS).await?;
-    write_data::<DbCharacterSkill>(CHARACTER_SKILLS).await?;
+    write_data::<DbCharacter>("characters.json").await?;
+    write_data::<DbCharacterSkill>("character_skills.json").await?;
+    write_data::<DbCharacterSkillTree>("character_skill_trees.json").await?;
 
     Ok(())
 }
@@ -29,6 +31,7 @@ async fn hashed<T: DeserializeOwned>(url: Url) -> Result<Vec<T>> {
     Ok(map.into_values().collect::<Vec<T>>())
 }
 
+#[instrument(err)]
 async fn write_data<T>(filename: &str) -> Result<()>
 where
     T: Serialize + DeserializeOwned,

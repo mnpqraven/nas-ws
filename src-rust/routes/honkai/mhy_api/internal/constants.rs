@@ -27,3 +27,10 @@ pub const CHARACTER_SKILL_TREE_LOCAL: &str = "c:\\tmp\\character_skill_trees.jso
 pub const CHARACTER_SKILL_TREE_LOCAL: &str = "/tmp/character_skill_trees.json";
 pub const CHARACTER_SKILL_TREE_REMOTE: &str =
     "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/character_skill_trees.json";
+
+#[cfg(target_os = "windows")]
+pub const CHARACTER_EIDOLON_LOCAL: &str = "c:\\tmp\\character_eidolons.json";
+#[cfg(target_os = "linux")]
+pub const CHARACTER_EIDOLON_LOCAL: &str = "/tmp/character_eidolons.json";
+pub const CHARACTER_EIDOLON_REMOTE: &str =
+    "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/character_ranks.json";

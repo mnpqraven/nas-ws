@@ -72,6 +72,9 @@ path = "api/honkai/mhy/character/[id1].rs"
 name = "_id2_"
 path = "api/honkai/mhy/trace/[id2].rs"
 [[bin]]
+name = "_id3_"
+path = "api/honkai/mhy/eidolon/[id3].rs"
+[[bin]]
 name = "parse_mdx"
 path = "api/utils/parse_mdx.rs"
 

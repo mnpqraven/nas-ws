@@ -1,4 +1,4 @@
-use self::categorizing::{DbCharacter, DbCharacterSkillTree};
+use self::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree};
 use crate::{
     handler::error::WorkerError,
     routes::{endpoint_types::List, honkai::mhy_api::internal::impls::DbData},
@@ -45,6 +45,23 @@ pub async fn trace_by_char_id(
 
     info!("Duration: {:?}", now.elapsed());
     Ok(Json(traces.into()))
+}
+#[instrument(ret, err)]
+pub async fn eidolon_by_char_id(
+    Path(id): Path<u32>,
+) -> Result<Json<List<DbCharacterEidolon>>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let db: HashMap<String, DbCharacterEidolon> = DbCharacterEidolon::read().await?;
+
+    let eidolons: Arc<[DbCharacterEidolon]> = db
+        .iter()
+        .filter(|(k, _)| k.starts_with(&id.to_string()))
+        .map(|(_, v)| v.to_owned())
+        .collect();
+
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(eidolons.into()))
 }
 
 /// TODO: needs a lighter KV map

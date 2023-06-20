@@ -156,12 +156,46 @@ pub struct DbCharacterSkillTree {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     id: u32,
     max_level: u32,
-    anchor: String, // point13
+    anchor: Anchor, // point13
     pre_points: Vec<String>,
     level_up_skills: Vec<SkillKV>,
     levels: Vec<SkillLevel>,
     icon: AssetPath,
 }
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct DbCharacterEidolon {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    id: u32,
+    name: String,
+    rank: u32,
+    desc: String,
+    materials: Vec<MaterialKV>,
+    level_up_skills: Vec<SkillKV>,
+    icon: AssetPath
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+enum Anchor {
+    Point01,
+    Point02,
+    Point03,
+    Point04,
+    Point05,
+    Point06,
+    Point07,
+    Point08,
+    Point09,
+    Point10,
+    Point11,
+    Point12,
+    Point13,
+    Point14,
+    Point15,
+    Point16,
+    Point17,
+    Point18,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 struct SkillLevel {
     promotion: u32,

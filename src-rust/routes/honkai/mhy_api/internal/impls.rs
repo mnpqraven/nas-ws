@@ -1,7 +1,9 @@
 use crate::handler::error::WorkerError;
 
 use super::{
-    categorizing::{DbCharacter, DbCharacterSkill, DbCharacterSkillTree, SkillType},
+    categorizing::{
+        DbCharacter, DbCharacterEidolon, DbCharacterSkill, DbCharacterSkillTree, SkillType,
+    },
     constants::*,
 };
 use async_trait::async_trait;
@@ -35,6 +37,12 @@ impl<T: DbDataLike> DbData<T> for DbCharacterSkill {
 impl<T: DbDataLike> DbData<T> for DbCharacterSkillTree {
     fn path_data() -> (&'static str, &'static str) {
         (CHARACTER_SKILL_TREE_LOCAL, CHARACTER_SKILL_TREE_REMOTE)
+    }
+}
+
+impl<T: DbDataLike> DbData<T> for DbCharacterEidolon {
+    fn path_data() -> (&'static str, &'static str) {
+        (CHARACTER_EIDOLON_LOCAL, CHARACTER_EIDOLON_REMOTE)
     }
 }
 

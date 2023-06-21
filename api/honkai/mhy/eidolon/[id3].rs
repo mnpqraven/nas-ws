@@ -1,5 +1,5 @@
 use axum::extract::Path;
-use nas_ws::{handler::FromAxumResponse, routes::honkai::mhy_api::internal::trace_by_char_id};
+use nas_ws::{handler::FromAxumResponse, routes::honkai::mhy_api::internal::eidolon_by_char_id};
 use serde_json::json;
 use std::collections::HashMap;
 use url::Url;
@@ -26,8 +26,7 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
         })),
         Some(id) => {
             let id: u32 = id.parse()?;
-            Ok(trace_by_char_id(Path(id)).await?).as_axum()
+            Ok(eidolon_by_char_id(Path(id)).await?).as_axum()
         }
     }
 }
-

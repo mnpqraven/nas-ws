@@ -15,7 +15,7 @@ pub fn response_derive_macro(input: TokenStream) -> TokenStream {
                 Response::builder()
                     .status(StatusCode::OK)
                     .header("Content-Type", "application/json")
-                    .body::<Body>(serde_json::to_string(value).unwrap().into())
+                    .body::<Body>(serde_json::to_string(&value).unwrap().into())
                     .unwrap()
                 }
         }
@@ -34,10 +34,13 @@ pub fn response_derive_macro(input: TokenStream) -> TokenStream {
             type TTo = Response<Body>;
 
             fn as_axum(&self) -> Result<Response<Body>, vercel_runtime::Error> {
-                self.as_ref().map_or_else(
-                    |err| Ok(err.clone().into()),
-                    |Json(val)| Ok(val.clone().into()),
-                )
+                match self {
+                    Ok(Json(val)) => Ok(Response::builder()
+                                        .status(StatusCode::OK)
+                                        .header("Content-Type", "application/json")
+                                        .body(serde_json::to_string(val)?.into())?),
+                    Err(e) => Err(e.to_string().into()),
+                }
             }
         }
     };

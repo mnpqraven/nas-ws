@@ -1,13 +1,18 @@
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
-use response_derive::JsonResponse;
-use schemars::JsonSchema;
 use serde::Serialize;
+use std::sync::Arc;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Serialize, Debug)]
 pub struct List<T> {
     pub list: Vec<T>,
+}
+
+impl<T: Clone> From<Arc<[T]>> for List<T> {
+    fn from(list: Arc<[T]>) -> Self {
+        List { list: list.to_vec() }
+    }
 }
 
 impl<T> From<Vec<T>> for List<T> {
@@ -29,8 +34,13 @@ impl<T: Serialize> FromAxumResponse<List<T>, WorkerError, vercel_runtime::Error>
     type TTo = Response<Body>;
 
     fn as_axum(&self) -> Result<Response<Body>, vercel_runtime::Error> {
-        self.as_ref()
-            .map_or_else(|err| Ok(err.clone().into()), |Json(val)| Ok(val.into()))
+        match self {
+            Ok(Json(val)) => Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(serde_json::to_string(val)?.into())?),
+            Err(e) => Err(e.to_string().into()),
+        }
     }
 }
 

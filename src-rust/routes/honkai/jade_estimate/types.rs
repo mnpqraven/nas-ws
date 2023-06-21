@@ -27,7 +27,7 @@ pub struct EstimateCfg {
     pub daily_refills: Option<u32>,
 }
 
-#[derive(Serialize, Deserialize, JsonResponse, Clone)]
+#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone)]
 pub struct JadeEstimateResponse {
     pub sources: Vec<RewardSource>,
     pub total_jades: i32,
@@ -89,7 +89,7 @@ impl Server {
     }
 }
 
-#[derive(Serialize, Deserialize, JsonResponse, Clone)]
+#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone)]
 pub struct RewardSource {
     pub source: String,
     pub jades_amount: Option<i32>,
@@ -98,7 +98,7 @@ pub struct RewardSource {
     pub description: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, JsonResponse, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy)]
 pub enum RewardFrequency {
     Daily,
     Weekly,

@@ -5,13 +5,12 @@ use vercel_runtime::{run, Body, Error, Request, Response};
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .with_ansi(false)
+        .pretty()
         .init();
     run(handler).await
 }
-
-/// INFO: https://www.reddit.com/r/Genshin_Impact/comments/kdy1ky/everyone_is_misunderstanding_soft_pity/
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     let payload = Json::from_request(req, &()).await;
     handle(payload).await.as_axum()

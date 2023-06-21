@@ -2,12 +2,13 @@ use self::types::{EstimateCfg, JadeEstimateResponse, RewardFrequency, RewardSour
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use chrono::Utc;
-use tracing::error;
+use tracing::{error, instrument};
 
 #[cfg(test)]
 mod tests;
 pub mod types;
 
+#[instrument(ret, err)]
 pub async fn handle(
     rpayload: Result<Json<EstimateCfg>, JsonRejection>,
 ) -> Result<Json<JadeEstimateResponse>, WorkerError> {

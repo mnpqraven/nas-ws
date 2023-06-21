@@ -1,11 +1,17 @@
+use std::{collections::HashMap, sync::Arc};
+
 use crate::{
     handler::error::{ComputationType, WorkerError},
     routes::honkai::mhy_api::{
-        internal::{categorizing::DbCharacter, get_character_list},
-        types::{character::CharacterElement, shared::AssetPath},
+        internal::{
+            categorizing::{DbCharacter, DbCharacterSkill, Parameter, SkillType},
+            constants::{CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE},
+            get_db_list,
+            impls::{DbData, Queryable},
+        },
+        types_parsed::{character::CharacterElement, shared::AssetPath},
     },
 };
-use anyhow::Result;
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use schemars::{
     schema::{InstanceType, SchemaObject},
@@ -14,12 +20,12 @@ use schemars::{
 use semver::Version;
 use serde::Serialize;
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 /// Patch's time will always have a 02:00:00 UTC date
 pub struct Patch {
     pub name: String,
-    pub version: Version,
+    pub version: PatchVersion,
     pub date_start: DateTime<Utc>,
     pub date_2nd_banner: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
@@ -28,16 +34,34 @@ pub struct Patch {
 #[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchBanner {
-    pub character_name: String,            // FK cmp with `name`
-    pub icon: Option<AssetPath>,           // FK
-    pub element: Option<CharacterElement>, // FK
+    pub character_data: Character,
     pub version: PatchVersion,
     pub date_start: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
 }
 
+#[derive(Serialize, Clone, Debug, JsonSchema)]
+pub struct Character {
+    pub character_name: Option<String>, // FK cmp with `name`
+    pub character_id: Option<u32>,
+    pub icon: Option<AssetPath>,           // FK
+    pub element: Option<CharacterElement>, // FK
+    pub skills: Vec<SimpleSkill>,
+}
+
+#[derive(Serialize, Clone, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SimpleSkill {
+    pub id: u32,
+    pub name: String,
+    pub ttype: SkillType,
+    pub description: Vec<String>,
+    pub params: Vec<Vec<String>>,
+}
+
 #[derive(Serialize, Clone, Debug)]
 pub struct PatchVersion(pub Version);
+
 impl From<Version> for PatchVersion {
     fn from(value: Version) -> Self {
         Self(value)
@@ -45,43 +69,91 @@ impl From<Version> for PatchVersion {
 }
 
 impl PatchBanner {
+    // TODO: REFACTOR
     pub async fn from_patches(
         patches: Vec<Patch>,
         banner_info: Vec<(Option<&str>, Option<&str>, Version)>,
-    ) -> Result<Vec<Self>> {
+    ) -> Result<Vec<Self>, WorkerError> {
         let mut banners: Vec<PatchBanner> = vec![];
-        let character_list = get_character_list().await?;
+
+        let character_list: HashMap<String, DbCharacter> = DbCharacter::read().await?;
+
+        let skill_db =
+            get_db_list::<DbCharacterSkill>(CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE).await?;
+        let mut patches = patches;
+        patches.push(Patch::current());
+
         for patch in patches.iter() {
-            let (char1, char2) = match banner_info
+            let (char1, char2): (Option<&str>, Option<&str>) = match banner_info
                 .iter()
-                .find(|(_, _, version)| patch.version.eq(version))
+                .find(|(_, _, version)| patch.version.0.eq(version))
             {
-                Some((char1, char2, _)) => (char1.unwrap_or("Unknown"), char2.unwrap_or("Unknown")),
-                None => ("Unknown", "Unknown"),
-            };
-            let fk1 = character_list.iter().find(|e| e.name.eq(char1));
-            let fk2 = character_list.iter().find(|e| e.name.eq(char2));
-            let split = |fk: Option<&DbCharacter>| match fk {
-                Some(x) => (Some(x.icon.clone()), Some(x.element.clone().into())),
+                Some((char1, char2, _)) => (*char1, *char2),
                 None => (None, None),
             };
+
+            let fk1 = character_list
+                .iter()
+                .find(|(_, e)| char1.is_some() && e.name.eq(char1.unwrap()));
+            let fk2 = character_list
+                .iter()
+                .find(|(_, e)| char2.is_some() && e.name.eq(char2.unwrap()));
+            let split = |fk: Option<(&String, &DbCharacter)>| match fk {
+                Some((_, x)) => (Some(x.icon.clone()), Some(x.element.clone().into())),
+                None => (None, None),
+            };
+            let char_skill = |fk_char: Option<(&String, &DbCharacter)>| match fk_char {
+                Some((_, character)) => skill_db
+                    .find_many(character.skill_ids())
+                    .iter()
+                    .map(|db_character_skill| SimpleSkill {
+                        id: db_character_skill.id,
+                        description: db_character_skill
+                            .split_description()
+                            .iter()
+                            .map(|e| e.to_string())
+                            .collect::<Vec<String>>(),
+                        params: db_character_skill
+                            .params
+                            .iter()
+                            .map(|skill_by_slv: &Parameter| {
+                                let sorter = db_character_skill.get_sorted_params_inds();
+                                let t = skill_by_slv.sort_by_tuple(sorter);
+                                t.iter().map(|e| e.to_string()).collect()
+                            })
+                            .collect(),
+                        name: db_character_skill.name.clone(),
+                        ttype: db_character_skill.ttype,
+                    })
+                    .collect::<Arc<[SimpleSkill]>>(),
+                None => vec![].into(),
+            };
+
             let (icon, element) = split(fk1);
             banners.push(PatchBanner {
-                character_name: char1.to_string(),
-                version: patch.version.clone().into(),
+                character_data: Character {
+                    character_name: char1.map(|e| e.into()),
+                    character_id: fk1.map(|(_, e)| e.id),
+                    icon,
+                    element,
+                    skills: char_skill(fk1).to_vec(),
+                },
+                version: patch.version.clone(),
                 date_start: patch.date_start,
                 date_end: patch.date_2nd_banner,
-                icon,
-                element,
             });
             let (icon, element) = split(fk2);
             banners.push(PatchBanner {
-                character_name: char2.to_string(),
-                version: patch.version.clone().into(),
+                character_data: Character {
+                    character_name: char2.map(|e| e.into()),
+                    character_id: fk2.map(|(_, e)| e.id),
+                    icon,
+                    element,
+                    skills: char_skill(fk2).to_vec(),
+                },
+                version: patch.version.clone(),
                 date_start: patch.date_2nd_banner,
                 date_end: patch.date_end,
-                icon,
-                element,
             });
         }
         Ok(banners)
@@ -129,7 +201,7 @@ impl Patch {
     pub fn next(&mut self) {
         self.date_start += Duration::weeks(6);
         self.date_end += Duration::weeks(6);
-        self.version.minor += 1;
+        self.version.0.minor += 1;
     }
 
     /// Creates a patch
@@ -143,7 +215,7 @@ impl Patch {
         let date_2nd_banner = start_date + Duration::weeks(3);
         Self {
             name: name.into(),
-            version: version.into(),
+            version: PatchVersion(version.into()),
             date_start: start_date,
             date_2nd_banner,
             date_end,
@@ -204,7 +276,7 @@ impl Patch {
     pub fn generate(index: u32, info: Option<Vec<(&str, Version)>>) -> Vec<Self> {
         let mut patches = vec![];
         let mut current = Patch::current();
-        let mut next_version = current.version.clone();
+        let PatchVersion(mut next_version) = current.version.clone();
         for _ in 0..index {
             next_version.minor += 1;
             let name: String = match info.clone() {

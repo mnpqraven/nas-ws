@@ -10,13 +10,13 @@ use std::fmt::Display;
 /// Within the application, for deep/small functions it is okay to use
 /// `anyhow::Error` then convert to `WorkerError` by using
 /// `Into<WorkerError>`
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug)]
 pub enum WorkerError {
     ParseData(String),
     Computation(ComputationType),
     WrongMethod,
     EmptyBody,
-    Unknown(String),
+    Unknown(anyhow::Error),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -58,7 +58,17 @@ impl Display for WorkerError {
 
 impl IntoResponse for WorkerError {
     fn into_response(self) -> Response {
-        (self.code(), self.to_string()).into_response()
+        let code = self.code();
+        let msg = self.to_string();
+        if let WorkerError::Unknown(inner) = self {
+            tracing::error!("stacktrace: {}", &inner.backtrace());
+            inner.chain().for_each(|er| {
+                tracing::error!("chain: {}", er);
+            });
+        } else {
+            tracing::error!(msg);
+        };
+        (code, msg).into_response()
     }
 }
 
@@ -78,8 +88,13 @@ impl From<WorkerError> for vercel_runtime::Error {
     }
 }
 
-impl From<anyhow::Error> for WorkerError {
-    fn from(value: anyhow::Error) -> Self {
-        WorkerError::Unknown(value.to_string())
+// This enables using `?` on functions that return `Result<_, anyhow::Error>` to turn them into
+// `Result<_, AppError>`. That way you don't need to do that manually.
+impl<E> From<E> for WorkerError
+where
+    E: Into<anyhow::Error>,
+{
+    fn from(err: E) -> Self {
+        Self::Unknown(err.into())
     }
 }

@@ -1,15 +1,17 @@
-use nas_ws::{handler::FromAxumResponse, routes::honkai::banner::gacha_banner_list};
+use nas_ws::{handler::FromAxumResponse, routes::honkai::banner::patch_banner_list};
 use vercel_runtime::{run, Body, Error, Request, Response};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .with_ansi(false)
+        .pretty()
         .init();
     run(handler).await
 }
 
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
-    gacha_banner_list().await.as_axum()
+    let data = patch_banner_list().await?;
+    Ok(data).as_axum()
 }

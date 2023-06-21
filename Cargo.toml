@@ -11,8 +11,8 @@ serde_repr = "0.1.12"
 tokio = { version = "1.27.0", features = ["full"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
-strum_macros = "0.24"
-strum = { version = "0.24", features = ["derive"] }
+strum_macros = "0.25"
+strum = { version = "0.25", features = ["derive"] }
 base64 = "0.21.0"
 gray_matter = "0.2.6"
 tower = "0.4.13"
@@ -28,7 +28,10 @@ semver = { version = "1.0.17", features = ["serde"] }
 reqwest = { version = "0.11.18", features = ["json"] }
 schemars = { version = "0.8.12", features = ["chrono"] }
 serde-aux = "4.2.0"
-anyhow = "1.0.71"
+anyhow = { version = "1.0.71", features = ["backtrace"] }
+serde_with = "3.0.0"
+regex = "1.8.4"
+async-trait = "0.1.68"
 
 [[bin]]
 name = "nas-ws"
@@ -42,43 +45,45 @@ path = "src-rust/codegen.rs"
 path = "src-rust/lib.rs"
 
 [[bin]]
-name = "hello"
-path = "api/hello.rs"
-
+name = "write_db"
+path = "api/cron/write_db.rs"
+# [[bin]]
+# name = "install_schema"
+# path = "api/dotfiles/install_schema.rs"
 [[bin]]
-name = "parse_mdx"
-path = "api/utils/parse_mdx.rs"
-
-[[bin]]
-name = "install_schema"
-path = "api/dotfiles/install_schema.rs"
-
+name = "warp_banners"
+path = "api/honkai/warp_banners.rs"
 [[bin]]
 name = "jade_estimate"
 path = "api/honkai/jade_estimate.rs"
-
+[[bin]]
+name = "patch_banners"
+path = "api/honkai/patch_banners.rs"
+[[bin]]
+name = "patch_dates"
+path = "api/honkai/patch_dates.rs"
 [[bin]]
 name = "probability_rate"
 path = "api/honkai/probability_rate.rs"
+[[bin]]
+name = "_id1_"
+path = "api/honkai/mhy/character/[id1].rs"
+[[bin]]
+name = "_id2_"
+path = "api/honkai/mhy/trace/[id2].rs"
+[[bin]]
+name = "_id3_"
+path = "api/honkai/mhy/eidolon/[id3].rs"
+[[bin]]
+name = "_id4_"
+path = "api/honkai/mhy/skill/[id4].rs"
+[[bin]]
+name = "attribute_property_list"
+path = "api/honkai/mhy/attribute_property_list.rs"
+# [[bin]]
+# name = "parse_mdx"
+# path = "api/utils/parse_mdx.rs"
 
 [[bin]]
-name = "list_future_patch_date"
-path = "api/honkai/list_future_patch_date.rs"
-
-[[bin]]
-name = "list_future_patch_banner"
-path = "api/honkai/list_future_patch_banner.rs"
-
-[[bin]]
-name = "gacha_banner_list"
-path = "api/honkai/gacha_banner_list.rs"
-
-# NOTE: CRON JOBS
-
-[[bin]]
-name = "characters_db"
-path = "api/cron/characters_db.rs"
-
-[[bin]]
-name = "write_characters_db"
-path = "api/cron/write_characters_db.rs"
+name = "json_writer"
+path = "src-rust/json_writer.rs"

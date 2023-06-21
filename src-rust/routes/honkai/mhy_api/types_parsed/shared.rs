@@ -4,18 +4,20 @@ use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+use strum_macros::EnumString;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, Clone, JsonResponse, JsonSchema)]
 pub struct AssetPath(pub String);
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, EnumString)]
 pub enum Element {
     Fire,
     Ice,
     Physical,
     Wind,
-    #[serde(alias = "Thunder")]
+    #[serde(alias = "Thunder", alias = "Lightning")]
+    #[strum(serialize = "Thunder", serialize = "Lightning")]
     Lightning,
     Quantum,
     Imaginary,
@@ -49,15 +51,86 @@ pub struct Attribute {
     percent: bool,
 }
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+pub struct DbAttributeProperty {
+    #[serde(rename = "type")]
+    ttype: Property, // AttackAddedRatio
+    field: String, // hp
+    name: String,
+    affix: bool,
+    ratio: bool,
+    icon: AssetPath,
+    order: u32,
+    percent: bool,
+}
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
 pub struct AttributeProperty {
     #[serde(rename = "type")]
-    ttype: String, // AttackAddedRatio
+    ttype: Property, // AttackAddedRatio
     field: String, // hp
     name: String,
     icon: AssetPath,
     value: f32,
     display: String,
     percent: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub enum Property {
+    MaxHP,
+    Attack,
+    Defence,
+    Speed,
+    CriticalChance,
+    CriticalDamage,
+    BreakDamageAddedRatio,
+    BreakDamageAddedRatioBase,
+    HealRatio,
+    MaxSP,
+    SPRatio,
+    StatusProbability,
+    StatusResistance,
+    CriticalChanceBase,
+    CriticalDamageBase,
+    HealRatioBase,
+    StanceBreakAddedRatio,
+    SPRatioBase,
+    StatusProbabilityBase,
+    StatusResistanceBase,
+    PhysicalAddedRatio,
+    PhysicalResistance,
+    FireAddedRatio,
+    FireResistance,
+    IceAddedRatio,
+    IceResistance,
+    ThunderAddedRatio,
+    ThunderResistance,
+    WindAddedRatio,
+    WindResistance,
+    QuantumAddedRatio,
+    QuantumResistance,
+    ImaginaryAddedRatio,
+    ImaginaryResistance,
+    BaseHP,
+    HPDelta,
+    HPAddedRatio,
+    BaseAttack,
+    AttackDelta,
+    AttackAddedRatio,
+    BaseDefence,
+    DefenceDelta,
+    DefenceAddedRatio,
+    BaseSpeed,
+    HealTakenRatio,
+    PhysicalResistanceDelta,
+    FireResistanceDelta,
+    IceResistanceDelta,
+    ThunderResistanceDelta,
+    WindResistanceDelta,
+    QuantumResistanceDelta,
+    ImaginaryResistanceDelta,
+    SpeedDelta,
+    SpeedAddedRatio,
+    AllDamageTypeAddedRatio,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]

@@ -6,10 +6,11 @@ use super::banner::types::{Banner, BannerIternal, BannerType};
 use crate::handler::error::WorkerError;
 use axum::{extract::rejection::JsonRejection, Json};
 use std::collections::HashMap;
-use tracing::error;
+use tracing::{error, instrument};
 
 pub mod types;
 
+#[instrument(ret)]
 pub async fn handle(
     rpayload: Result<Json<ProbabilityRatePayload>, JsonRejection>,
 ) -> Result<Json<ProbabilityRateResponse>, WorkerError> {
@@ -62,7 +63,7 @@ fn to_accumulated_rates(data: &[Vec<ReducedSim>]) -> Vec<Vec<ReducedSim>> {
             // transform separate rate of each eidolon into accumulated rate
             // for lower eidolons
             let cloned_ref = eidolons_by_pull.clone();
-            eidolons_by_pull.iter_mut().for_each(|mut cell| {
+            eidolons_by_pull.iter_mut().for_each(|cell| {
                 let higher_eid_cells: Vec<&ReducedSim> = cloned_ref
                     .iter()
                     .filter(|e| e.eidolon > cell.eidolon)

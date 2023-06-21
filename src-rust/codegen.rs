@@ -1,4 +1,8 @@
-use nas_ws::routes::honkai::{jade_estimate::types::EstimateCfg, mhy_api::types::MihoResponse, patch::types::PatchBanner};
+use nas_ws::routes::honkai::{
+    jade_estimate::types::EstimateCfg,
+    mhy_api::{internal::categorizing::{DbCharacterSkillTree, DbCharacterEidolon, DbCharacter}, types_parsed::{MihoResponse, shared::DbAttributeProperty}},
+    patch::types::{Patch, PatchBanner},
+};
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
 
@@ -27,6 +31,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(MihoResponse), "MihoResponse"),
         Schema::new(schema_for!(EstimateCfg), "EstimateCfg"),
         Schema::new(schema_for!(PatchBanner), "PatchBanner"),
+        Schema::new(schema_for!(DbCharacter), "DbCharacter"),
+        Schema::new(schema_for!(DbCharacterSkillTree), "DbCharacterSkillTree"),
+        Schema::new(schema_for!(DbCharacterEidolon), "DbCharacterEidolon"),
+        Schema::new(schema_for!(DbAttributeProperty), "DbAttributeProperty"),
+        Schema::new(schema_for!(Patch), "Patch"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

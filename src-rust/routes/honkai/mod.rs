@@ -5,8 +5,7 @@ pub mod patch;
 pub mod probability_rate;
 pub mod utils;
 
-use self::patch::{future_banner, future_date, list_future_patch_banner};
-use self::{banner::gacha_banner_list, patch::list_future_patch_date};
+use self::mhy_api::internal::{self, properties};
 use axum::routing::{get, post};
 use axum::Router;
 
@@ -20,8 +19,13 @@ pub fn honkai_routes() -> Router {
             "/probability_rate",
             get(probability_rate::handle).post(probability_rate::handle),
         )
-        .route("/list_future_patch_date", get(future_date::handle))
-        .route("/list_future_patch_banner", get(future_banner::handle))
-        .route("/gacha_banner_list", get(gacha_banner_list))
+        .route("/patch_dates", get(banner::patch_date_list))
+        .route("/patch_banners", get(banner::patch_banner_list))
+        .route("/warp_banners", get(banner::warp_banner_list))
         .route("/mhy", post(mhy_api::handle))
+        .route("/mhy/character/:id", get(internal::character_by_id))
+        .route("/mhy/trace/:char_id", get(internal::trace_by_char_id))
+        .route("/mhy/eidolon/:char_id", get(internal::eidolon_by_char_id))
+        .route("/mhy/skill/:id", get(internal::skill_by_char_id))
+        .route("/mhy/attribute_property_list", get(properties))
 }

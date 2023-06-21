@@ -52,6 +52,7 @@ pub struct Character {
 #[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SimpleSkill {
+    pub id: u32,
     pub name: String,
     pub ttype: SkillType,
     pub description: Vec<String>,
@@ -106,6 +107,7 @@ impl PatchBanner {
                     .find_many(character.skill_ids())
                     .iter()
                     .map(|db_character_skill| SimpleSkill {
+                        id: db_character_skill.id,
                         description: db_character_skill
                             .split_description()
                             .iter()

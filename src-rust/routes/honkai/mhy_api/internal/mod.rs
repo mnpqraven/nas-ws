@@ -1,9 +1,12 @@
-use self::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree};
+use self::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkill, DbCharacterSkillTree};
 use crate::{
     handler::error::WorkerError,
     routes::{
         endpoint_types::List,
-        honkai::mhy_api::{internal::impls::DbData, types_parsed::shared::DbAttributeProperty},
+        honkai::{
+            mhy_api::{internal::impls::DbData, types_parsed::shared::DbAttributeProperty},
+            patch::types::SimpleSkill,
+        },
     },
 };
 use anyhow::Result;
@@ -67,6 +70,44 @@ pub async fn eidolon_by_char_id(
     Ok(Json(eidolons.into()))
 }
 
+#[instrument(ret, err)]
+pub async fn skill_by_char_id(Path(id): Path<u32>) -> Result<Json<List<SimpleSkill>>, WorkerError> {
+    let now = std::time::Instant::now();
+    let db: HashMap<String, DbCharacterSkill> = DbCharacterSkill::read().await?;
+
+    let char_skills: List<SimpleSkill> = db
+        .iter()
+        .filter(|(k, _)| k.starts_with(&id.to_string()))
+        .map(|(_, v)| {
+            let description = v
+                .split_description()
+                .iter()
+                .map(|e| e.to_string())
+                .collect::<Vec<String>>();
+            let params = v
+                .params
+                .iter()
+                .map(|slv| {
+                    let t = slv.sort_by_tuple(v.get_sorted_params_inds());
+                    t.iter().map(|e| e.to_string()).collect()
+                })
+                .collect();
+
+            SimpleSkill {
+                id: v.id,
+                name: v.name.clone(),
+                ttype: v.ttype,
+                description,
+                params,
+            }
+        })
+        .collect::<Vec<SimpleSkill>>()
+        .into();
+
+    info!("{:?}", now.elapsed());
+    Ok(Json(char_skills))
+}
+
 pub async fn properties() -> Result<Json<List<DbAttributeProperty>>, WorkerError> {
     let now = std::time::Instant::now();
     let db: HashMap<String, DbAttributeProperty> = DbAttributeProperty::read().await?;
@@ -88,7 +129,8 @@ where
         true => {
             info!("reading from file");
             let t = fs::read_to_string(filename)?;
-            serde_json::from_str(&t)?
+            let map: HashMap<String, T> = serde_json::from_str(&t)?;
+            map.into_values().collect()
         }
         false => {
             info!("fetching from fallback url");

@@ -34,3 +34,10 @@ pub const CHARACTER_EIDOLON_LOCAL: &str = "c:\\tmp\\character_eidolons.json";
 pub const CHARACTER_EIDOLON_LOCAL: &str = "/tmp/character_eidolons.json";
 pub const CHARACTER_EIDOLON_REMOTE: &str =
     "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/character_ranks.json";
+
+#[cfg(target_os = "windows")]
+pub const ATTRIBUTE_PROPERTY_LOCAL: &str = "c:\\tmp\\attribute_properties.json";
+#[cfg(target_os = "linux")]
+pub const ATTRIBUTE_PROPERTY_LOCAL: &str = "/tmp/attribute_properties.json";
+pub const ATTRIBUTE_PROPERTY_REMOTE: &str =
+    "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/index_new/en/properties.json";

@@ -22,5 +22,5 @@ pub fn app_router() -> Router {
 }
 
 async fn root() -> &'static str {
-    "Hello, World!"
+    "Goodbye, World!"
 }

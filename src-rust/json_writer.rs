@@ -3,7 +3,7 @@ use nas_ws::routes::honkai::mhy_api::internal::categorizing::{
     DbCharacter, DbCharacterSkill, DbCharacterSkillTree,
 };
 use serde::{de::DeserializeOwned, Serialize};
-use std::{collections::HashMap, fs::create_dir_all, path::Path};
+use std::{collections::HashMap, path::Path};
 use tracing::instrument;
 use url::Url;
 
@@ -40,7 +40,7 @@ where
     let data: Vec<T> = hashed(url).await?;
     #[cfg(target_os = "windows")]
     {
-        create_dir_all(TARGET_PATH)?
+        std::fs::create_dir_all(TARGET_PATH)?
     }
 
     let path = Path::new(TARGET_PATH).join(filename);

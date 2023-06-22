@@ -1,5 +1,6 @@
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
+use fake::Dummy;
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,10 +8,10 @@ use std::fmt::Display;
 use strum_macros::EnumString;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Debug, Deserialize, Serialize, Clone, JsonResponse, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, Clone, JsonResponse, JsonSchema, Dummy)]
 pub struct AssetPath(pub String);
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, EnumString)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, EnumString, Dummy)]
 pub enum Element {
     Fire,
     Ice,
@@ -41,7 +42,7 @@ pub enum Path {
     Abundance,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct Attribute {
     field: String, // hp
     name: String,
@@ -62,7 +63,7 @@ pub struct DbAttributeProperty {
     order: u32,
     percent: bool,
 }
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct AttributeProperty {
     #[serde(rename = "type")]
     ttype: Property, // AttackAddedRatio
@@ -74,7 +75,7 @@ pub struct AttributeProperty {
     percent: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Dummy)]
 pub enum Property {
     MaxHP,
     Attack,
@@ -133,7 +134,7 @@ pub enum Property {
     AllDamageTypeAddedRatio,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct CharacterPath {
     id: String,
     name: String,

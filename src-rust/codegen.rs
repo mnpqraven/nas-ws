@@ -1,8 +1,8 @@
-use nas_ws::routes::honkai::{
+use nas_ws::routes::{honkai::{
     jade_estimate::types::EstimateCfg,
     mhy_api::{internal::categorizing::{DbCharacterSkillTree, DbCharacterEidolon, DbCharacter}, types_parsed::{MihoResponse, shared::DbAttributeProperty}},
-    patch::types::{Patch, PatchBanner},
-};
+    patch::types::{Patch, PatchBanner, Character},
+}, utils::mock_hsr_log::Log};
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
 
@@ -20,8 +20,8 @@ impl Schema {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // ../vercel/jade-tracker-vercel/src/bindings
-    let schema_path = Path::new("../vercel/jade-tracker-vercel/.schemas/");
+    // let schema_path = Path::new("../vercel/jade-tracker-vercel/.schemas/");
+    let schema_path = Path::new("../vercel/srsim/ui/packages/web/.schemas");
 
     fs::remove_dir_all(schema_path).unwrap();
     // create dir if doesn't exist
@@ -29,7 +29,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let type_names = vec![
         Schema::new(schema_for!(MihoResponse), "MihoResponse"),
-        Schema::new(schema_for!(EstimateCfg), "EstimateCfg"),
+        // Schema::new(schema_for!(EstimateCfg), "EstimateCfg"),
+        Schema::new(schema_for!(Character), "Character"),
+        Schema::new(schema_for!(Log), "Log"),
         Schema::new(schema_for!(PatchBanner), "PatchBanner"),
         Schema::new(schema_for!(DbCharacter), "DbCharacter"),
         Schema::new(schema_for!(DbCharacterSkillTree), "DbCharacterSkillTree"),

@@ -1,12 +1,13 @@
 use super::{gear::*, shared::*};
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
+use fake::Dummy;
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct Character {
     id: String,
     name: String,
@@ -30,7 +31,7 @@ pub struct Character {
     properties: Vec<AttributeProperty>,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct CharacterElement {
     id: String,
     name: Element,
@@ -38,7 +39,7 @@ pub struct CharacterElement {
     icon: AssetPath,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 struct Skill {
     id: String,
     name: String,
@@ -55,7 +56,7 @@ struct Skill {
     icon: AssetPath,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 struct SkillTree {
     id: String,
     level: u32,

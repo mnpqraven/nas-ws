@@ -1,13 +1,14 @@
 use super::shared::*;
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
+use fake::Dummy;
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::*;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct LightCone {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     id: u32,
@@ -24,7 +25,7 @@ pub struct LightCone {
     properties: Vec<LightConeProperty>,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct Relic {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     id: u32,
@@ -39,7 +40,7 @@ pub struct Relic {
     sub_affix: Vec<SubAffix>,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct RelicSet {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     id: u32,
@@ -50,7 +51,7 @@ pub struct RelicSet {
     properties: Vec<AffixProperty>,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 struct LightConeAttribute {
     field: String, // "hp" for enum
     name: String,
@@ -59,7 +60,7 @@ struct LightConeAttribute {
     display: String,
     percent: bool,
 }
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 struct LightConeProperty {
     #[serde(rename = "type")]
     ttype: String, // CriticalChanceBase for enum
@@ -71,7 +72,7 @@ struct LightConeProperty {
     percent: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 struct AffixProperty {
     #[serde(rename = "type")]
     ttype: MainAffixType, // HPDelta
@@ -83,7 +84,7 @@ struct AffixProperty {
     percent: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 struct SubAffix {
     #[serde(rename = "type")]
     ttype: String, //DefenceDelta
@@ -97,7 +98,7 @@ struct SubAffix {
     step: u32,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 enum MainAffixType {
     HPDelta,     // hat only
     AttackDelta, // glove only

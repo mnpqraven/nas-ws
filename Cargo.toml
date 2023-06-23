@@ -33,6 +33,7 @@ serde_with = "3.0.0"
 regex = "1.8.4"
 async-trait = "0.1.68"
 fake = { version = "2.6.1", features = ["derive"] }
+clap = { version = "4.3.5", features = ["derive"] }
 
 [[bin]]
 name = "nas-ws"

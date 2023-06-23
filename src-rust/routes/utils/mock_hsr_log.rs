@@ -17,6 +17,20 @@ pub struct Log {
     fooo: String,
     bar: u32,
     bazz: f32,
+    abc: String,
+    sss: String,
+    children: Vec<ChildLog>,
+}
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
+#[serde(rename_all = "camelCase")]
+pub struct ChildLog {
+    event_name: Event,
+    event_index: u32,
+    fooo: String,
+    bar: u32,
+    bazz: f32,
+    abc: String,
+    sss: String,
 }
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub enum Event {

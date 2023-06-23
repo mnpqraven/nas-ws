@@ -1,8 +1,14 @@
-use nas_ws::routes::{honkai::{
-    jade_estimate::types::EstimateCfg,
-    mhy_api::{internal::categorizing::{DbCharacterSkillTree, DbCharacterEidolon, DbCharacter}, types_parsed::{MihoResponse, shared::DbAttributeProperty}},
-    patch::types::{Patch, PatchBanner, Character},
-}, utils::{mock_hsr_log::Log, mock_hsr_stat::MvpWrapper}};
+use clap::Parser;
+use nas_ws::routes::{
+    honkai::{
+        mhy_api::{
+            internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
+            types_parsed::{shared::DbAttributeProperty, MihoResponse},
+        },
+        patch::types::{Patch, PatchBanner},
+    },
+    utils::{mock_hsr_log::Log, mock_hsr_stat::MvpWrapper},
+};
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
 
@@ -19,11 +25,19 @@ impl Schema {
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // let schema_path = Path::new("../vercel/jade-tracker-vercel/.schemas/");
-    let schema_path = Path::new("../vercel/srsim/ui/packages/web/.schemas");
+#[derive(Debug, Parser)]
+struct Args {
+    #[arg(short, long)]
+    path: String,
+}
 
-    fs::remove_dir_all(schema_path).unwrap();
+fn main() -> Result<(), Box<dyn Error>> {
+    let args = Args::parse();
+    let schema_path = Path::new(&args.path);
+
+    if schema_path.exists() {
+        fs::remove_dir_all(schema_path).unwrap();
+    }
     // create dir if doesn't exist
     fs::create_dir_all(schema_path).unwrap();
 

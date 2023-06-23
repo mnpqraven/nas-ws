@@ -13,6 +13,7 @@ use vercel_runtime::{Response, StatusCode};
 #[serde(rename_all = "camelCase")]
 pub struct Log {
     event_name: Event,
+    event_index: u32,
     fooo: String,
     bar: u32,
     bazz: f32,

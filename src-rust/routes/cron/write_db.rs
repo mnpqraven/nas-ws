@@ -9,9 +9,10 @@ use crate::{
 use axum::Json;
 use response_derive::JsonResponse;
 use serde::Serialize;
+use tracing::info;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Serialize, JsonResponse)]
+#[derive(Serialize, JsonResponse, Debug)]
 pub struct CronResult {
     pub character_db: bool,
     pub skill_db: bool,
@@ -19,6 +20,7 @@ pub struct CronResult {
 }
 
 pub async fn write_db() -> Result<Json<CronResult>, WorkerError> {
+    info!("write_db ...");
     let char_db = <DbCharacter as DbData<DbCharacter>>::try_write_disk(CHARACTER_LOCAL).await;
     let skill_db =
         <DbCharacterSkill as DbData<DbCharacterSkill>>::try_write_disk(CHARACTER_SKILL_LOCAL).await;

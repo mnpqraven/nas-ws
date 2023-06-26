@@ -34,6 +34,7 @@ regex = "1.8.4"
 async-trait = "0.1.68"
 fake = { version = "2.6.1", features = ["derive"] }
 clap = { version = "4.3.5", features = ["derive"] }
+tokio-cron-scheduler = "0.9.4"
 
 [[bin]]
 name = "nas-ws"

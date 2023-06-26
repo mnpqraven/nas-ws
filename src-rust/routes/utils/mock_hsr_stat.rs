@@ -34,11 +34,10 @@ pub struct DamageSelfDistribution {
 pub struct InTeamDistribution {
     #[dummy(faker = "Name(EN)")]
     pub name: String,
-    #[dummy(faker = "0.0 .. 1.0")]
+    #[dummy(faker = "0.0 .. 0.25")]
     pub rate: f32,
 }
 
-#[instrument(ret, err)]
 pub(super) async fn handle() -> Result<Json<MvpWrapper>, WorkerError> {
     let randomized_character: MvpWrapper = Faker.fake();
 

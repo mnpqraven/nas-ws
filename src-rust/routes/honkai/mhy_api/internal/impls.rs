@@ -11,6 +11,7 @@ use super::{
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{collections::HashMap, sync::Arc};
+use tracing::info;
 
 trait DbDataLike = Serialize + DeserializeOwned + Send + Sync;
 
@@ -94,9 +95,15 @@ where
     async fn read() -> Result<HashMap<String, T>, WorkerError> {
         let (local_path, _) = Self::path_data();
         let str_data: String = match std::path::Path::new(local_path).exists() {
-            true => std::fs::read_to_string(local_path)?,
+            true => {
+                info!("CACHE: HIT");
+                std::fs::read_to_string(local_path)?
+            }
             // lazily writes data
-            false => Self::try_write_disk(local_path).await?,
+            false => {
+                info!("CACHE: MISS");
+                Self::try_write_disk(local_path).await?
+            }
         };
         Ok(serde_json::from_str(&str_data)?)
     }

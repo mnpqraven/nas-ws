@@ -4,6 +4,7 @@ pub mod mhy_api;
 pub mod patch;
 pub mod probability_rate;
 pub mod utils;
+pub mod dm_api;
 
 use self::mhy_api::internal::{self, properties};
 use axum::routing::{get, post};

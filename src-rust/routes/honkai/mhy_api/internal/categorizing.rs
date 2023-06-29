@@ -160,7 +160,7 @@ pub struct DbCharacterSkillTree {
     pre_points: Vec<String>,
     level_up_skills: Vec<SkillKV>,
     levels: Vec<SkillLevel>,
-    icon: AssetPath,
+    pub icon: AssetPath,
 }
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct DbCharacterEidolon {

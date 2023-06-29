@@ -340,7 +340,7 @@ impl RewardSource {
         let mut current_level = bp_config.current_level;
         let mut current_patch = Patch::current();
         // distribute rewards for the first monday check, avoid infinite
-        let mut max_level_reached = false;
+        let mut max_level_reached = bp_config.current_level >= 50; // default
         let start = get_next_monday(Utc::now(), server);
 
         let (mut rolls, mut jades) = (0, 0);

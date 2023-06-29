@@ -1,10 +1,10 @@
 pub mod banner;
+pub mod dm_api;
 pub mod jade_estimate;
 pub mod mhy_api;
 pub mod patch;
 pub mod probability_rate;
 pub mod utils;
-pub mod dm_api;
 
 use self::mhy_api::internal::{self, properties};
 use axum::routing::{get, post};
@@ -26,6 +26,7 @@ pub fn honkai_routes() -> Router {
         .route("/mhy", post(mhy_api::handle))
         .route("/mhy/character/:id", get(internal::character_by_id))
         .route("/mhy/trace/:char_id", get(internal::trace_by_char_id))
+        .route("/mhy/big_trace/:char_id", get(dm_api::read_by_char_id))
         .route("/mhy/eidolon/:char_id", get(internal::eidolon_by_char_id))
         .route("/mhy/skill/:id", get(internal::skill_by_char_id))
         .route("/mhy/attribute_property_list", get(properties))

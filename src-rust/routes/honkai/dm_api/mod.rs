@@ -1,17 +1,17 @@
-use std::collections::HashMap;
-
-use serde::Serialize;
-use tracing::{debug, info};
-
-use crate::{handler::error::WorkerError, routes::honkai::dm_api::types::SkillTreeConfig};
-
-use self::types::SkillTreeConfigWrapper;
-
-use super::mhy_api::internal::{categorizing::DbCharacterSkillTree, impls::DbData};
+use crate::{
+    handler::{error::WorkerError, FromAxumResponse},
+    routes::{endpoint_types::List, honkai::dm_api::types::SkillTreeConfig},
+};
+use axum::{extract::Path, Json};
+use response_derive::JsonResponse;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, io::BufReader, sync::Arc};
+use tracing::info;
+use vercel_runtime::{Body, Response, StatusCode};
 
 pub mod types;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonResponse)]
 pub struct BigTraceInfo {
     pub id: u32,
     pub name: String,
@@ -23,7 +23,35 @@ const TEXT_MAP: &str =
     "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/TextMap/TextMapEN.json";
 const DM_TRACE_DB: &str = "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/AvatarSkillTreeConfig.json";
 
-async fn write_big_trace() -> Result<(), WorkerError> {
+#[cfg(target_os = "windows")]
+pub const BIG_TRACE_LOCAL: &str = "c:\\tmp\\big_traces.json";
+#[cfg(target_os = "linux")]
+pub const BIG_TRACE_LOCAL: &str = "/tmp/big_traces.json";
+
+pub async fn read_by_char_id(
+    Path(char_id): Path<u32>,
+) -> Result<Json<List<BigTraceInfo>>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    if !std::path::Path::new(BIG_TRACE_LOCAL).try_exists()? {
+        write_big_trace().await?;
+    }
+    let file = std::fs::File::open(BIG_TRACE_LOCAL)?;
+    let reader = BufReader::new(file);
+    let db: HashMap<String, BigTraceInfo> = serde_json::from_reader(reader)?;
+
+    let big_traces: Arc<[BigTraceInfo]> = db
+        .iter()
+        .filter(|(k, _)| k.starts_with(&char_id.to_string()))
+        .map(|(_, v)| v.to_owned())
+        .collect();
+
+    info!("Duration: {:?}", now.elapsed());
+
+    Ok(Json(big_traces.into()))
+}
+
+pub async fn write_big_trace() -> Result<(), WorkerError> {
     let mut big_trace_map: HashMap<String, BigTraceInfo> = HashMap::new();
 
     let desc_chunk = reqwest::get(TEXT_MAP).await?.text().await?;
@@ -72,7 +100,7 @@ async fn write_big_trace() -> Result<(), WorkerError> {
     // TODO: trait implementation
     info!("{:?}", big_trace_map);
     std::fs::write(
-        "/tmp/big_traces.json",
+        BIG_TRACE_LOCAL,
         serde_json::to_string_pretty(&big_trace_map)?,
     )?;
 

@@ -6,7 +6,7 @@ mod routes;
 
 use axum::Json;
 use handler::error::WorkerError;
-use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
+use tokio_cron_scheduler::{Job, JobScheduler};
 
 use crate::routes::{app_router, cron::write_db::write_db};
 use std::{net::SocketAddr, time::Duration};

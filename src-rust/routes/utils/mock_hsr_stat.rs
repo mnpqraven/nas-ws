@@ -8,7 +8,6 @@ use fake::{Fake, Faker};
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use tracing::instrument;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]

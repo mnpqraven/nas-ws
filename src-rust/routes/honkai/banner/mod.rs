@@ -2,12 +2,16 @@ use self::types::Banner;
 use super::patch::types::PatchBanner;
 use crate::{
     handler::error::WorkerError,
-    routes::{endpoint_types::List, honkai::patch::types::Patch},
+    routes::{
+        endpoint_types::List,
+        honkai::{banner::constants::BANNER_CHARS, patch::types::Patch},
+    },
 };
 use axum::Json;
 use semver::Version;
 use tracing::{info, instrument};
 
+mod constants;
 pub mod types;
 
 #[instrument(ret, err)]
@@ -26,19 +30,17 @@ pub async fn warp_banner_list() -> Result<Json<List<Banner>>, WorkerError> {
 #[instrument(ret, err)]
 pub async fn patch_banner_list() -> Result<Json<List<PatchBanner>>, WorkerError> {
     let now = std::time::Instant::now();
-    let banner_info: Vec<(Option<&str>, Option<&str>, Version)> = vec![
-        (
-            Some("Silver Wolf"),
-            Some("Luocha"),
-            Version::parse("1.1.0").unwrap(),
-        ),
-        (
-            Some("Silver Wolf"),
-            Some("Luocha"),
-            Version::parse("1.2.0").unwrap(),
-        ),
-        (Some("Fu Xuan"), None, Version::parse("1.3.0").unwrap()),
-    ];
+
+    let mut first_version = Version::parse("1.1.0").unwrap();
+
+    let banner_info: Vec<(Option<&str>, Option<&str>, Version)> = BANNER_CHARS
+        .iter()
+        .map(|(char1, char2)| {
+            let version = first_version.clone();
+            first_version.minor += 1;
+            (char1, char2, version)
+        })
+        .collect();
 
     let patches = Patch::generate(5, None);
     let future_banners = PatchBanner::from_patches(patches, banner_info).await?;

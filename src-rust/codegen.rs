@@ -5,7 +5,7 @@ use nas_ws::routes::{
             internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
             types_parsed::{shared::DbAttributeProperty, MihoResponse},
         },
-        patch::types::{Patch, PatchBanner},
+        patch::types::{Patch, PatchBanner}, dm_api::BigTraceInfo,
     },
     utils::{mock_hsr_log::Log, mock_hsr_stat::MvpWrapper},
 };
@@ -51,6 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(DbCharacterSkillTree), "DbCharacterSkillTree"),
         Schema::new(schema_for!(DbCharacterEidolon), "DbCharacterEidolon"),
         Schema::new(schema_for!(DbAttributeProperty), "DbAttributeProperty"),
+        Schema::new(schema_for!(BigTraceInfo), "BigTraceInfo"),
         Schema::new(schema_for!(Patch), "Patch"),
     ];
 

@@ -1,9 +1,12 @@
 use crate::{
     handler::{error::WorkerError, FromAxumResponse},
-    routes::honkai::mhy_api::internal::{
-        categorizing::{DbCharacter, DbCharacterSkill, DbCharacterSkillTree},
-        constants::{CHARACTER_LOCAL, CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_TREE_LOCAL},
-        impls::DbData,
+    routes::honkai::{
+        dm_api::write_big_trace,
+        mhy_api::internal::{
+            categorizing::{DbCharacter, DbCharacterSkill, DbCharacterSkillTree},
+            constants::{CHARACTER_LOCAL, CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_TREE_LOCAL},
+            impls::DbData,
+        },
     },
 };
 use axum::Json;
@@ -17,6 +20,7 @@ pub struct CronResult {
     pub character_db: bool,
     pub skill_db: bool,
     pub trace_db: bool,
+    pub big_trace_db: bool,
 }
 
 pub async fn write_db() -> Result<Json<CronResult>, WorkerError> {
@@ -28,9 +32,13 @@ pub async fn write_db() -> Result<Json<CronResult>, WorkerError> {
         CHARACTER_SKILL_TREE_LOCAL,
     )
     .await;
+
+    let big_trace_db = write_big_trace().await;
+
     Ok(Json(CronResult {
         character_db: char_db.is_ok(),
         skill_db: skill_db.is_ok(),
         trace_db: trace_db.is_ok(),
+        big_trace_db: big_trace_db.is_ok()
     }))
 }

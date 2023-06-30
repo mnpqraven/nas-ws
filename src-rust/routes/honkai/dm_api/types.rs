@@ -20,5 +20,5 @@ pub struct SkillTreeConfig {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Param {
-    pub value: f32,
+    pub value: f64,
 }

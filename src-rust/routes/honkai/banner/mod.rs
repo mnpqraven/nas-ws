@@ -33,8 +33,8 @@ pub async fn patch_banner_list() -> Result<Json<List<PatchBanner>>, WorkerError>
             Version::parse("1.1.0").unwrap(),
         ),
         (
-            Some("Blade"),
-            Some("Kafka"),
+            Some("Silver Wolf"),
+            Some("Luocha"),
             Version::parse("1.2.0").unwrap(),
         ),
         (Some("Fu Xuan"), None, Version::parse("1.3.0").unwrap()),

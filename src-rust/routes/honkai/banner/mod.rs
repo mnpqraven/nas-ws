@@ -31,13 +31,10 @@ pub async fn warp_banner_list() -> Result<Json<List<Banner>>, WorkerError> {
 pub async fn patch_banner_list() -> Result<Json<List<PatchBanner>>, WorkerError> {
     let now = std::time::Instant::now();
 
-    let mut first_version = Version::parse("1.1.0").unwrap();
-
     let banner_info: Vec<(Option<&str>, Option<&str>, Version)> = BANNER_CHARS
-        .iter()
-        .map(|(char1, char2)| {
-            let version = first_version.clone();
-            first_version.minor += 1;
+        .into_iter()
+        .map(|(version, char1, char2)| {
+            let version = Version::parse(version).unwrap();
             (char1, char2, version)
         })
         .collect();

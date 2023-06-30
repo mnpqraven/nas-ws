@@ -13,13 +13,35 @@ use anyhow::Result;
 use axum::{extract::Path, Json};
 use serde::de::DeserializeOwned;
 use std::{collections::HashMap, fs, sync::Arc};
-use tracing::{info, instrument};
+use tracing::{debug, info, instrument};
 
 /// holds internal types for mhy's DB
 // TODO: avoid conflicting type names with super::types
 pub mod categorizing;
 pub mod constants;
 pub mod impls;
+
+pub async fn all_characters() -> Result<Json<List<DbCharacter>>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let characters = DbCharacter::read().await?;
+    let characters = characters
+        .into_values()
+        .map(|chara: DbCharacter| {
+            // change MC name
+            if chara.name == "{NICKNAME}" {
+                let mut tb = chara.clone();
+                tb.name = format!("Trailblazer ({})", chara.element);
+                return tb;
+            }
+            chara
+        })
+        .collect();
+
+    debug!("Duration {:?}", now.elapsed());
+
+    Ok(Json(List::new(characters)))
+}
 
 #[instrument(ret, err)]
 pub async fn character_by_id(Path(id): Path<u32>) -> Result<Json<DbCharacter>, WorkerError> {
@@ -28,7 +50,7 @@ pub async fn character_by_id(Path(id): Path<u32>) -> Result<Json<DbCharacter>, W
     let characters = DbCharacter::read().await?;
     let db_char = characters.get(&id.to_string()).cloned();
 
-    info!("Duration {:?}", now.elapsed());
+    debug!("Duration {:?}", now.elapsed());
     match db_char {
         Some(t) => Ok(Json(t)),
         None => Err(WorkerError::EmptyBody),

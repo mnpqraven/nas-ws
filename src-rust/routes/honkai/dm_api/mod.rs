@@ -1,22 +1,31 @@
 use crate::{
     handler::{error::WorkerError, FromAxumResponse},
-    routes::{endpoint_types::List, honkai::dm_api::types::SkillTreeConfig},
+    routes::{
+        endpoint_types::List,
+        honkai::{
+            dm_api::types::SkillTreeConfig,
+            mhy_api::internal::categorizing::{Parameter, SkillType::BPSkill},
+            patch::types::SimpleSkill,
+        },
+    },
 };
 use axum::{extract::Path, Json};
 use response_derive::JsonResponse;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, io::BufReader, sync::Arc};
 use tracing::info;
 use vercel_runtime::{Body, Response, StatusCode};
 
+pub mod impls;
 pub mod types;
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonResponse)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonResponse, JsonSchema)]
 pub struct BigTraceInfo {
     pub id: u32,
     pub name: String,
     pub desc: String,
-    pub params: Vec<f32>,
+    pub params: Vec<f64>,
 }
 
 const TEXT_MAP: &str =
@@ -30,7 +39,7 @@ pub const BIG_TRACE_LOCAL: &str = "/tmp/big_traces.json";
 
 pub async fn read_by_char_id(
     Path(char_id): Path<u32>,
-) -> Result<Json<List<BigTraceInfo>>, WorkerError> {
+) -> Result<Json<List<SimpleSkill>>, WorkerError> {
     let now = std::time::Instant::now();
 
     if !std::path::Path::new(BIG_TRACE_LOCAL).try_exists()? {
@@ -40,10 +49,27 @@ pub async fn read_by_char_id(
     let reader = BufReader::new(file);
     let db: HashMap<String, BigTraceInfo> = serde_json::from_reader(reader)?;
 
-    let big_traces: Arc<[BigTraceInfo]> = db
+    let big_traces: Arc<[SimpleSkill]> = db
         .iter()
         .filter(|(k, _)| k.starts_with(&char_id.to_string()))
-        .map(|(_, v)| v.to_owned())
+        .map(|(_, v)| {
+            let description = v
+                .split_description()
+                .iter()
+                .map(|e| e.to_string())
+                .collect::<Vec<String>>();
+            let sorter = v.get_sorted_params_inds();
+            let binding = Parameter(v.params.clone().into()).sort_by_tuple(sorter);
+            let params = binding.iter().map(|e| e.to_string()).collect();
+
+            SimpleSkill {
+                id: v.id,
+                name: v.name.clone(),
+                ttype: BPSkill,
+                description,
+                params: vec![params],
+            }
+        })
         .collect();
 
     info!("Duration: {:?}", now.elapsed());

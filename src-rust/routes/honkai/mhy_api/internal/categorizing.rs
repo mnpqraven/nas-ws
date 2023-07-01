@@ -110,7 +110,7 @@ pub struct DbCharacter {
     rarity: u8,
     path: Path,
     pub element: Element,
-    max_sp: u32,
+    pub max_sp: u32,
     ranks: Vec<String>,
     /// skillIds
     pub skills: Vec<String>,

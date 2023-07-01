@@ -41,12 +41,14 @@ pub struct PatchBanner {
 }
 
 #[derive(Serialize, Clone, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct Character {
     pub character_name: Option<String>, // FK cmp with `name`
     pub character_id: Option<u32>,
     pub icon: Option<AssetPath>,           // FK
     pub element: Option<CharacterElement>, // FK
     pub skills: Vec<SimpleSkill>,
+    pub max_energy: u32
 }
 
 #[derive(Serialize, Clone, Debug, JsonSchema)]
@@ -137,6 +139,7 @@ impl PatchBanner {
                     icon,
                     element,
                     skills: char_skill(fk1).to_vec(),
+                    max_energy: fk1.map(|(_, e)| e.max_sp).unwrap_or_default(),
                 },
                 version: patch.version.clone(),
                 date_start: patch.date_start,
@@ -150,6 +153,7 @@ impl PatchBanner {
                     icon,
                     element,
                     skills: char_skill(fk2).to_vec(),
+                    max_energy: fk2.map(|(_, e)| e.max_sp).unwrap_or_default(),
                 },
                 version: patch.version.clone(),
                 date_start: patch.date_2nd_banner,

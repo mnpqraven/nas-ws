@@ -1,10 +1,14 @@
+use self::types::EquipmentSkillConfigMerged;
 use crate::{
     handler::{error::WorkerError, FromAxumResponse},
     routes::{
         endpoint_types::List,
         honkai::{
-            dm_api::types::SkillTreeConfig,
-            mhy_api::internal::categorizing::{Parameter, SkillType::BPSkill},
+            dm_api::types::{EquipmentConfigMerged, SkillTreeConfig, TextMap},
+            mhy_api::internal::{
+                categorizing::{Parameter, SkillType::BPSkill},
+                impls::DbData,
+            },
             patch::types::SimpleSkill,
         },
     },
@@ -17,6 +21,7 @@ use std::{collections::HashMap, io::BufReader, sync::Arc};
 use tracing::info;
 use vercel_runtime::{Body, Response, StatusCode};
 
+mod constants;
 pub mod impls;
 pub mod types;
 
@@ -28,14 +33,35 @@ pub struct BigTraceInfo {
     pub params: Vec<f64>,
 }
 
-const TEXT_MAP: &str =
-    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/TextMap/TextMapEN.json";
 const DM_TRACE_DB: &str = "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/AvatarSkillTreeConfig.json";
 
 #[cfg(target_os = "windows")]
 pub const BIG_TRACE_LOCAL: &str = "c:\\tmp\\big_traces.json";
 #[cfg(target_os = "linux")]
 pub const BIG_TRACE_LOCAL: &str = "/tmp/big_traces.json";
+
+#[derive(Debug, Serialize, Deserialize, JsonResponse)]
+pub struct Foo {
+    pub metadata: Option<EquipmentConfigMerged>,
+    pub skill: Option<EquipmentSkillConfigMerged>,
+}
+
+pub async fn light_cone_by_id(Path(lc_id): Path<u32>) -> Result<Json<Foo>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let db_skill: HashMap<String, EquipmentSkillConfigMerged> =
+        EquipmentSkillConfigMerged::read().await?;
+
+    let db_metadata: HashMap<String, EquipmentConfigMerged> = EquipmentConfigMerged::read().await?;
+
+    let metadata = db_metadata.get(&lc_id.to_string()).cloned();
+    let skill = db_skill.get(&lc_id.to_string()).cloned();
+
+    let res: Foo = Foo { metadata, skill };
+
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(res))
+}
 
 pub async fn read_by_char_id(
     Path(char_id): Path<u32>,
@@ -80,10 +106,10 @@ pub async fn read_by_char_id(
 pub async fn write_big_trace() -> Result<(), WorkerError> {
     let mut big_trace_map: HashMap<String, BigTraceInfo> = HashMap::new();
 
-    let desc_chunk = reqwest::get(TEXT_MAP).await?.text().await?;
-    let desc_chunk: HashMap<String, String> = serde_json::from_str(&desc_chunk)?;
+    let text_map: HashMap<String, String> = TextMap::read().await?;
 
     let dm_trace_db = reqwest::get(DM_TRACE_DB).await?.text().await?;
+    // depth 2 reads
     let dm_trace_db: HashMap<String, HashMap<String, SkillTreeConfig>> =
         serde_json::from_str(&dm_trace_db)?;
 
@@ -98,14 +124,14 @@ pub async fn write_big_trace() -> Result<(), WorkerError> {
                     let hash = config.point_name.clone();
                     let hashed = get_stable_hash(&hash);
 
-                    if let Some(value) = desc_chunk.get(&hashed.to_string()) {
+                    if let Some(value) = text_map.get(&hashed.to_string()) {
                         name = value.to_string();
                     }
                 }
                 if !config.point_desc.is_empty() {
                     let hash = config.point_desc.clone();
                     let hashed = get_stable_hash(&hash);
-                    if let Some(value) = desc_chunk.get(&hashed.to_string()) {
+                    if let Some(value) = text_map.get(&hashed.to_string()) {
                         desc = format_desc(value);
                     }
                 }
@@ -156,7 +182,8 @@ fn get_stable_hash(hash: &str) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use super::{get_stable_hash, write_big_trace};
+    use super::{light_cone_by_id, get_stable_hash};
+    use axum::extract::Path;
 
     #[test]
     fn hasher() {
@@ -165,7 +192,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn write() {
-        write_big_trace().await.unwrap();
+    async fn eq() {
+        let _left = light_cone_by_id(Path(23005)).await.unwrap();
+        dbg!(&_left);
     }
 }

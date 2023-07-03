@@ -13,7 +13,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::{collections::HashMap, sync::Arc};
 use tracing::info;
 
-trait DbDataLike = Serialize + DeserializeOwned + Send + Sync;
+pub trait DbDataLike = Serialize + DeserializeOwned + Send + Sync;
 
 impl DbCharacter {
     // TODO: handle unwrap
@@ -74,6 +74,7 @@ pub trait DbData<T>
 where
     T: Serialize + DeserializeOwned + Send + Sync,
 {
+    /// tuple of local path and fallback url to the resource
     fn path_data() -> (&'static str, &'static str);
 
     /// Try to cache fallback fetch data to disk.

@@ -1,5 +1,5 @@
-use crate::{handler::FromAxumResponse, routes::honkai::mhy_api::types_parsed::shared::Property};
 use crate::routes::honkai::mhy_api::WorkerError;
+use crate::{handler::FromAxumResponse, routes::honkai::mhy_api::types_parsed::shared::Property};
 use axum::Json;
 use core::fmt;
 use regex::{Captures, Regex};
@@ -171,7 +171,7 @@ pub struct DbCharacterEidolon {
     desc: String,
     materials: Vec<MaterialKV>,
     level_up_skills: Vec<SkillKV>,
-    icon: AssetPath
+    icon: AssetPath,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]

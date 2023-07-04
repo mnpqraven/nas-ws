@@ -35,13 +35,26 @@ impl<T: DbDataLike> DbData<T> for EquipmentConfigMerged {
         let data = reqwest::get(fallback_url).await?.text().await?;
         let data: HashMap<String, EquipmentConfig> = serde_json::from_str(&data)?;
 
-        let to_write_db: HashMap<String, EquipmentConfigMerged> = futures::stream::iter(data)
-            .then(|(key, value)| async move {
-                let value = value.async_into().await.unwrap();
+        // textmap chunk
+        let text_map_chunk: HashMap<String, String> = TextMap::read().await?;
+        // allow usage of generators (HashMap getter) inside `async move`
+        // closures (which requires `Fn`)
+        let arced_chunk = Arc::new(text_map_chunk);
+        let to_write_db: HashMap<String, EquipmentConfigMerged> = data
+            .iter()
+            .map(|(key, value)| {
+                let arced_chunk = arced_chunk.clone();
+                let get_value = move |key: &str| arced_chunk.get(key).cloned().unwrap_or_default();
+
+                let (eq_name, eq_desc) = (
+                    get_value(&value.equipment_name.hash.to_string()),
+                    get_value(&value.equipment_desc.hash.to_string()),
+                );
+
+                let value = value.to_merged((eq_name, eq_desc)).unwrap();
                 (key.clone(), value)
             })
-            .collect()
-            .await;
+            .collect();
 
         let to_write_text = serde_json::to_string_pretty(&to_write_db)?;
 
@@ -52,19 +65,10 @@ impl<T: DbDataLike> DbData<T> for EquipmentConfigMerged {
 }
 
 impl EquipmentConfig {
-    async fn async_into(&self) -> Result<EquipmentConfigMerged, WorkerError> {
-        // textmap chunk
-        let text_map_chunk: HashMap<String, String> = TextMap::read().await?;
-
-        let equipment_name = text_map_chunk
-            .get(&self.equipment_name.hash.to_string())
-            .cloned()
-            .unwrap_or_default();
-        let equipment_desc = text_map_chunk
-            .get(&self.equipment_desc.hash.to_string())
-            .cloned()
-            .unwrap_or_default();
-
+    fn to_merged(
+        &self,
+        (equipment_name, equipment_desc): (String, String),
+    ) -> Result<EquipmentConfigMerged, WorkerError> {
         Ok(EquipmentConfigMerged {
             equipment_id: self.equipment_id,
             release: self.release,

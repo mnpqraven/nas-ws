@@ -40,13 +40,13 @@ pub const BIG_TRACE_LOCAL: &str = "c:\\tmp\\big_traces.json";
 #[cfg(target_os = "linux")]
 pub const BIG_TRACE_LOCAL: &str = "/tmp/big_traces.json";
 
-#[derive(Debug, Serialize, Deserialize, JsonResponse)]
-pub struct Foo {
-    pub metadata: Option<EquipmentConfigMerged>,
-    pub skill: Option<EquipmentSkillConfigMerged>,
+#[derive(Debug, Serialize, Deserialize, JsonResponse, JsonSchema)]
+pub struct LightCone {
+    pub metadata: EquipmentConfigMerged,
+    pub skill: EquipmentSkillConfigMerged,
 }
 
-pub async fn light_cone_by_id(Path(lc_id): Path<u32>) -> Result<Json<Foo>, WorkerError> {
+pub async fn light_cone_list() -> Result<Json<List<LightCone>>, WorkerError> {
     let now = std::time::Instant::now();
 
     let db_skill: HashMap<String, EquipmentSkillConfigMerged> =
@@ -54,10 +54,40 @@ pub async fn light_cone_by_id(Path(lc_id): Path<u32>) -> Result<Json<Foo>, Worke
 
     let db_metadata: HashMap<String, EquipmentConfigMerged> = EquipmentConfigMerged::read().await?;
 
-    let metadata = db_metadata.get(&lc_id.to_string()).cloned();
-    let skill = db_skill.get(&lc_id.to_string()).cloned();
+    let res = db_metadata
+        .keys()
+        .map(|key| {
+            let metadata = db_metadata
+                .get(key)
+                .cloned()
+                .ok_or(WorkerError::EmptyBody)?;
+            let skill = db_skill.get(key).cloned().ok_or(WorkerError::EmptyBody)?;
+            Ok(LightCone { metadata, skill })
+        })
+        .collect::<Result<Vec<LightCone>, WorkerError>>()?;
 
-    let res: Foo = Foo { metadata, skill };
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(List::new(res)))
+}
+
+pub async fn light_cone_by_id(Path(lc_id): Path<u32>) -> Result<Json<LightCone>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let db_skill: HashMap<String, EquipmentSkillConfigMerged> =
+        EquipmentSkillConfigMerged::read().await?;
+
+    let db_metadata: HashMap<String, EquipmentConfigMerged> = EquipmentConfigMerged::read().await?;
+
+    let metadata = db_metadata
+        .get(&lc_id.to_string())
+        .cloned()
+        .ok_or(WorkerError::EmptyBody)?;
+    let skill = db_skill
+        .get(&lc_id.to_string())
+        .cloned()
+        .ok_or(WorkerError::EmptyBody)?;
+
+    let res: LightCone = LightCone { metadata, skill };
 
     info!("Duration: {:?}", now.elapsed());
     Ok(Json(res))
@@ -182,7 +212,7 @@ fn get_stable_hash(hash: &str) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use super::{light_cone_by_id, get_stable_hash};
+    use super::{get_stable_hash, light_cone_by_id};
     use axum::extract::Path;
 
     #[test]

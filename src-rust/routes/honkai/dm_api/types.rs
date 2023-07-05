@@ -1,3 +1,4 @@
+use super::desc_param::ParameterizedDescription;
 use crate::routes::honkai::mhy_api::types_parsed::shared::{AssetPath, Path, Property};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -169,15 +170,15 @@ pub struct EquipmentSkillConfigMerged {
     #[serde(alias = "SkillName")]
     pub skill_name: String,
     #[serde(alias = "SkillDesc")]
-    pub skill_desc: String,
+    pub skill_desc: ParameterizedDescription,
     /// merge
-    #[serde(alias = "Level")]
+    #[serde(skip, alias = "Level")]
     pub level: Vec<u32>,
     #[serde(alias = "AbilityName")]
     pub ability_name: String,
     /// merge
     #[serde(alias = "ParamList")]
-    pub param_list: Vec<Vec<Param>>,
+    pub param_list: Vec<Vec<String>>,
     /// merge
     #[serde(alias = "AbilityProperty")]
     pub ability_property: Vec<Vec<AbilityProperty>>,

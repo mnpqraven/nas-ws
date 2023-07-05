@@ -1,15 +1,12 @@
 use super::{
     constants::*,
-    types::{
-        EquipmentConfig, EquipmentConfigMerged, EquipmentSkillConfig, EquipmentSkillConfigMerged,
-        TextMap,
-    },
+    desc_param::{get_sorted_params, ParameterizedDescription},
+    types::*,
     BigTraceInfo,
 };
 use crate::routes::honkai::dm_api::DbData;
 use crate::{handler::error::WorkerError, routes::honkai::mhy_api::internal::impls::DbDataLike};
 use async_trait::async_trait;
-use futures::StreamExt;
 use regex::{Captures, Regex};
 use std::{
     collections::{BTreeMap, HashMap},
@@ -51,7 +48,7 @@ impl<T: DbDataLike> DbData<T> for EquipmentConfigMerged {
                     get_value(&value.equipment_desc.hash.to_string()),
                 );
 
-                let value = value.to_merged((eq_name, eq_desc)).unwrap();
+                let value = value.to_merged((eq_name, eq_desc));
                 (key.clone(), value)
             })
             .collect();
@@ -68,8 +65,8 @@ impl EquipmentConfig {
     fn to_merged(
         &self,
         (equipment_name, equipment_desc): (String, String),
-    ) -> Result<EquipmentConfigMerged, WorkerError> {
-        Ok(EquipmentConfigMerged {
+    ) -> EquipmentConfigMerged {
+        EquipmentConfigMerged {
             equipment_id: self.equipment_id,
             release: self.release,
             equipment_name,
@@ -89,7 +86,7 @@ impl EquipmentConfig {
             avatar_detail_offset: self.avatar_detail_offset.clone(),
             battle_dialog_offset: self.battle_dialog_offset.clone(),
             gacha_result_offset: self.gacha_result_offset.clone(),
-        })
+        }
     }
 }
 
@@ -117,10 +114,17 @@ impl<T: DbDataLike> DbData<T> for EquipmentSkillConfigMerged {
             .map(|(key, inner_map)| {
                 // NOTE: iterate through inner_map > sort (done via BTreeMap) > merge merge
                 let first = inner_map.get("1").unwrap(); // WARN: unwrap
-                let skill_desc: String = text_map_chunk
-                    .get(&first.skill_desc.hash.to_string())
-                    .unwrap_or(&"NOT FOUND".into())
-                    .to_owned();
+
+                // multiple reads in `for_each`
+                let skill_desc_raw = Arc::new(
+                    text_map_chunk
+                        .get(&first.skill_desc.hash.to_string())
+                        .unwrap_or(&"NOT FOUND".into())
+                        .to_string(),
+                );
+
+                let skill_desc: ParameterizedDescription = skill_desc_raw.to_string().into();
+
                 let skill_name: String = text_map_chunk
                     .get(&first.skill_name.hash.to_string())
                     .unwrap_or(&"NOT FOUND".into())
@@ -136,9 +140,20 @@ impl<T: DbDataLike> DbData<T> for EquipmentSkillConfigMerged {
                     ability_property: vec![],
                 };
 
-                inner_map.iter().for_each(|(_, skill_config)| {
+                inner_map.iter().for_each(|(_key, skill_config)| {
                     next.level.push(skill_config.level);
-                    next.param_list.push(skill_config.param_list.clone());
+                    let sorted_params: Vec<String> = get_sorted_params(
+                        skill_config
+                            .param_list
+                            .iter()
+                            .map(|param| param.value)
+                            .collect::<Vec<f64>>(),
+                        &skill_desc_raw,
+                    )
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect();
+                    next.param_list.push(sorted_params);
                     next.ability_property
                         .push(skill_config.ability_property.clone());
                 });

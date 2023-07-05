@@ -1,13 +1,14 @@
 use clap::Parser;
 use nas_ws::routes::{
     honkai::{
+        dm_api::{BigTraceInfo, LightCone},
         mhy_api::{
             internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
             types_parsed::{shared::DbAttributeProperty, MihoResponse},
         },
-        patch::types::{Patch, PatchBanner}, dm_api::{BigTraceInfo, LightCone},
+        patch::types::{Patch, PatchBanner},
     },
-    utils::{mock_hsr_log::Log, mock_hsr_stat::MvpWrapper},
+    utils::mock_hsr_log::Log,
 };
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
@@ -53,8 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(DbAttributeProperty), "DbAttributeProperty"),
         Schema::new(schema_for!(BigTraceInfo), "BigTraceInfo"),
         Schema::new(schema_for!(Patch), "Patch"),
-
-        Schema::new(schema_for!(LightCone), "LightConeFull")
+        Schema::new(schema_for!(LightCone), "LightConeFull"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

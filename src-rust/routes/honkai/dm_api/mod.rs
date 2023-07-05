@@ -24,6 +24,7 @@ use vercel_runtime::{Body, Response, StatusCode};
 mod constants;
 pub mod impls;
 pub mod types;
+pub mod desc_param;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonResponse, JsonSchema)]
 pub struct BigTraceInfo {

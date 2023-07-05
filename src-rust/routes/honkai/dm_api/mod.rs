@@ -1,10 +1,14 @@
+use self::types::EquipmentSkillConfig;
 use crate::{
     handler::{error::WorkerError, FromAxumResponse},
     routes::{
         endpoint_types::List,
         honkai::{
-            dm_api::types::SkillTreeConfig,
-            mhy_api::internal::categorizing::{Parameter, SkillType::BPSkill},
+            dm_api::{
+                desc_param::{get_sorted_params, ParameterizedDescription},
+                types::{EquipmentConfig, SkillTreeConfig, TextMap},
+            },
+            mhy_api::internal::{categorizing::SkillType::BPSkill, impls::DbData},
             patch::types::SimpleSkill,
         },
     },
@@ -17,6 +21,8 @@ use std::{collections::HashMap, io::BufReader, sync::Arc};
 use tracing::info;
 use vercel_runtime::{Body, Response, StatusCode};
 
+mod constants;
+pub mod desc_param;
 pub mod impls;
 pub mod types;
 
@@ -28,14 +34,63 @@ pub struct BigTraceInfo {
     pub params: Vec<f64>,
 }
 
-const TEXT_MAP: &str =
-    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/TextMap/TextMapEN.json";
 const DM_TRACE_DB: &str = "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/AvatarSkillTreeConfig.json";
 
 #[cfg(target_os = "windows")]
 pub const BIG_TRACE_LOCAL: &str = "c:\\tmp\\big_traces.json";
 #[cfg(target_os = "linux")]
 pub const BIG_TRACE_LOCAL: &str = "/tmp/big_traces.json";
+
+#[derive(Debug, Serialize, Deserialize, JsonResponse, JsonSchema)]
+pub struct LightCone {
+    pub metadata: EquipmentConfig,
+    pub skill: EquipmentSkillConfig,
+}
+
+pub async fn light_cone_list() -> Result<Json<List<LightCone>>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let db_skill: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
+
+    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
+
+    let res = db_metadata
+        .keys()
+        .map(|key| {
+            let metadata = db_metadata
+                .get(key)
+                .cloned()
+                .ok_or(WorkerError::EmptyBody)?;
+            let skill = db_skill.get(key).cloned().ok_or(WorkerError::EmptyBody)?;
+            Ok(LightCone { metadata, skill })
+        })
+        .collect::<Result<Vec<LightCone>, WorkerError>>()?;
+
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(List::new(res)))
+}
+
+pub async fn light_cone_by_id(Path(lc_id): Path<u32>) -> Result<Json<LightCone>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let db_skill: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
+
+    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
+
+    let metadata = db_metadata
+        .get(&lc_id.to_string())
+        .cloned()
+        .ok_or(WorkerError::EmptyBody)?;
+    let skill = db_skill
+        .get(&lc_id.to_string())
+        .cloned()
+        .ok_or(WorkerError::EmptyBody)?;
+
+    let res: LightCone = LightCone { metadata, skill };
+
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(res))
+}
 
 pub async fn read_by_char_id(
     Path(char_id): Path<u32>,
@@ -53,20 +108,17 @@ pub async fn read_by_char_id(
         .iter()
         .filter(|(k, _)| k.starts_with(&char_id.to_string()))
         .map(|(_, v)| {
-            let description = v
-                .split_description()
+            let description: ParameterizedDescription = v.desc.clone().into();
+            let params = get_sorted_params(v.params.clone(), &v.desc)
                 .iter()
                 .map(|e| e.to_string())
-                .collect::<Vec<String>>();
-            let sorter = v.get_sorted_params_inds();
-            let binding = Parameter(v.params.clone().into()).sort_by_tuple(sorter);
-            let params = binding.iter().map(|e| e.to_string()).collect();
+                .collect();
 
             SimpleSkill {
                 id: v.id,
                 name: v.name.clone(),
                 ttype: BPSkill,
-                description,
+                description: description.0,
                 params: vec![params],
             }
         })
@@ -80,10 +132,10 @@ pub async fn read_by_char_id(
 pub async fn write_big_trace() -> Result<(), WorkerError> {
     let mut big_trace_map: HashMap<String, BigTraceInfo> = HashMap::new();
 
-    let desc_chunk = reqwest::get(TEXT_MAP).await?.text().await?;
-    let desc_chunk: HashMap<String, String> = serde_json::from_str(&desc_chunk)?;
+    let text_map: HashMap<String, String> = TextMap::read().await?;
 
     let dm_trace_db = reqwest::get(DM_TRACE_DB).await?.text().await?;
+    // depth 2 reads
     let dm_trace_db: HashMap<String, HashMap<String, SkillTreeConfig>> =
         serde_json::from_str(&dm_trace_db)?;
 
@@ -98,14 +150,14 @@ pub async fn write_big_trace() -> Result<(), WorkerError> {
                     let hash = config.point_name.clone();
                     let hashed = get_stable_hash(&hash);
 
-                    if let Some(value) = desc_chunk.get(&hashed.to_string()) {
+                    if let Some(value) = text_map.get(&hashed.to_string()) {
                         name = value.to_string();
                     }
                 }
                 if !config.point_desc.is_empty() {
                     let hash = config.point_desc.clone();
                     let hashed = get_stable_hash(&hash);
-                    if let Some(value) = desc_chunk.get(&hashed.to_string()) {
+                    if let Some(value) = text_map.get(&hashed.to_string()) {
                         desc = format_desc(value);
                     }
                 }
@@ -156,7 +208,8 @@ fn get_stable_hash(hash: &str) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use super::{get_stable_hash, write_big_trace};
+    use super::{get_stable_hash, light_cone_by_id};
+    use axum::extract::Path;
 
     #[test]
     fn hasher() {
@@ -165,7 +218,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn write() {
-        write_big_trace().await.unwrap();
+    async fn eq() {
+        let _left = light_cone_by_id(Path(23005)).await.unwrap();
+        dbg!(&_left);
     }
 }

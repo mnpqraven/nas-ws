@@ -8,7 +8,7 @@ use std::fmt::Display;
 use strum_macros::EnumString;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Debug, Deserialize, Serialize, Clone, JsonResponse, JsonSchema, Dummy)]
+#[derive(Debug, Deserialize, Serialize, Clone, JsonResponse, JsonSchema, Dummy, Default)]
 pub struct AssetPath(pub String);
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, EnumString, Dummy)]
@@ -24,7 +24,7 @@ pub enum Element {
     Imaginary,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, Copy, JsonSchema)]
 pub enum Path {
     #[serde(alias = "Warrior")]
     Destruction,

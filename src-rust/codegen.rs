@@ -1,13 +1,14 @@
 use clap::Parser;
 use nas_ws::routes::{
     honkai::{
+        dm_api::{BigTraceInfo, LightCone},
         mhy_api::{
             internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
             types_parsed::{shared::DbAttributeProperty, MihoResponse},
         },
-        patch::types::{Patch, PatchBanner}, dm_api::BigTraceInfo,
+        patch::types::{Patch, PatchBanner},
     },
-    utils::{mock_hsr_log::Log, mock_hsr_stat::MvpWrapper},
+    utils::mock_hsr_log::Log,
 };
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
@@ -44,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let type_names = vec![
         Schema::new(schema_for!(MihoResponse), "MihoResponse"),
         // Schema::new(schema_for!(EstimateCfg), "EstimateCfg"),
-        Schema::new(schema_for!(MvpWrapper), "MvpWrapper"),
+        // Schema::new(schema_for!(MvpWrapper), "MvpWrapper"),
         Schema::new(schema_for!(Log), "Log"),
         Schema::new(schema_for!(PatchBanner), "PatchBanner"),
         Schema::new(schema_for!(DbCharacter), "DbCharacter"),
@@ -53,6 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(DbAttributeProperty), "DbAttributeProperty"),
         Schema::new(schema_for!(BigTraceInfo), "BigTraceInfo"),
         Schema::new(schema_for!(Patch), "Patch"),
+        Schema::new(schema_for!(LightCone), "LightConeFull"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

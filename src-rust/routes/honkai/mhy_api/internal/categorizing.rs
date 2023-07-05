@@ -1,5 +1,6 @@
-use crate::{handler::FromAxumResponse, routes::honkai::mhy_api::types_parsed::shared::Property};
+use crate::routes::honkai::dm_api::desc_param::ParameterValue;
 use crate::routes::honkai::mhy_api::WorkerError;
+use crate::{handler::FromAxumResponse, routes::honkai::mhy_api::types_parsed::shared::Property};
 use axum::Json;
 use core::fmt;
 use regex::{Captures, Regex};
@@ -148,8 +149,6 @@ pub struct DbCharacterSkill {
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct Parameter(pub Arc<[f64]>);
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-pub struct ParameterValue(pub (f64, bool));
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct DbCharacterSkillTree {
@@ -171,7 +170,7 @@ pub struct DbCharacterEidolon {
     desc: String,
     materials: Vec<MaterialKV>,
     level_up_skills: Vec<SkillKV>,
-    icon: AssetPath
+    icon: AssetPath,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
@@ -235,17 +234,6 @@ impl Parameter {
     }
 }
 
-impl Display for ParameterValue {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let is_percent = self.0 .1;
-        let fmt = match is_percent {
-            true => format!("{:.2} %", self.0 .0 * 100.0),
-            false => format!("{:.0}", self.0 .0),
-        };
-        write!(f, "{}", fmt)
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct ParameterizedFmt(pub String);
 
@@ -261,7 +249,7 @@ pub enum SkillType {
 }
 
 impl DbCharacterSkill {
-    const DESC_IDENT: &str = r"#\d\[.\d?\]%?";
+    const DESC_IDENT: &str = r"(<.+?>)*#\d\[.\d?\]%?(<.+?>)*";
     #[allow(dead_code)]
     pub fn parse_description(&self) -> Vec<String> {
         // desc

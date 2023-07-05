@@ -2,17 +2,14 @@ use super::{
     constants::*,
     desc_param::{get_sorted_params, ParameterizedDescription},
     types::*,
-    BigTraceInfo,
 };
 use crate::routes::honkai::dm_api::DbData;
 use crate::{handler::error::WorkerError, routes::honkai::mhy_api::internal::impls::DbDataLike};
 use async_trait::async_trait;
-use regex::{Captures, Regex};
 use std::{
     collections::{BTreeMap, HashMap},
     sync::Arc,
 };
-use tracing::{info, instrument};
 
 impl<T: DbDataLike> DbData<T> for TextMap {
     fn path_data() -> (&'static str, &'static str) {
@@ -21,23 +18,23 @@ impl<T: DbDataLike> DbData<T> for TextMap {
 }
 
 #[async_trait]
-impl<T: DbDataLike> DbData<T> for EquipmentConfigMerged {
+impl<T: DbDataLike> DbData<T> for EquipmentConfig {
     fn path_data() -> (&'static str, &'static str) {
         (EQUIPMENT_CONFIG_LOCAL, EQUIPMENT_CONFIG_REMOTE)
     }
 
-    async fn try_write_disk(local_path: &str) -> Result<String, WorkerError> {
-        let (_, fallback_url) = <EquipmentConfigMerged as DbData<T>>::path_data();
+    async fn try_write_disk() -> Result<String, WorkerError> {
+        let (local_path, fallback_url) = <EquipmentConfig as DbData<T>>::path_data();
         // EquipmentConfig
         let data = reqwest::get(fallback_url).await?.text().await?;
-        let data: HashMap<String, EquipmentConfig> = serde_json::from_str(&data)?;
+        let data: HashMap<String, UpstreamEquipmentConfig> = serde_json::from_str(&data)?;
 
         // textmap chunk
         let text_map_chunk: HashMap<String, String> = TextMap::read().await?;
         // allow usage of generators (HashMap getter) inside `async move`
         // closures (which requires `Fn`)
         let arced_chunk = Arc::new(text_map_chunk);
-        let to_write_db: HashMap<String, EquipmentConfigMerged> = data
+        let to_write_db: HashMap<String, EquipmentConfig> = data
             .iter()
             .map(|(key, value)| {
                 let arced_chunk = arced_chunk.clone();
@@ -61,12 +58,9 @@ impl<T: DbDataLike> DbData<T> for EquipmentConfigMerged {
     }
 }
 
-impl EquipmentConfig {
-    fn to_merged(
-        &self,
-        (equipment_name, equipment_desc): (String, String),
-    ) -> EquipmentConfigMerged {
-        EquipmentConfigMerged {
+impl UpstreamEquipmentConfig {
+    fn to_merged(&self, (equipment_name, equipment_desc): (String, String)) -> EquipmentConfig {
+        EquipmentConfig {
             equipment_id: self.equipment_id,
             release: self.release,
             equipment_name,
@@ -91,25 +85,25 @@ impl EquipmentConfig {
 }
 
 #[async_trait]
-impl<T: DbDataLike> DbData<T> for EquipmentSkillConfigMerged {
+impl<T: DbDataLike> DbData<T> for EquipmentSkillConfig {
     fn path_data() -> (&'static str, &'static str) {
         (EQUIPMENT_SKILL_CONFIG_LOCAL, EQUIPMENT_SKILL_CONFIG_REMOTE)
     }
 
     // WARN: needs to traverse 1 depth and merge diffs, converting
-    // Vec<Vec<EquipmentSkillConfig>> to this (serialized Vec<EquipmentSkillConfigMerged>)
-    async fn try_write_disk(local_path: &str) -> Result<String, WorkerError> {
-        let (_, fallback_url) = <EquipmentSkillConfigMerged as DbData<T>>::path_data();
+    // Vec<Vec<UpstreamEquipmentSkillConfig>> to this (serialized Vec<EquipmentSkillConfig>)
+    async fn try_write_disk() -> Result<String, WorkerError> {
+        let (local_path, fallback_url) = <EquipmentSkillConfig as DbData<T>>::path_data();
         // EquipmentSkillConfig
         let data = reqwest::get(fallback_url).await?.text().await?;
-        let data: HashMap<String, BTreeMap<String, EquipmentSkillConfig>> =
+        let data: HashMap<String, BTreeMap<String, UpstreamEquipmentSkillConfig>> =
             serde_json::from_str(&data)?;
 
         // textmap chunk
         let text_map_chunk: HashMap<String, String> = TextMap::read().await?;
 
         // NOTE: probably better to fk hash here
-        let to_write_db: HashMap<String, EquipmentSkillConfigMerged> = data
+        let to_write_db: HashMap<String, EquipmentSkillConfig> = data
             .iter()
             .map(|(key, inner_map)| {
                 // NOTE: iterate through inner_map > sort (done via BTreeMap) > merge merge
@@ -130,7 +124,7 @@ impl<T: DbDataLike> DbData<T> for EquipmentSkillConfigMerged {
                     .unwrap_or(&"NOT FOUND".into())
                     .to_owned();
 
-                let mut next: EquipmentSkillConfigMerged = EquipmentSkillConfigMerged {
+                let mut next: EquipmentSkillConfig = EquipmentSkillConfig {
                     skill_id: first.skill_id,
                     skill_name,
                     skill_desc,
@@ -168,66 +162,5 @@ impl<T: DbDataLike> DbData<T> for EquipmentSkillConfigMerged {
         std::fs::write(local_path, &to_write_text)?;
 
         Ok(to_write_text)
-    }
-}
-
-impl BigTraceInfo {
-    const DESC_IDENT: &str = r"#\d\[.\d?\]%?";
-    #[allow(dead_code)]
-    #[instrument(ret)]
-    pub fn parse_description(&self) -> Vec<String> {
-        // desc
-        // "Deals Lightning DMG equal to #1[i]% of Kafka's ATK to a single enemy.",
-        // params
-        // [ [0.5], [0.6] ,.. , [] ]
-        let regex = Regex::new(Self::DESC_IDENT).unwrap();
-        let mut res: Vec<String> = vec![];
-        for param in self.params.iter() {
-            let result = regex.replace_all(&self.desc, |caps: &Captures| {
-                let mut res = String::new();
-                for cap in caps.iter().flatten() {
-                    let is_percent: bool = cap.as_str().ends_with('%');
-
-                    // let index = cap.as_str().chars().nth(1).unwrap().to_digit(10).unwrap() as usize;
-
-                    let params_data = match is_percent {
-                        true => param * 100.0,
-                        false => *param,
-                    };
-                    match is_percent {
-                        true => res.push_str(&format!("{:.2}%", &params_data)),
-                        false => res.push_str(&format!("{:.2}", &params_data)),
-                    }
-                }
-                res
-            });
-            res.push(result.to_string());
-        }
-        info!("{:?}", res);
-        res
-    }
-
-    pub fn split_description(&self) -> Arc<[Arc<str>]> {
-        let regex = Regex::new(Self::DESC_IDENT).unwrap();
-        let t: Arc<[Arc<str>]> = regex.split(&self.desc).map(|e| e.into()).collect();
-        t
-    }
-
-    /// returns a tuple of
-    /// 1. index of the params value
-    /// 2. whether the params value should be displayed as percentage
-    pub fn get_sorted_params_inds(&self) -> Vec<(usize, bool)> {
-        let regex = Regex::new(Self::DESC_IDENT).unwrap();
-        let inds = regex
-            .find_iter(&self.desc)
-            .map(|e| {
-                let ind: usize = (e.as_str().chars().nth(1).unwrap().to_digit(10).unwrap() - 1)
-                    .try_into()
-                    .unwrap();
-                let is_percent = e.as_str().ends_with('%');
-                (ind, is_percent)
-            })
-            .collect::<Vec<(usize, bool)>>();
-        inds
     }
 }

@@ -40,7 +40,7 @@ pub struct Hash {
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
-pub struct EquipmentConfig {
+pub struct UpstreamEquipmentConfig {
     #[serde(alias = "EquipmentID")]
     pub equipment_id: u32,
     #[serde(alias = "Release")]
@@ -88,7 +88,7 @@ pub struct EquipmentConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-pub struct EquipmentConfigMerged {
+pub struct EquipmentConfig {
     #[serde(alias = "EquipmentID")]
     pub equipment_id: u32,
     #[serde(alias = "Release")]
@@ -145,7 +145,7 @@ pub struct AbilityProperty {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct EquipmentSkillConfig {
+pub struct UpstreamEquipmentSkillConfig {
     #[serde(alias = "SkillID")]
     pub skill_id: u32,
     #[serde(alias = "SkillName")]
@@ -163,7 +163,7 @@ pub struct EquipmentSkillConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-pub struct EquipmentSkillConfigMerged {
+pub struct EquipmentSkillConfig {
     #[serde(alias = "SkillID")]
     pub skill_id: u32,
     /// merge

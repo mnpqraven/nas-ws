@@ -1,14 +1,14 @@
-use self::types::EquipmentSkillConfigMerged;
+use self::types::EquipmentSkillConfig;
 use crate::{
     handler::{error::WorkerError, FromAxumResponse},
     routes::{
         endpoint_types::List,
         honkai::{
-            dm_api::types::{EquipmentConfigMerged, SkillTreeConfig, TextMap},
-            mhy_api::internal::{
-                categorizing::{Parameter, SkillType::BPSkill},
-                impls::DbData,
+            dm_api::{
+                desc_param::{get_sorted_params, ParameterizedDescription},
+                types::{EquipmentConfig, SkillTreeConfig, TextMap},
             },
+            mhy_api::internal::{categorizing::SkillType::BPSkill, impls::DbData},
             patch::types::SimpleSkill,
         },
     },
@@ -22,9 +22,9 @@ use tracing::info;
 use vercel_runtime::{Body, Response, StatusCode};
 
 mod constants;
+pub mod desc_param;
 pub mod impls;
 pub mod types;
-pub mod desc_param;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonResponse, JsonSchema)]
 pub struct BigTraceInfo {
@@ -43,17 +43,16 @@ pub const BIG_TRACE_LOCAL: &str = "/tmp/big_traces.json";
 
 #[derive(Debug, Serialize, Deserialize, JsonResponse, JsonSchema)]
 pub struct LightCone {
-    pub metadata: EquipmentConfigMerged,
-    pub skill: EquipmentSkillConfigMerged,
+    pub metadata: EquipmentConfig,
+    pub skill: EquipmentSkillConfig,
 }
 
 pub async fn light_cone_list() -> Result<Json<List<LightCone>>, WorkerError> {
     let now = std::time::Instant::now();
 
-    let db_skill: HashMap<String, EquipmentSkillConfigMerged> =
-        EquipmentSkillConfigMerged::read().await?;
+    let db_skill: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
 
-    let db_metadata: HashMap<String, EquipmentConfigMerged> = EquipmentConfigMerged::read().await?;
+    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
 
     let res = db_metadata
         .keys()
@@ -74,10 +73,9 @@ pub async fn light_cone_list() -> Result<Json<List<LightCone>>, WorkerError> {
 pub async fn light_cone_by_id(Path(lc_id): Path<u32>) -> Result<Json<LightCone>, WorkerError> {
     let now = std::time::Instant::now();
 
-    let db_skill: HashMap<String, EquipmentSkillConfigMerged> =
-        EquipmentSkillConfigMerged::read().await?;
+    let db_skill: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
 
-    let db_metadata: HashMap<String, EquipmentConfigMerged> = EquipmentConfigMerged::read().await?;
+    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
 
     let metadata = db_metadata
         .get(&lc_id.to_string())
@@ -110,20 +108,17 @@ pub async fn read_by_char_id(
         .iter()
         .filter(|(k, _)| k.starts_with(&char_id.to_string()))
         .map(|(_, v)| {
-            let description = v
-                .split_description()
+            let description: ParameterizedDescription = v.desc.clone().into();
+            let params = get_sorted_params(v.params.clone(), &v.desc)
                 .iter()
                 .map(|e| e.to_string())
-                .collect::<Vec<String>>();
-            let sorter = v.get_sorted_params_inds();
-            let binding = Parameter(v.params.clone().into()).sort_by_tuple(sorter);
-            let params = binding.iter().map(|e| e.to_string()).collect();
+                .collect();
 
             SimpleSkill {
                 id: v.id,
                 name: v.name.clone(),
                 ttype: BPSkill,
-                description,
+                description: description.0,
                 params: vec![params],
             }
         })

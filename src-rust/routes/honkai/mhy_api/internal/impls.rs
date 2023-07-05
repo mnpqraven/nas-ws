@@ -83,8 +83,8 @@ where
     ///
     /// This function will return an error if fetching data from fallback_url
     /// or writing to disk failed.
-    async fn try_write_disk(local_path: &str) -> Result<String, WorkerError> {
-        let (_, fallback_url) = Self::path_data();
+    async fn try_write_disk() -> Result<String, WorkerError> {
+        let (local_path, fallback_url) = Self::path_data();
         let data = reqwest::get(fallback_url).await?.text().await?;
         std::fs::write(local_path, data.clone())?;
         Ok(data)
@@ -96,14 +96,11 @@ where
     async fn read() -> Result<HashMap<String, T>, WorkerError> {
         let (local_path, _) = Self::path_data();
         let str_data: String = match std::path::Path::new(local_path).exists() {
-            true => {
-                info!("CACHE: HIT");
-                std::fs::read_to_string(local_path)?
-            }
+            true => std::fs::read_to_string(local_path)?,
             // lazily writes data
             false => {
                 info!("CACHE: MISS");
-                Self::try_write_disk(local_path).await?
+                Self::try_write_disk().await?
             }
         };
         Ok(serde_json::from_str(&str_data)?)

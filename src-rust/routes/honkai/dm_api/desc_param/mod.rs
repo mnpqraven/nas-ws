@@ -27,7 +27,7 @@ impl From<String> for ParameterizedDescription {
     }
 }
 
-/// a tuple of
+/// A tuple of
 /// 1. index of the params value
 /// 2. whether the params value should be displayed as percentage
 fn get_sorted_params_id(desc: &str) -> Vec<(usize, bool)> {
@@ -56,6 +56,7 @@ fn get_sorted_params_id(desc: &str) -> Vec<(usize, bool)> {
 }
 
 /// THIS HAS A DEPTH OF 1
+///
 /// for current application it means sorting a param list at specific skill
 /// level, if taken from json data
 /// returns sorted list and a flag noting this value is a percent or not

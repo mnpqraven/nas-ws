@@ -11,9 +11,10 @@ use crate::{
 };
 use axum::Json;
 use chrono::{DateTime, Datelike, NaiveDateTime, TimeZone, Timelike, Utc};
+use schemars::JsonSchema;
 use serde::{
     de::{self, Visitor},
-    Deserializer,
+    Deserializer, Serialize,
 };
 use std::{collections::HashMap, fmt, marker::PhantomData, sync::Arc};
 
@@ -22,7 +23,14 @@ pub mod equipment_atlas;
 #[cfg(test)]
 mod tests;
 
-pub async fn atlas_list() -> Result<Json<List<(u32, Vec<u32>)>>, WorkerError> {
+#[derive(Debug, Serialize, Clone, JsonSchema)]
+#[serde(rename(serialize = "camelCase"))]
+pub struct SignatureAtlas {
+    pub char_id: u32,
+    pub lc_id: Vec<u32>,
+}
+
+pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
     let chara_db = <DbCharacter as DbData<DbCharacter>>::read().await?;
     let eq_db = <EquipmentConfig as DbData<EquipmentConfig>>::read().await?;
 
@@ -116,9 +124,12 @@ pub async fn atlas_list() -> Result<Json<List<(u32, Vec<u32>)>>, WorkerError> {
         }
     }
 
-    let vec: Vec<(u32, Vec<u32>)> = base_feature_map
+    let vec: Vec<SignatureAtlas> = base_feature_map
         .iter()
-        .map(|(k, v)| (*k, v.clone()))
+        .map(|(k, v)| SignatureAtlas {
+            char_id: *k,
+            lc_id: v.clone(),
+        })
         .collect();
 
     Ok(Json(List::new(vec)))

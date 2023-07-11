@@ -1,14 +1,11 @@
 use clap::Parser;
-use nas_ws::routes::{
-    honkai::{
-        dm_api::{BigTraceInfo, LightCone},
-        mhy_api::{
-            internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
-            types_parsed::{shared::DbAttributeProperty, MihoResponse},
-        },
-        patch::types::{Patch, PatchBanner},
+use nas_ws::routes::honkai::{
+    dm_api::{atlas::SignatureAtlas, BigTraceInfo, LightCone},
+    mhy_api::{
+        internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
+        types_parsed::{shared::DbAttributeProperty, MihoResponse},
     },
-    utils::mock_hsr_log::Log,
+    patch::types::{Patch, PatchBanner},
 };
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
@@ -46,7 +43,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(MihoResponse), "MihoResponse"),
         // Schema::new(schema_for!(EstimateCfg), "EstimateCfg"),
         // Schema::new(schema_for!(MvpWrapper), "MvpWrapper"),
-        Schema::new(schema_for!(Log), "Log"),
         Schema::new(schema_for!(PatchBanner), "PatchBanner"),
         Schema::new(schema_for!(DbCharacter), "DbCharacter"),
         Schema::new(schema_for!(DbCharacterSkillTree), "DbCharacterSkillTree"),
@@ -55,6 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(BigTraceInfo), "BigTraceInfo"),
         Schema::new(schema_for!(Patch), "Patch"),
         Schema::new(schema_for!(LightCone), "LightConeFull"),
+        Schema::new(schema_for!(SignatureAtlas), "SignatureAtlas"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

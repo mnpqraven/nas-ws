@@ -108,7 +108,7 @@ pub struct DbCharacter {
     pub id: u32,
     pub name: String,
     tag: String,
-    rarity: u8,
+    pub rarity: u8,
     path: Path,
     pub element: Element,
     pub max_sp: u32,

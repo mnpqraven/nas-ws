@@ -25,6 +25,7 @@ mod constants;
 pub mod desc_param;
 pub mod impls;
 pub mod types;
+pub mod atlas;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonResponse, JsonSchema)]
 pub struct BigTraceInfo {

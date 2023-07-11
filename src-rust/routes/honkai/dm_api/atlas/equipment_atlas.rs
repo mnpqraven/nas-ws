@@ -3,6 +3,9 @@ use crate::routes::honkai::mhy_api::internal::impls::{DbData, DbDataLike};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(target_os = "windows")]
+const EQUIPMENT_ATLAS_LOCAL: &str = "c:\\tmp\\equipment_atlas.json";
+#[cfg(target_os = "linux")]
 const EQUIPMENT_ATLAS_LOCAL: &str = "/tmp/equipment_atlas.json";
 
 const EQUIPMENT_ATLAS_REMOTE: &str =

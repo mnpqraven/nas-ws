@@ -6,6 +6,9 @@ use crate::routes::honkai::{
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(target_os = "windows")]
+const AVATAR_ATLAS_LOCAL: &str = "c:\\tmp\\avatar_atlas.json";
+#[cfg(target_os = "linux")]
 const AVATAR_ATLAS_LOCAL: &str = "/tmp/avatar_atlas.json";
 
 const AVATAR_ATLAS_REMOTE: &str =

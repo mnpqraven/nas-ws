@@ -1,6 +1,6 @@
 use super::avatar_atlas::UpstreamAvatarAtlas;
-use crate::routes::honkai::dm_api::atlas::main_ret;
-use crate::routes::honkai::mhy_api::internal::impls::DbData;
+use crate::routes::honkai::{dm_api::atlas::atlas_list, mhy_api::internal::impls::DbData};
+use axum::Json;
 
 #[tokio::test]
 async fn serde() {
@@ -10,6 +10,6 @@ async fn serde() {
 
 #[tokio::test]
 async fn ret() {
-    let t = main_ret().await.unwrap();
+    let Json(t) = atlas_list().await.unwrap();
     dbg!(t);
 }

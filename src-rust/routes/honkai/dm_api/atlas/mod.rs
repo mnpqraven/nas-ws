@@ -1,11 +1,15 @@
 use self::{avatar_atlas::UpstreamAvatarAtlas, equipment_atlas::UpstreamEquipmentAtlas};
 use crate::{
     handler::error::WorkerError,
-    routes::honkai::{
-        dm_api::{types::EquipmentConfig, LightCone},
-        mhy_api::internal::{categorizing::DbCharacter, impls::DbData},
+    routes::{
+        endpoint_types::List,
+        honkai::{
+            dm_api::types::EquipmentConfig,
+            mhy_api::internal::{categorizing::DbCharacter, impls::DbData},
+        },
     },
 };
+use axum::Json;
 use chrono::{DateTime, Datelike, NaiveDateTime, TimeZone, Timelike, Utc};
 use serde::{
     de::{self, Visitor},
@@ -18,8 +22,7 @@ pub mod equipment_atlas;
 #[cfg(test)]
 mod tests;
 
-/// TODO:
-pub async fn main_ret() -> Result<HashMap<u32, Vec<u32>>, WorkerError> {
+pub async fn atlas_list() -> Result<Json<List<(u32, Vec<u32>)>>, WorkerError> {
     let chara_db = <DbCharacter as DbData<DbCharacter>>::read().await?;
     let eq_db = <EquipmentConfig as DbData<EquipmentConfig>>::read().await?;
 
@@ -64,7 +67,7 @@ pub async fn main_ret() -> Result<HashMap<u32, Vec<u32>>, WorkerError> {
                 .iter()
                 .find(|(_, eq_atlas)| equal(char_atlas, eq_atlas));
             match eq_date {
-                Some((eq_id, eq_banner_date)) => (
+                Some((eq_id, _)) => (
                     char_id.parse::<u32>().unwrap(),
                     vec![eq_id.parse::<u32>().unwrap()],
                 ),
@@ -73,7 +76,7 @@ pub async fn main_ret() -> Result<HashMap<u32, Vec<u32>>, WorkerError> {
         })
         .collect();
 
-    let base_feature_pair: Vec<(u32, Vec<u32>)> = vec![
+    let base_feature_pair: Arc<[(u32, Vec<u32>)]> = Arc::new([
         (1001, vec![21002]),        // march
         (1002, vec![21003]),        // dan heng
         (1003, vec![23000]),        // himeko
@@ -98,23 +101,27 @@ pub async fn main_ret() -> Result<HashMap<u32, Vec<u32>>, WorkerError> {
         (1206, vec![21010]),        // sushang
         (1207, vec![21025]),        // yukong
         (1211, vec![23013]),        // bailu
-    ];
+    ]);
     let mut base_feature_map: HashMap<u32, Vec<u32>> = HashMap::new();
+    // populate
     base_feature_pair.into_iter().for_each(|(k, v)| {
-        base_feature_map.insert(k, v);
+        base_feature_map.insert(*k, v.to_vec());
     });
+
     for (k, v) in banner_feature_pair.iter() {
-        match base_feature_map.get_mut(k) {
-            Some(eqs_in_map) => {
-                eqs_in_map.extend_from_slice(v);
-            }
-            None => {
-                base_feature_map.insert(*k, v.to_vec());
-            }
+        if let Some(eqs_in_map) = base_feature_map.get_mut(k) {
+            eqs_in_map.extend_from_slice(v);
+        } else {
+            base_feature_map.insert(*k, v.to_vec());
         }
     }
 
-    Ok(base_feature_map)
+    let vec: Vec<(u32, Vec<u32>)> = base_feature_map
+        .iter()
+        .map(|(k, v)| (*k, v.clone()))
+        .collect();
+
+    Ok(Json(List::new(vec)))
 }
 
 pub fn serialize_date_string<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>

@@ -34,5 +34,6 @@ pub fn honkai_routes() -> Router {
         .route("/mhy/attribute_property_list", get(properties))
         .route("/light_cone", get(dm_api::light_cone_list))
         .route("/light_cone/:id", get(dm_api::light_cone_by_id)) // db data
+        .route("/light_cones", post(dm_api::light_cone_by_ids)) // db data
         .route("/signature_atlas", get(atlas::atlas_list))
 }

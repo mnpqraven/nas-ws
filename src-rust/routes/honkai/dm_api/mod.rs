@@ -21,11 +21,11 @@ use std::{collections::HashMap, io::BufReader, sync::Arc};
 use tracing::info;
 use vercel_runtime::{Body, Response, StatusCode};
 
+pub mod atlas;
 mod constants;
 pub mod desc_param;
 pub mod impls;
 pub mod types;
-pub mod atlas;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonResponse, JsonSchema)]
 pub struct BigTraceInfo {
@@ -91,6 +91,34 @@ pub async fn light_cone_by_id(Path(lc_id): Path<u32>) -> Result<Json<LightCone>,
 
     info!("Duration: {:?}", now.elapsed());
     Ok(Json(res))
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Payload {
+    ids: Vec<u32>,
+}
+pub async fn light_cone_by_ids(
+    Json(lc_ids): Json<Payload>,
+) -> Result<Json<List<LightCone>>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let db_skill: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
+
+    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
+
+    let res: Vec<LightCone> = lc_ids
+        .ids
+        .into_iter()
+        .map(|lc_id| {
+            let metadata = db_metadata.get(&lc_id.to_string()).cloned().unwrap();
+            let skill = db_skill.get(&lc_id.to_string()).cloned().unwrap();
+            // TODO: LightCone
+            LightCone { metadata, skill }
+        })
+        .collect();
+    info!("Duration: {:?}", now.elapsed());
+
+    Ok(Json(List::new(res)))
 }
 
 pub async fn read_by_char_id(

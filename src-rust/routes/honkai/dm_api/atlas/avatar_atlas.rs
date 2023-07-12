@@ -1,8 +1,6 @@
 use super::serialize_date_string;
-use crate::routes::honkai::{
-    dm_api::types::Hash,
-    mhy_api::internal::impls::{DbData, DbDataLike},
-};
+use crate::routes::honkai::dm_api::hash::TextHash;
+use crate::routes::honkai::mhy_api::internal::impls::{DbData, DbDataLike};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -24,13 +22,13 @@ pub(super) struct UpstreamAvatarAtlas {
     #[serde(alias = "IsLocalTime")]
     pub is_local_time: Option<bool>,
     #[serde(alias = "CV_CN")]
-    pub cv_cn: Hash,
+    pub cv_cn: TextHash,
     #[serde(alias = "CV_JP")]
-    pub cv_jp: Hash,
+    pub cv_jp: TextHash,
     #[serde(alias = "CV_KR")]
-    pub cv_kr: Hash,
+    pub cv_kr: TextHash,
     #[serde(alias = "CV_EN")]
-    pub cv_en: Hash,
+    pub cv_en: TextHash,
     #[serde(alias = "CampID")]
     pub camp_id: u32,
 }

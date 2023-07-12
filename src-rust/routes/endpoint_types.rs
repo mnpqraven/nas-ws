@@ -1,10 +1,10 @@
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct List<T> {
     pub list: Vec<T>,
 }

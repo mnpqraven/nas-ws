@@ -112,7 +112,7 @@ pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
     ]);
     let mut base_feature_map: HashMap<u32, Vec<u32>> = HashMap::new();
     // populate
-    base_feature_pair.into_iter().for_each(|(k, v)| {
+    base_feature_pair.iter().for_each(|(k, v)| {
         base_feature_map.insert(*k, v.to_vec());
     });
 

@@ -1,4 +1,5 @@
 use super::desc_param::ParameterizedDescription;
+use crate::routes::honkai::dm_api::TextHash;
 use crate::routes::honkai::mhy_api::types_parsed::shared::{AssetPath, Path, Property};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -32,12 +33,6 @@ pub struct Param {
     pub value: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-pub struct Hash {
-    #[serde(alias = "Hash")]
-    pub hash: i64,
-}
-
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpstreamEquipmentConfig {
@@ -46,9 +41,9 @@ pub struct UpstreamEquipmentConfig {
     #[serde(alias = "Release")]
     pub release: bool,
     #[serde(alias = "EquipmentName")]
-    pub equipment_name: Hash,
+    pub equipment_name: TextHash,
     #[serde(alias = "EquipmentDesc")]
-    pub equipment_desc: Hash, // WARN: HASH LEADING TO NONE
+    pub equipment_desc: TextHash, // WARN: HASH LEADING TO NONE
     #[serde(alias = "Rarity")]
     pub rarity: LightConeRarity,
     #[serde(alias = "AvatarBaseType")]
@@ -149,9 +144,9 @@ pub struct UpstreamEquipmentSkillConfig {
     #[serde(alias = "SkillID")]
     pub skill_id: u32,
     #[serde(alias = "SkillName")]
-    pub skill_name: Hash,
+    pub skill_name: TextHash,
     #[serde(alias = "SkillDesc")]
-    pub skill_desc: Hash,
+    pub skill_desc: TextHash,
     #[serde(alias = "Level")]
     pub level: u32,
     #[serde(alias = "AbilityName")]
@@ -182,4 +177,10 @@ pub struct EquipmentSkillConfig {
     /// merge
     #[serde(alias = "AbilityProperty")]
     pub ability_property: Vec<Vec<AbilityProperty>>,
+}
+
+impl Into<f64> for Param {
+    fn into(self) -> f64 {
+        self.value
+    }
 }

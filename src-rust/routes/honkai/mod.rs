@@ -6,7 +6,7 @@ pub mod patch;
 pub mod probability_rate;
 pub mod utils;
 
-use self::dm_api::atlas;
+use self::dm_api::{atlas, avatar_config};
 use self::mhy_api::internal::{self, properties};
 use axum::routing::{get, post};
 use axum::Router;
@@ -36,4 +36,8 @@ pub fn honkai_routes() -> Router {
         .route("/light_cone/:id", get(dm_api::light_cone_by_id)) // db data
         .route("/light_cones", post(dm_api::light_cone_by_ids)) // db data
         .route("/signature_atlas", get(atlas::atlas_list))
+        .route(
+            "/avatar",
+            get(avatar_config::avatar_list).post(avatar_config::avatar_list),
+        )
 }

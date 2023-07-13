@@ -1,6 +1,10 @@
 use super::{
     constants::*,
     desc_param::{get_sorted_params, ParameterizedDescription},
+    equipment_config::{
+        equipment_config::{EquipmentConfig, UpstreamEquipmentConfig},
+        equipment_skill_config::{EquipmentSkillConfig, UpstreamEquipmentSkillConfig},
+    },
     types::*,
 };
 use crate::routes::honkai::dm_api::DbData;

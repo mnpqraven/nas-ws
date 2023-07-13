@@ -1,6 +1,9 @@
 use clap::Parser;
 use nas_ws::routes::honkai::{
-    dm_api::{atlas::SignatureAtlas, BigTraceInfo, LightCone},
+    dm_api::{
+        atlas::SignatureAtlas, avatar_config::upstream_avatar_config::AvatarConfig, BigTraceInfo,
+        LightCone,
+    },
     mhy_api::{
         internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
         types_parsed::{shared::DbAttributeProperty, MihoResponse},
@@ -41,10 +44,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let type_names = vec![
         Schema::new(schema_for!(MihoResponse), "MihoResponse"),
-        // Schema::new(schema_for!(EstimateCfg), "EstimateCfg"),
-        // Schema::new(schema_for!(MvpWrapper), "MvpWrapper"),
         Schema::new(schema_for!(PatchBanner), "PatchBanner"),
-        Schema::new(schema_for!(DbCharacter), "DbCharacter"),
+        Schema::new(schema_for!(DbCharacter), "DbCharacter"), // TODO: delete refactor
         Schema::new(schema_for!(DbCharacterSkillTree), "DbCharacterSkillTree"),
         Schema::new(schema_for!(DbCharacterEidolon), "DbCharacterEidolon"),
         Schema::new(schema_for!(DbAttributeProperty), "DbAttributeProperty"),
@@ -52,6 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(Patch), "Patch"),
         Schema::new(schema_for!(LightCone), "LightConeFull"),
         Schema::new(schema_for!(SignatureAtlas), "SignatureAtlas"),
+        Schema::new(schema_for!(AvatarConfig), "AvatarConfig"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

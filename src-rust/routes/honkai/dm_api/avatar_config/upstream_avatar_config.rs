@@ -12,6 +12,7 @@ use crate::{
     },
 };
 use async_trait::async_trait;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[cfg(target_os = "windows")]
@@ -69,7 +70,7 @@ pub struct UpstreamAvatarConfig {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(rename(serialize = "camelCase"))]
 pub struct AvatarConfig {
     #[serde(alias = "AvatarID")]
@@ -139,7 +140,7 @@ pub struct Item {
     item_num: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct DamageTypeResistance {
     #[serde(alias = "DamageType")]
     damage_type: Element,
@@ -236,8 +237,8 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
         } = self;
         let res = AvatarConfig {
             avatar_id,
-            avatar_name: avatar_name.read_from_textmap(&text_map)?,
-            avatar_full_name: avatar_full_name.read_from_textmap(&text_map)?,
+            avatar_name: avatar_name.read_from_textmap(text_map)?,
+            avatar_full_name: avatar_full_name.read_from_textmap(text_map)?,
             adventure_player_id,
             avatar_votag,
             rarity: rarity as u8,
@@ -252,10 +253,10 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
             reward_list_max,
             skill_list,
             avatar_base_type,
-            avatar_desc: avatar_desc.read_from_textmap(&text_map)?,
+            avatar_desc: avatar_desc.read_from_textmap(text_map)?,
             damage_type_resistance,
             release,
-            avatar_cutin_intro_text: avatar_cutin_intro_text.read_from_textmap(&text_map)?,
+            avatar_cutin_intro_text: avatar_cutin_intro_text.read_from_textmap(text_map)?,
         };
 
         Ok(res)

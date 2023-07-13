@@ -6,6 +6,7 @@ pub mod patch;
 pub mod probability_rate;
 pub mod utils;
 
+use self::dm_api::equipment_config::light_cone;
 use self::dm_api::{atlas, avatar_config};
 use self::mhy_api::internal::{self, properties};
 use axum::routing::{get, post};
@@ -32,12 +33,12 @@ pub fn honkai_routes() -> Router {
         .route("/mhy/eidolon/:char_id", get(internal::eidolon_by_char_id))
         .route("/mhy/skill/:id", get(internal::skill_by_char_id))
         .route("/mhy/attribute_property_list", get(properties))
-        .route("/light_cone", get(dm_api::light_cone_list))
-        .route("/light_cone/:id", get(dm_api::light_cone_by_id)) // db data
-        .route("/light_cones", post(dm_api::light_cone_by_ids)) // db data
+        .route("/light_cone", get(light_cone).post(light_cone))
+        .route("/light_cone/:id", get(light_cone)) // db data
         .route("/signature_atlas", get(atlas::atlas_list))
         .route(
             "/avatar",
-            get(avatar_config::avatar_list).post(avatar_config::avatar_list),
+            get(avatar_config::character).post(avatar_config::character),
         )
+        .route("/avatar/:id", get(avatar_config::character))
 }

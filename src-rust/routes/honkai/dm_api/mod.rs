@@ -1,4 +1,6 @@
-use self::types::EquipmentSkillConfig;
+use self::equipment_config::{
+    equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig,
+};
 use crate::{
     handler::{error::WorkerError, FromAxumResponse},
     routes::{
@@ -7,7 +9,8 @@ use crate::{
             dm_api::{
                 desc_param::{get_sorted_params, ParameterizedDescription},
                 hash::TextHash,
-                types::{EquipmentConfig, SkillTreeConfig, TextMap},
+                skill_tree_config::skill_tree_config::SkillTreeConfig,
+                types::TextMap,
             },
             mhy_api::internal::{categorizing::SkillType::BPSkill, impls::DbData},
             patch::types::SimpleSkill,
@@ -29,6 +32,7 @@ pub mod desc_param;
 pub mod equipment_config;
 pub mod hash;
 pub mod impls;
+pub mod skill_tree_config;
 pub mod types;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonResponse, JsonSchema)]
@@ -50,79 +54,6 @@ pub const BIG_TRACE_LOCAL: &str = "/tmp/big_traces.json";
 pub struct LightCone {
     pub metadata: EquipmentConfig,
     pub skill: EquipmentSkillConfig,
-}
-
-pub async fn light_cone_list() -> Result<Json<List<LightCone>>, WorkerError> {
-    let now = std::time::Instant::now();
-
-    let db_skill: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
-
-    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
-
-    let res = db_metadata
-        .keys()
-        .map(|key| {
-            let metadata = db_metadata
-                .get(key)
-                .cloned()
-                .ok_or(WorkerError::EmptyBody)?;
-            let skill = db_skill.get(key).cloned().ok_or(WorkerError::EmptyBody)?;
-            Ok(LightCone { metadata, skill })
-        })
-        .collect::<Result<Vec<LightCone>, WorkerError>>()?;
-
-    info!("Duration: {:?}", now.elapsed());
-    Ok(Json(List::new(res)))
-}
-
-pub async fn light_cone_by_id(Path(lc_id): Path<u32>) -> Result<Json<LightCone>, WorkerError> {
-    let now = std::time::Instant::now();
-
-    let db_skill: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
-
-    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
-
-    let metadata = db_metadata
-        .get(&lc_id.to_string())
-        .cloned()
-        .ok_or(WorkerError::EmptyBody)?;
-    let skill = db_skill
-        .get(&lc_id.to_string())
-        .cloned()
-        .ok_or(WorkerError::EmptyBody)?;
-
-    let res: LightCone = LightCone { metadata, skill };
-
-    info!("Duration: {:?}", now.elapsed());
-    Ok(Json(res))
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Payload {
-    ids: Vec<u32>,
-}
-pub async fn light_cone_by_ids(
-    Json(lc_ids): Json<Payload>,
-) -> Result<Json<List<LightCone>>, WorkerError> {
-    let now = std::time::Instant::now();
-
-    let db_skill: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
-
-    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
-
-    let res: Vec<LightCone> = lc_ids
-        .ids
-        .into_iter()
-        .map(|lc_id| {
-            let metadata = db_metadata.get(&lc_id.to_string()).cloned().unwrap();
-            let skill = db_skill.get(&lc_id.to_string()).cloned().unwrap();
-            // TODO: LightCone
-            LightCone { metadata, skill }
-        })
-        .collect();
-    info!("Duration: {:?}", now.elapsed());
-
-    Ok(Json(List::new(res)))
 }
 
 pub async fn read_by_char_id(
@@ -224,9 +155,12 @@ fn format_desc(desc: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::light_cone_by_id;
-    use crate::routes::honkai::dm_api::hash::TextHash;
-    use axum::extract::Path;
+    use crate::routes::{
+        endpoint_types::List,
+        honkai::dm_api::{equipment_config::light_cone, hash::TextHash},
+    };
+    use axum::Json;
+    use reqwest::Method;
 
     #[test]
     fn hasher() {
@@ -236,7 +170,9 @@ mod tests {
 
     #[tokio::test]
     async fn eq() {
-        let _left = light_cone_by_id(Path(23005)).await.unwrap();
+        let _left = light_cone(Method::POST, None, Some(Json(List::new(vec![23005]))))
+            .await
+            .unwrap();
         dbg!(&_left);
     }
 }

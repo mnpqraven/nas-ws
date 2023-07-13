@@ -1,7 +1,7 @@
 use crate::{
     handler::{error::WorkerError, FromAxumResponse},
     routes::honkai::{
-        dm_api::{types::EquipmentConfig, write_big_trace},
+        dm_api::{equipment_config::equipment_config::EquipmentConfig, write_big_trace},
         mhy_api::internal::{
             categorizing::{DbCharacter, DbCharacterSkill, DbCharacterSkillTree},
             impls::DbData,

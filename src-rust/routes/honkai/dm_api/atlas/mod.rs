@@ -1,12 +1,10 @@
 use self::{avatar_atlas::UpstreamAvatarAtlas, equipment_atlas::UpstreamEquipmentAtlas};
+use super::equipment_config::equipment_config::EquipmentConfig;
 use crate::{
     handler::error::WorkerError,
     routes::{
         endpoint_types::List,
-        honkai::{
-            dm_api::types::EquipmentConfig,
-            mhy_api::internal::{categorizing::DbCharacter, impls::DbData},
-        },
+        honkai::mhy_api::internal::{categorizing::DbCharacter, impls::DbData},
     },
 };
 use axum::Json;

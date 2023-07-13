@@ -12,6 +12,7 @@ use crate::{
     },
 };
 use async_trait::async_trait;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[cfg(target_os = "windows")]
@@ -69,7 +70,7 @@ pub struct UpstreamAvatarConfig {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(rename(serialize = "camelCase"))]
 pub struct AvatarConfig {
     #[serde(alias = "AvatarID")]
@@ -139,7 +140,7 @@ pub struct Item {
     item_num: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct DamageTypeResistance {
     #[serde(alias = "DamageType")]
     damage_type: Element,

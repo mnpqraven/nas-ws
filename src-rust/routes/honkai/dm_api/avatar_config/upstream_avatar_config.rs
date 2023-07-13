@@ -236,8 +236,8 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
         } = self;
         let res = AvatarConfig {
             avatar_id,
-            avatar_name: avatar_name.read_from_textmap(&text_map)?,
-            avatar_full_name: avatar_full_name.read_from_textmap(&text_map)?,
+            avatar_name: avatar_name.read_from_textmap(text_map)?,
+            avatar_full_name: avatar_full_name.read_from_textmap(text_map)?,
             adventure_player_id,
             avatar_votag,
             rarity: rarity as u8,
@@ -252,10 +252,10 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
             reward_list_max,
             skill_list,
             avatar_base_type,
-            avatar_desc: avatar_desc.read_from_textmap(&text_map)?,
+            avatar_desc: avatar_desc.read_from_textmap(text_map)?,
             damage_type_resistance,
             release,
-            avatar_cutin_intro_text: avatar_cutin_intro_text.read_from_textmap(&text_map)?,
+            avatar_cutin_intro_text: avatar_cutin_intro_text.read_from_textmap(text_map)?,
         };
 
         Ok(res)

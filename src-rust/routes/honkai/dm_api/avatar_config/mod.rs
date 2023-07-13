@@ -37,7 +37,7 @@ pub async fn avatar_list(
     // CRITICAL
     // WARN: massive time sink (> 10s !!!)
     let data: Result<Vec<AvatarConfig>, WorkerError> = filtered_upstream
-        .into_iter()
+        .iter()
         .map(|v| {
             let res = v.clone().into_using_resource(&text_map)?;
             Ok(res)

@@ -43,7 +43,7 @@ pub struct UpstreamEquipmentConfig {
     #[serde(alias = "EquipmentName")]
     pub equipment_name: TextHash,
     #[serde(alias = "EquipmentDesc")]
-    pub equipment_desc: TextHash, // WARN: HASH LEADING TO NONE
+    pub equipment_desc: TextHash,
     #[serde(alias = "Rarity")]
     pub rarity: LightConeRarity,
     #[serde(alias = "AvatarBaseType")]
@@ -179,8 +179,8 @@ pub struct EquipmentSkillConfig {
     pub ability_property: Vec<Vec<AbilityProperty>>,
 }
 
-impl Into<f64> for Param {
-    fn into(self) -> f64 {
-        self.value
+impl From<Param> for f64 {
+    fn from(val: Param) -> Self {
+        val.value
     }
 }

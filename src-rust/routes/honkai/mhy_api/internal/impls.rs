@@ -93,6 +93,7 @@ where
     /// read the local file for data, lazily writes from fallback url if not
     /// exist
     /// return hashmap with the db struct's PK as keys
+    /// WARN: this will error when used by maps that have multiple depths
     async fn read() -> Result<HashMap<String, T>, WorkerError> {
         let (local_path, _) = Self::path_data();
         let str_data: String = match std::path::Path::new(local_path).exists() {
@@ -105,4 +106,15 @@ where
         };
         Ok(serde_json::from_str(&str_data)?)
     }
+}
+
+#[async_trait]
+pub trait MultiDepth<T>
+where
+    T: Serialize + DeserializeOwned + Send + Sync,
+{
+
+    /// read from previous data, merging hashmaps with diff key into 1 large
+    /// item
+    async fn read_multi_depth<U>(&self, data: T) -> Result<U, WorkerError>;
 }

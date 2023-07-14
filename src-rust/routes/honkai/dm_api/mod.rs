@@ -94,57 +94,59 @@ pub async fn read_by_char_id(
 }
 
 pub async fn write_big_trace() -> Result<(), WorkerError> {
-    let mut big_trace_map: HashMap<String, BigTraceInfo> = HashMap::new();
+    // let mut big_trace_map: HashMap<String, BigTraceInfo> = HashMap::new();
+    //
+    // let text_map: HashMap<String, String> = TextMap::read().await?;
+    //
+    // let dm_trace_db = reqwest::get(DM_TRACE_DB).await?.text().await?;
+    // // depth 2 reads
+    // let dm_trace_db: HashMap<String, HashMap<String, SkillTreeConfig>> =
+    //     serde_json::from_str(&dm_trace_db)?;
+    //
+    // for (k, inner_map) in dm_trace_db.into_iter() {
+    //     // only big traces contains `_skilltree` in icon
+    //     if let Some(config) = inner_map.get(&"1".to_string()) {
+    //         // is big trace
+    //         if config.icon_path.contains("_SkillTree") {
+    //             let mut name = String::new();
+    //             let mut desc = String::new();
+    //             if !config.point_name.is_empty() {
+    //                 let hash = config.point_name.clone();
+    //                 let hashed = TextHash::get_stable_hash(&hash);
+    //
+    //                 if let Some(value) = text_map.get(&hashed.to_string()) {
+    //                     name = value.to_string();
+    //                 }
+    //             }
+    //             if !config.point_desc.is_empty() {
+    //                 let hash = config.point_desc.clone();
+    //                 let hashed = TextHash::get_stable_hash(&hash);
+    //                 if let Some(value) = text_map.get(&hashed.to_string()) {
+    //                     desc = format_desc(value);
+    //                 }
+    //             }
+    //
+    //             let trace_info = BigTraceInfo {
+    //                 id: k.parse::<u32>()?,
+    //                 name,
+    //                 desc,
+    //                 params: config.param_list.iter().map(|e| e.value).collect(),
+    //             };
+    //             println!("{:?}", trace_info);
+    //             big_trace_map.insert(k, trace_info);
+    //         }
+    //     }
+    // }
+    //
+    // // TODO: writer
+    // // TODO: trait implementation
+    // info!("{:?}", big_trace_map);
+    // std::fs::write(
+    //     BIG_TRACE_LOCAL,
+    //     serde_json::to_string_pretty(&big_trace_map)?,
+    // )?;
 
-    let text_map: HashMap<String, String> = TextMap::read().await?;
-
-    let dm_trace_db = reqwest::get(DM_TRACE_DB).await?.text().await?;
-    // depth 2 reads
-    let dm_trace_db: HashMap<String, HashMap<String, SkillTreeConfig>> =
-        serde_json::from_str(&dm_trace_db)?;
-
-    for (k, inner_map) in dm_trace_db.into_iter() {
-        // only big traces contains `_skilltree` in icon
-        if let Some(config) = inner_map.get(&"1".to_string()) {
-            // is big trace
-            if config.icon_path.contains("_SkillTree") {
-                let mut name = String::new();
-                let mut desc = String::new();
-                if !config.point_name.is_empty() {
-                    let hash = config.point_name.clone();
-                    let hashed = TextHash::get_stable_hash(&hash);
-
-                    if let Some(value) = text_map.get(&hashed.to_string()) {
-                        name = value.to_string();
-                    }
-                }
-                if !config.point_desc.is_empty() {
-                    let hash = config.point_desc.clone();
-                    let hashed = TextHash::get_stable_hash(&hash);
-                    if let Some(value) = text_map.get(&hashed.to_string()) {
-                        desc = format_desc(value);
-                    }
-                }
-
-                let trace_info = BigTraceInfo {
-                    id: k.parse::<u32>()?,
-                    name,
-                    desc,
-                    params: config.param_list.iter().map(|e| e.value).collect(),
-                };
-                println!("{:?}", trace_info);
-                big_trace_map.insert(k, trace_info);
-            }
-        }
-    }
-
-    // TODO: writer
-    // TODO: trait implementation
-    info!("{:?}", big_trace_map);
-    std::fs::write(
-        BIG_TRACE_LOCAL,
-        serde_json::to_string_pretty(&big_trace_map)?,
-    )?;
+    todo!();
 
     Ok(())
 }

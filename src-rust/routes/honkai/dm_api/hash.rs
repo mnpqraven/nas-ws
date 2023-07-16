@@ -1,16 +1,16 @@
 use super::types::TextMap;
-use crate::{handler::error::WorkerError, routes::honkai::mhy_api::internal::impls::DbData};
+use crate::{handler::error::WorkerError, routes::honkai::traits::DbData};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-pub struct TextHash {
-    #[serde(alias = "Hash")]
-    pub hash: i64,
-}
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct HashedString(pub String);
 
-impl TextHash {
-    pub fn get_stable_hash(hash: &str) -> i32 {
+impl HashedString {
+    pub fn get_stable_hash(&self) -> i32 {
+        let hash: &str = self.0.as_ref();
+
         let mut hash1: i32 = 5381;
         let mut hash2: i32 = hash1;
 
@@ -27,6 +27,32 @@ impl TextHash {
         hash1.wrapping_add(hash2.wrapping_mul(1566083941))
     }
 
+    pub fn dehash(&self, text_map: &HashMap<String, String>) -> Result<String, WorkerError> {
+        let hash: TextHash = self.get_stable_hash().into();
+        hash.read_from_textmap(&text_map)
+    }
+}
+
+impl From<HashedString> for TextHash {
+    fn from(value: HashedString) -> TextHash {
+        let hash = value.get_stable_hash();
+        TextHash { hash }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+pub struct TextHash {
+    #[serde(alias = "Hash")]
+    pub hash: i32,
+}
+
+impl From<i32> for TextHash {
+    fn from(value: i32) -> Self {
+        Self { hash: value }
+    }
+}
+
+impl TextHash {
     pub fn read_from_textmap(
         &self,
         text_map: &HashMap<String, String>,
@@ -40,16 +66,5 @@ impl TextHash {
 
         let value = text_map.get(&self.hash.to_string()).cloned();
         value.map_or(Ok(String::new()), |v| Ok(v))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::TextHash;
-
-    #[test]
-    fn arst() {
-        let t = TextHash::get_stable_hash("371857150");
-        dbg!(t);
     }
 }

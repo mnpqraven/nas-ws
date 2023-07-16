@@ -174,7 +174,7 @@ pub struct DbCharacterEidolon {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-enum Anchor {
+pub enum Anchor {
     Point01,
     Point02,
     Point03,

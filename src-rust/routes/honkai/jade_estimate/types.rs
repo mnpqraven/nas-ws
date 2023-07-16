@@ -22,6 +22,7 @@ pub struct EstimateCfg {
     pub battle_pass: BattlePassOption,
     pub eq: EqTier,
     pub moc: u32,
+    pub moc_current_week_done: bool,
     pub current_rolls: Option<i32>,
     pub current_jades: Option<i32>,
     pub daily_refills: Option<u32>,
@@ -296,7 +297,7 @@ impl RewardSource {
         let src_daily_mission = Self::src_daily_mission(diff_days);
         let src_daily_text = Self::src_daily_text(diff_days);
         let src_hoyolab_checkin = Self::src_hoyolab_checkin(dt_to);
-        let src_moc = Self::src_moc(cfg.moc, dt_to, &cfg.server)?;
+        let src_moc = Self::src_moc(cfg.moc,cfg.moc_current_week_done, dt_to, &cfg.server)?;
         let src_char_trial = Self::src_char_trial(dt_to, &cfg.server)?;
         let src_ember_trade = Self::src_ember_trade(dt_to, &cfg.server)?;
         let mut sources = vec![
@@ -509,11 +510,17 @@ impl RewardSource {
 
     fn src_moc(
         stars: u32,
+        // defaults to true
+        done_this_week: bool,
         until_date: DateTime<Utc>,
         server: &Server,
     ) -> Result<Self, WorkerError> {
         let freq = RewardFrequency::BiWeekly;
-        let diffs = freq.get_difference(Utc::now(), until_date, server)?;
+        let mut diffs = freq.get_difference(Utc::now(), until_date, server)?;
+        if !done_this_week {
+            diffs += 1;
+        }
+
         let amount: i32 = ((stars / 3) * 60 * diffs).try_into().unwrap();
         debug!(diffs, amount);
         Ok(Self {

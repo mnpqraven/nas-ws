@@ -51,9 +51,9 @@ path = "src-rust/lib.rs"
 [[bin]]
 name = "write_db"
 path = "api/cron/write_db.rs"
-# [[bin]]
-# name = "install_schema"
-# path = "api/dotfiles/install_schema.rs"
+[[bin]]
+name = "install_schema"
+path = "api/dotfiles/install_schema.rs"
 [[bin]]
 name = "warp_banners"
 path = "api/honkai/warp_banners.rs"
@@ -70,23 +70,8 @@ path = "api/honkai/patch_dates.rs"
 name = "probability_rate"
 path = "api/honkai/probability_rate.rs"
 [[bin]]
-name = "_id1_"
-path = "api/honkai/mhy/character/[id1].rs"
-[[bin]]
-name = "_id2_"
-path = "api/honkai/mhy/trace/[id2].rs"
-[[bin]]
-name = "_id3_"
-path = "api/honkai/mhy/eidolon/[id3].rs"
-[[bin]]
-name = "_id4_"
-path = "api/honkai/mhy/skill/[id4].rs"
-[[bin]]
-name = "attribute_property_list"
-path = "api/honkai/mhy/attribute_property_list.rs"
-# [[bin]]
-# name = "parse_mdx"
-# path = "api/utils/parse_mdx.rs"
+name = "parse_mdx"
+path = "api/utils/parse_mdx.rs"
 
 [[bin]]
 name = "json_writer"

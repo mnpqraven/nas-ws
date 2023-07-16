@@ -1,19 +1,19 @@
-use std::collections::HashMap;
-
 use crate::{
     builder::AsyncInto,
     handler::error::WorkerError,
     routes::honkai::{
-        dm_api::{hash::TextHash, types::Param},
-        mhy_api::{
-            internal::impls::{DbData, DbDataLike},
-            types_parsed::shared::{AssetPath, Element, Path},
+        dm_api::{
+            hash::TextHash,
+            types::{Param, TextMap},
         },
+        mhy_api::types_parsed::shared::{AssetPath, Element, Path},
+        traits::{DbData, DbDataLike},
     },
 };
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[cfg(target_os = "windows")]
 const AVATAR_CONFIG_LOCAL: &str = "c:\\tmp\\avatar_config.json";
@@ -132,7 +132,8 @@ pub enum AvatarRarity {
     CombatPowerAvatarRarityType5 = 5,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(rename(serialize = "camelCase"))]
 pub struct Item {
     #[serde(alias = "ItemID")]
     item_id: u32,
@@ -148,9 +149,29 @@ pub struct DamageTypeResistance {
     value: Param,
 }
 
-impl<T: DbDataLike> DbData<T> for UpstreamAvatarConfig {
+#[async_trait]
+impl<T: DbDataLike> DbData<T> for AvatarConfig {
     fn path_data() -> (&'static str, &'static str) {
         (AVATAR_CONFIG_LOCAL, AVATAR_CONFIG_REMOTE)
+    }
+
+    async fn try_write_disk() -> Result<String, WorkerError> {
+        let text_map: HashMap<String, String> = TextMap::read().await?;
+        let data = reqwest::get(AVATAR_CONFIG_REMOTE).await?.text().await?;
+
+        let typed: HashMap<String, UpstreamAvatarConfig> = serde_json::from_str(&data)?;
+
+        let transformed: HashMap<String, AvatarConfig> = typed
+            .into_iter()
+            .map(|(k, v)| {
+                let v = v.into_using_resource(&text_map).unwrap();
+                (k, v)
+            })
+            .collect();
+
+        let transformed_text = serde_json::to_string_pretty(&transformed)?;
+        std::fs::write(AVATAR_CONFIG_LOCAL, &transformed_text)?;
+        Ok(transformed_text)
     }
 }
 
@@ -235,16 +256,22 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
             release,
             avatar_cutin_intro_text,
         } = self;
+        let name = avatar_name.read_from_textmap(text_map)?;
+        let sanitized_tb_name = if name.eq("{NICKNAME}") {
+            format!("Trailblazer ({})", damage_type)
+        } else {
+            name
+        };
         let res = AvatarConfig {
             avatar_id,
-            avatar_name: avatar_name.read_from_textmap(text_map)?,
+            avatar_name: sanitized_tb_name,
             avatar_full_name: avatar_full_name.read_from_textmap(text_map)?,
             adventure_player_id,
             avatar_votag,
             rarity: rarity as u8,
             json_path,
             damage_type,
-            spneed: spneed.into(), // TODO: doublecheck
+            spneed: spneed.into(),
             exp_group,
             max_promotion,
             max_rank,

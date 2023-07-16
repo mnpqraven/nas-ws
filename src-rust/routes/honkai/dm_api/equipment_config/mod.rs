@@ -4,7 +4,9 @@ use crate::{
         endpoint_types::List,
         honkai::{
             dm_api::equipment_config::{
-                equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig,
+                equipment_config::EquipmentConfig,
+                equipment_promotion_config::EquipmentPromotionConfig,
+                equipment_skill_config::EquipmentSkillConfig,
             },
             traits::DbData,
         },
@@ -16,7 +18,9 @@ use std::{collections::HashMap, sync::Arc};
 use tracing::info;
 
 pub mod equipment_config;
+pub mod equipment_promotion_config;
 pub mod equipment_skill_config;
+pub mod stat_ranking;
 
 pub async fn light_cone(Path(lc_id): Path<u32>) -> Result<Json<EquipmentConfig>, WorkerError> {
     let now = std::time::Instant::now();
@@ -66,8 +70,8 @@ pub async fn light_cone_skill(
 
     info!("Duration: {:?}", now.elapsed());
     Ok(Json(res.clone()))
-
 }
+
 pub async fn light_cone_skill_many(
     method: Method,
     lc_ids: Option<Json<List<u32>>>,
@@ -81,6 +85,45 @@ pub async fn light_cone_skill_many(
     let db_metadata: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
 
     let res: Arc<[EquipmentSkillConfig]> = db_metadata
+        .iter()
+        .filter(|(k, _)| lc_ids.is_none() || lc_ids.as_ref().unwrap().contains(&k.parse().unwrap()))
+        .map(|(_, v)| v.clone())
+        .collect();
+
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(List::new(res.to_vec())))
+}
+
+pub async fn light_cone_promotion(
+    Path(lc_id): Path<u32>,
+) -> Result<Json<EquipmentPromotionConfig>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let promotion_db: HashMap<String, EquipmentPromotionConfig> =
+        EquipmentPromotionConfig::read().await?;
+
+    let res = promotion_db
+        .get(&lc_id.to_string())
+        .ok_or(WorkerError::EmptyBody)?;
+
+    info!("Duration: {:?}", now.elapsed());
+    Ok(Json(res.clone()))
+}
+
+pub async fn light_cone_promotion_many(
+    method: Method,
+    lc_ids: Option<Json<List<u32>>>,
+) -> Result<Json<List<EquipmentPromotionConfig>>, WorkerError> {
+    let now = std::time::Instant::now();
+    let lc_ids = match (&method, lc_ids) {
+        (&Method::POST, Some(Json(List { list }))) => Some(list),
+        _ => None,
+    };
+
+    let db_metadata: HashMap<String, EquipmentPromotionConfig> =
+        EquipmentPromotionConfig::read().await?;
+
+    let res: Arc<[EquipmentPromotionConfig]> = db_metadata
         .iter()
         .filter(|(k, _)| lc_ids.is_none() || lc_ids.as_ref().unwrap().contains(&k.parse().unwrap()))
         .map(|(_, v)| v.clone())

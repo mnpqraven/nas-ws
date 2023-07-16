@@ -5,10 +5,10 @@ use crate::{
             avatar_config::upstream_avatar_config::AvatarConfig,
             avatar_skill_config::types::AvatarSkillConfig,
             equipment_config::{
-                equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig,
+                equipment_config::*, equipment_promotion_config::*, equipment_skill_config::*,
             },
         },
-        mhy_api::internal::categorizing::{DbCharacterSkill, DbCharacterSkillTree},
+        mhy_api::internal::categorizing::*,
         traits::DbData,
     },
 };
@@ -26,7 +26,8 @@ pub struct CronResult {
     pub lc_db: bool,
     pub avatar_skill_db: bool,
     pub eq_metadata_db: bool,
-    pub eq_skill_db: bool
+    pub eq_skill_db: bool,
+    pub eq_promotion_db: bool,
 }
 
 pub async fn write_db() -> Result<Json<CronResult>, WorkerError> {
@@ -40,6 +41,8 @@ pub async fn write_db() -> Result<Json<CronResult>, WorkerError> {
     let eq_metadata_db = <EquipmentConfig as DbData<EquipmentConfig>>::try_write_disk().await;
     let eq_skill_db =
         <EquipmentSkillConfig as DbData<EquipmentSkillConfig>>::try_write_disk().await;
+    let eq_promotion_db =
+        <EquipmentPromotionConfig as DbData<EquipmentPromotionConfig>>::try_write_disk().await;
 
     Ok(Json(CronResult {
         skill_db: skill_db.is_ok(),
@@ -49,5 +52,6 @@ pub async fn write_db() -> Result<Json<CronResult>, WorkerError> {
         avatar_skill_db: avatar_skill_db.is_ok(),
         eq_metadata_db: eq_metadata_db.is_ok(),
         eq_skill_db: eq_skill_db.is_ok(),
+        eq_promotion_db: eq_promotion_db.is_ok(),
     }))
 }

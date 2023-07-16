@@ -20,6 +20,7 @@ pub enum LightConeRarity {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(rename(serialize = "camelCase"))]
 pub struct AbilityProperty {
     #[serde(alias = "PropertyType")]
     property_type: Property,

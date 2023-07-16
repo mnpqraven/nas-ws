@@ -1,5 +1,5 @@
 use super::serialize_date_string;
-use crate::routes::honkai::mhy_api::internal::impls::{DbData, DbDataLike};
+use crate::routes::honkai::traits::{DbData, DbDataLike};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 

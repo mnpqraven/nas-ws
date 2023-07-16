@@ -1,12 +1,9 @@
-use self::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkill, DbCharacterSkillTree};
+use self::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree};
 use crate::{
     handler::error::WorkerError,
     routes::{
         endpoint_types::List,
-        honkai::{
-            mhy_api::{internal::impls::DbData, types_parsed::shared::DbAttributeProperty},
-            patch::types::SimpleSkill,
-        },
+        honkai::{mhy_api::types_parsed::shared::DbAttributeProperty, traits::DbData},
     },
 };
 use anyhow::Result;
@@ -92,44 +89,6 @@ pub async fn eidolon_by_char_id(
     Ok(Json(eidolons.into()))
 }
 
-#[instrument(ret, err)]
-pub async fn skill_by_char_id(Path(id): Path<u32>) -> Result<Json<List<SimpleSkill>>, WorkerError> {
-    let now = std::time::Instant::now();
-    let db: HashMap<String, DbCharacterSkill> = DbCharacterSkill::read().await?;
-
-    let char_skills: List<SimpleSkill> = db
-        .iter()
-        .filter(|(k, _)| k.starts_with(&id.to_string()))
-        .map(|(_, v)| {
-            let description = v
-                .split_description()
-                .iter()
-                .map(|e| e.to_string())
-                .collect::<Vec<String>>();
-            let params = v
-                .params
-                .iter()
-                .map(|slv| {
-                    let t = slv.sort_by_tuple(v.get_sorted_params_inds());
-                    t.iter().map(|e| e.to_string()).collect()
-                })
-                .collect();
-
-            SimpleSkill {
-                id: v.id,
-                name: v.name.clone(),
-                ttype: v.ttype,
-                description,
-                params,
-            }
-        })
-        .collect::<Vec<SimpleSkill>>()
-        .into();
-
-    info!("{:?}", now.elapsed());
-    Ok(Json(char_skills))
-}
-
 pub async fn properties() -> Result<Json<List<DbAttributeProperty>>, WorkerError> {
     let now = std::time::Instant::now();
     let db: HashMap<String, DbAttributeProperty> = DbAttributeProperty::read().await?;
@@ -168,10 +127,13 @@ where
 mod tests {
     use std::collections::HashMap;
 
-    use crate::routes::honkai::mhy_api::internal::{
-        categorizing::{DbCharacter, DbCharacterSkill},
-        get_db_list,
-        impls::{DbData, Queryable},
+    use crate::routes::honkai::{
+        mhy_api::internal::{
+            categorizing::{DbCharacter, DbCharacterSkill},
+            get_db_list,
+            impls::Queryable,
+        },
+        traits::DbData,
     };
 
     #[tokio::test]
@@ -189,22 +151,5 @@ mod tests {
         dbg!(&to_test.params[0]);
 
         dbg!(&to_test.split_description());
-
-        // let right = vec![
-        //     "Deals Lightning DMG equal to ",
-        //     " of Kafka's ATK to all enemies, with a ",
-        //     " base chance for enemies hit to become Shocked and immediately take DMG equal to ",
-        //     " of the DoT. Shock lasts for ",
-        //     " turn(s).\nWhile Shocked, enemies receive Lightning DoT equal to ",
-        //     " of Kafka's ATK at the beginning of each turn.",
-        // ];
-        // assert_eq!(
-        //     to_test
-        //         .split_description()
-        //         .iter()
-        //         .map(|e| e.to_string())
-        //         .collect::<Vec<String>>(),
-        //     right
-        // );
     }
 }

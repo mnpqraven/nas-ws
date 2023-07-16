@@ -1,15 +1,16 @@
-use std::{collections::HashMap, sync::Arc};
-
 use crate::{
     handler::error::{ComputationType, WorkerError},
-    routes::honkai::mhy_api::{
-        internal::{
-            categorizing::{DbCharacter, DbCharacterSkill, Parameter, SkillType},
-            constants::{CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE},
-            get_db_list,
-            impls::{DbData, Queryable},
+    routes::honkai::{
+        mhy_api::{
+            internal::{
+                categorizing::{DbCharacter, DbCharacterSkill, Parameter, SkillType},
+                constants::{CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE},
+                get_db_list,
+                impls::Queryable,
+            },
+            types_parsed::{character::CharacterElement, shared::AssetPath},
         },
-        types_parsed::{character::CharacterElement, shared::AssetPath},
+        traits::DbData,
     },
 };
 use chrono::{DateTime, Duration, TimeZone, Utc};
@@ -19,6 +20,7 @@ use schemars::{
 };
 use semver::Version;
 use serde::Serialize;
+use std::{collections::HashMap, sync::Arc};
 
 #[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -48,7 +50,7 @@ pub struct Character {
     pub icon: Option<AssetPath>,           // FK
     pub element: Option<CharacterElement>, // FK
     pub skills: Vec<SimpleSkill>,
-    pub max_energy: u32
+    pub max_energy: u32,
 }
 
 #[derive(Serialize, Clone, Debug, JsonSchema)]

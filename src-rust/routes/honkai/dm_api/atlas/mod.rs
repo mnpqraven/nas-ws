@@ -4,7 +4,7 @@ use crate::{
     handler::error::WorkerError,
     routes::{
         endpoint_types::List,
-        honkai::mhy_api::internal::{categorizing::DbCharacter, impls::DbData},
+        honkai::{mhy_api::internal::categorizing::DbCharacter, traits::DbData},
     },
 };
 use axum::Json;

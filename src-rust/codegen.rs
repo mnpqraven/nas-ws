@@ -1,8 +1,9 @@
 use clap::Parser;
 use nas_ws::routes::honkai::{
     dm_api::{
-        atlas::SignatureAtlas, avatar_config::upstream_avatar_config::AvatarConfig, BigTraceInfo,
-        LightCone,
+        atlas::SignatureAtlas, avatar_config::upstream_avatar_config::AvatarConfig,
+        avatar_skill_config::types::AvatarSkillConfig,
+        skill_tree_config::skill_tree_config::SkillTreeConfig, equipment_config::{equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig},
     },
     mhy_api::{
         internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
@@ -49,11 +50,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(DbCharacterSkillTree), "DbCharacterSkillTree"),
         Schema::new(schema_for!(DbCharacterEidolon), "DbCharacterEidolon"),
         Schema::new(schema_for!(DbAttributeProperty), "DbAttributeProperty"),
-        Schema::new(schema_for!(BigTraceInfo), "BigTraceInfo"),
         Schema::new(schema_for!(Patch), "Patch"),
-        Schema::new(schema_for!(LightCone), "LightConeFull"),
+        Schema::new(schema_for!(SkillTreeConfig), "SkillTreeConfig"),
         Schema::new(schema_for!(SignatureAtlas), "SignatureAtlas"),
         Schema::new(schema_for!(AvatarConfig), "AvatarConfig"),
+        Schema::new(schema_for!(AvatarSkillConfig), "AvatarSkillConfig"),
+        Schema::new(schema_for!(EquipmentConfig), "EquipmentConfig"),
+        Schema::new(schema_for!(EquipmentSkillConfig), "EquipmentSkillConfig"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

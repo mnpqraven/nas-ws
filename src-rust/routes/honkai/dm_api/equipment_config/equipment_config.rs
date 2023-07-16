@@ -1,9 +1,26 @@
-use crate::routes::honkai::{
-    dm_api::{hash::TextHash, types::LightConeRarity},
-    mhy_api::types_parsed::shared::{AssetPath, Path},
+use crate::{
+    handler::error::WorkerError,
+    routes::honkai::{
+        dm_api::{
+            hash::TextHash,
+            types::{LightConeRarity, TextMap},
+        },
+        mhy_api::types_parsed::shared::{AssetPath, Path},
+        traits::{DbData, DbDataLike},
+    },
 };
+use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, sync::Arc};
+
+#[cfg(target_os = "windows")]
+pub const EQUIPMENT_CONFIG_LOCAL: &str = "c:\\tmp\\equipment_config.json";
+#[cfg(target_os = "linux")]
+pub const EQUIPMENT_CONFIG_LOCAL: &str = "/tmp/equipment_config.json";
+
+pub const EQUIPMENT_CONFIG_REMOTE: &str =
+    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/EquipmentConfig.json";
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
@@ -54,6 +71,7 @@ pub struct UpstreamEquipmentConfig {
     pub gacha_result_offset: Vec<f32>,
 }
 
+/// metadata for light cones
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct EquipmentConfig {
     #[serde(alias = "EquipmentID")]
@@ -94,4 +112,71 @@ pub struct EquipmentConfig {
     pub battle_dialog_offset: Vec<f32>,
     #[serde(skip, alias = "GachaResultOffset")]
     pub gacha_result_offset: Vec<f32>,
+}
+
+impl UpstreamEquipmentConfig {
+    fn to_merged(&self, (equipment_name, equipment_desc): (String, String)) -> EquipmentConfig {
+        EquipmentConfig {
+            equipment_id: self.equipment_id,
+            release: self.release,
+            equipment_name,
+            equipment_desc,
+            rarity: self.rarity as u8,
+            avatar_base_type: self.avatar_base_type,
+            max_promotion: self.max_promotion,
+            max_rank: self.max_rank,
+            exp_type: self.exp_type,
+            skill_id: self.skill_id,
+            exp_provide: self.exp_provide,
+            coin_cost: self.coin_cost,
+            rank_up_cost_list: self.rank_up_cost_list.clone(),
+            thumbnail_path: self.thumbnail_path.clone(),
+            image_path: self.image_path.clone(),
+            item_right_panel_offset: self.item_right_panel_offset.clone(),
+            avatar_detail_offset: self.avatar_detail_offset.clone(),
+            battle_dialog_offset: self.battle_dialog_offset.clone(),
+            gacha_result_offset: self.gacha_result_offset.clone(),
+        }
+    }
+}
+
+#[async_trait]
+impl<T: DbDataLike> DbData<T> for EquipmentConfig {
+    fn path_data() -> (&'static str, &'static str) {
+        (EQUIPMENT_CONFIG_LOCAL, EQUIPMENT_CONFIG_REMOTE)
+    }
+
+    async fn try_write_disk() -> Result<String, WorkerError> {
+        let (local_path, fallback_url) = <EquipmentConfig as DbData<T>>::path_data();
+        // EquipmentConfig
+        let data = reqwest::get(fallback_url).await?.text().await?;
+        let data: HashMap<String, UpstreamEquipmentConfig> = serde_json::from_str(&data)?;
+
+        // textmap chunk
+        let text_map_chunk: HashMap<String, String> = TextMap::read().await?;
+        // allow usage of generators (HashMap getter) inside `async move`
+        // closures (which requires `Fn`)
+        let arced_chunk = Arc::new(text_map_chunk);
+        let to_write_db: HashMap<String, EquipmentConfig> = data
+            .iter()
+            .map(|(key, value)| {
+                let arced_chunk = arced_chunk.clone();
+                let get_value = move |key: &str| arced_chunk.get(key).cloned().unwrap_or_default();
+
+                let (eq_name, eq_desc) = (
+                    get_value(&value.equipment_name.hash.to_string()),
+                    get_value(&value.equipment_desc.hash.to_string()),
+                );
+
+                let value = value.to_merged((eq_name, eq_desc));
+                (key.clone(), value)
+            })
+            .collect();
+
+        let to_write_text = serde_json::to_string_pretty(&to_write_db)?;
+
+        // convert to EquipmentSkillConfigMerged
+        std::fs::write(local_path, &to_write_text)?;
+        Ok(to_write_text)
+    }
 }

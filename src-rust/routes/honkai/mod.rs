@@ -4,10 +4,14 @@ pub mod jade_estimate;
 pub mod mhy_api;
 pub mod patch;
 pub mod probability_rate;
+pub mod traits;
 pub mod utils;
 
-use self::dm_api::equipment_config::light_cone;
-use self::dm_api::{atlas, avatar_config};
+use self::dm_api::equipment_config::{
+    light_cone, light_cone_many, light_cone_skill, light_cone_skill_many,
+};
+use self::dm_api::skill_tree_config::trace;
+use self::dm_api::{atlas, avatar_config, avatar_skill_config};
 use self::mhy_api::internal::{self, properties};
 use axum::routing::{get, post};
 use axum::Router;
@@ -28,17 +32,25 @@ pub fn honkai_routes() -> Router {
         .route("/mhy", post(mhy_api::handle))
         .route("/mhy/character", get(internal::all_characters))
         .route("/mhy/character/:id", get(internal::character_by_id))
-        .route("/mhy/trace/:char_id", get(internal::trace_by_char_id))
-        .route("/mhy/big_trace/:char_id", get(dm_api::read_by_char_id))
         .route("/mhy/eidolon/:char_id", get(internal::eidolon_by_char_id))
-        .route("/mhy/skill/:id", get(internal::skill_by_char_id))
         .route("/mhy/attribute_property_list", get(properties))
-        .route("/light_cone", get(light_cone).post(light_cone))
-        .route("/light_cone/:id", get(light_cone)) // db data
+        .route(
+            "/light_cone/metadata",
+            get(light_cone_many).post(light_cone_many),
+        )
+        .route("/light_cone/:id/metadata", get(light_cone))
+        .route(
+            "/light_cone/skill",
+            get(light_cone_skill_many).post(light_cone_skill_many),
+        )
+        .route("/light_cone/:id/skill", get(light_cone_skill))
         .route("/signature_atlas", get(atlas::atlas_list))
         .route(
             "/avatar",
-            get(avatar_config::character).post(avatar_config::character),
+            get(avatar_config::character_many).post(avatar_config::character_many),
         )
         .route("/avatar/:id", get(avatar_config::character))
+        .route("/avatar/:id/skill", get(avatar_skill_config::skill))
+        .route("/skills", post(avatar_skill_config::skills))
+        .route("/trace/:char_id", get(trace))
 }

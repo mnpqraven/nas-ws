@@ -7,8 +7,10 @@ pub mod probability_rate;
 pub mod traits;
 pub mod utils;
 
+use self::dm_api::equipment_config::stat_ranking::stat_ranking;
 use self::dm_api::equipment_config::{
-    light_cone, light_cone_many, light_cone_skill, light_cone_skill_many,
+    light_cone, light_cone_many, light_cone_promotion, light_cone_promotion_many, light_cone_skill,
+    light_cone_skill_many,
 };
 use self::dm_api::skill_tree_config::trace;
 use self::dm_api::{atlas, avatar_config, avatar_skill_config};
@@ -44,6 +46,12 @@ pub fn honkai_routes() -> Router {
             get(light_cone_skill_many).post(light_cone_skill_many),
         )
         .route("/light_cone/:id/skill", get(light_cone_skill))
+        .route(
+            "/light_cone/promotion",
+            get(light_cone_promotion_many).post(light_cone_promotion_many),
+        )
+        .route("/light_cone/:id/promotion", get(light_cone_promotion))
+        .route("/light_cone/ranking", get(stat_ranking))
         .route("/signature_atlas", get(atlas::atlas_list))
         .route(
             "/avatar",

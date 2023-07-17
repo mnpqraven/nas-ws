@@ -3,7 +3,7 @@ use nas_ws::routes::honkai::{
     dm_api::{
         atlas::SignatureAtlas, avatar_config::upstream_avatar_config::AvatarConfig,
         avatar_skill_config::types::AvatarSkillConfig,
-        skill_tree_config::skill_tree_config::SkillTreeConfig, equipment_config::{equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig},
+        skill_tree_config::skill_tree_config::SkillTreeConfig, equipment_config::{equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig, stat_ranking::EquipmentRanking},
     },
     mhy_api::{
         internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(AvatarSkillConfig), "AvatarSkillConfig"),
         Schema::new(schema_for!(EquipmentConfig), "EquipmentConfig"),
         Schema::new(schema_for!(EquipmentSkillConfig), "EquipmentSkillConfig"),
+        Schema::new(schema_for!(EquipmentRanking), "EquipmentRanking"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

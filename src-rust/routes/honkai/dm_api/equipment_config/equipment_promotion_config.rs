@@ -45,7 +45,7 @@ struct UpstreamEquipmentPromotionConfig {
     base_defence_add: Param,
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema, Clone, Default)]
 pub struct EquipmentPromotionConfig {
     #[serde(alias = "EquipmentID")]
     pub equipment_id: u32,
@@ -89,26 +89,24 @@ impl<T: DbDataLike> DbData<T> for EquipmentPromotionConfig {
         let merged: HashMap<String, EquipmentPromotionConfig> = data
             .into_iter()
             .map(|(k, inner_map)| {
-                let mut iter = inner_map.into_iter();
-                let iter = iter.by_ref();
-
-                let merged_struct = EquipmentPromotionConfig {
+                let mut res = EquipmentPromotionConfig {
                     equipment_id: k.parse::<u32>().unwrap(),
-                    promotion: iter.map(|e| e.1.promotion).collect(),
-                    promotion_cost_list: iter.map(|e| e.1.promotion_cost_list.clone()).collect(),
-                    world_level_require: iter
-                        .map(|e| e.1.world_level_require.unwrap_or_default())
-                        .collect(),
-                    max_level: iter.map(|e| e.1.max_level).collect(),
-                    base_hp: iter.map(|e| e.1.base_hp.value).collect(),
-                    base_hpadd: iter.map(|e| e.1.base_hpadd.value).collect(),
-                    base_attack: iter.map(|e| e.1.base_attack.value).collect(),
-                    base_attack_add: iter.map(|e| e.1.base_attack_add.value).collect(),
-                    base_defence: iter.map(|e| e.1.base_defence.value).collect(),
-                    base_defence_add: iter.map(|e| e.1.base_defence_add.value).collect(),
+                    ..Default::default()
                 };
+                for (key, value) in inner_map.into_iter() {
+                    res.promotion.push(value.promotion);
+                    res.promotion_cost_list.push(value.promotion_cost_list);
+                    res.world_level_require.push(value.world_level_require.unwrap_or_default());
+                    res.max_level.push(value.max_level);
+                    res.base_hp.push(value.base_hp.value);
+                    res.base_hpadd.push(value.base_hpadd.value);
+                    res.base_attack.push(value.base_attack.value);
+                    res.base_attack_add.push(value.base_attack_add.value);
+                    res.base_defence.push(value.base_defence.value);
+                    res.base_defence_add.push(value.base_defence_add.value);
+                }
 
-                (k, merged_struct)
+                (k, res)
             })
             .collect();
 

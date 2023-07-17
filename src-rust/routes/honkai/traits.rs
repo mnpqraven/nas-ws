@@ -38,7 +38,9 @@ where
             // lazily writes data
             false => {
                 info!("CACHE: MISS");
-                Self::try_write_disk().await?
+                let written = Self::try_write_disk().await?;
+                info!("CACHE WRITTEN");
+                written
             }
         };
         Ok(serde_json::from_str(&str_data)?)

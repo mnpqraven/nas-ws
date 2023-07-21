@@ -64,7 +64,7 @@ pub struct UpstreamAvatarConfig {
     #[serde(alias = "DamageTypeResistance")]
     pub damage_type_resistance: Vec<DamageTypeResistance>,
     #[serde(alias = "Release")]
-    pub release: bool,
+    pub release: Option<bool>,
     #[serde(alias = "AvatarCutinIntroText")]
     pub avatar_cutin_intro_text: TextHash,
 }
@@ -223,7 +223,7 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
             avatar_base_type,
             avatar_desc: avatar_desc.async_read_from_textmap().await?,
             damage_type_resistance,
-            release,
+            release: release.unwrap_or(false),
             avatar_cutin_intro_text: avatar_cutin_intro_text.async_read_from_textmap().await?,
         };
         Ok(res)
@@ -282,7 +282,7 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
             avatar_base_type,
             avatar_desc: avatar_desc.read_from_textmap(text_map)?,
             damage_type_resistance,
-            release,
+            release: release.unwrap_or(false),
             avatar_cutin_intro_text: avatar_cutin_intro_text.read_from_textmap(text_map)?,
         };
 

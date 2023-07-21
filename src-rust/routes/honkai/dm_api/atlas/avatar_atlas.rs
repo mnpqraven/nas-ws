@@ -18,11 +18,11 @@ const AVATAR_ATLAS_REMOTE: &str =
 pub(super) struct UpstreamAvatarAtlas {
     #[serde(alias = "AvatarID")]
     pub avatar_id: u32,
-    #[serde(alias = "GachaSchedule")]
-    #[serde(deserialize_with = "serialize_date_string")]
-    pub gacha_schedule: Option<DateTime<Utc>>,
-    #[serde(alias = "IsLocalTime")]
-    pub is_local_time: Option<bool>,
+    // #[serde(alias = "GachaSchedule")]
+    // #[serde(deserialize_with = "serialize_date_string")]
+    // pub gacha_schedule: Option<DateTime<Utc>>,
+    // #[serde(alias = "IsLocalTime")]
+    // pub is_local_time: Option<bool>,
     #[serde(alias = "CV_CN")]
     pub cv_cn: TextHash,
     #[serde(alias = "CV_JP")]

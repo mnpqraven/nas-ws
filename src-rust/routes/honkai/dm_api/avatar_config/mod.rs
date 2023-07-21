@@ -42,6 +42,7 @@ pub async fn character_many(
     let filtered: Arc<[AvatarConfig]> = avatar_db
         .iter()
         .filter(|(k, _)| ids.is_none() || ids.as_ref().unwrap().contains(&k.parse().unwrap()))
+        .filter(|(_, v)| v.release)
         .map(|(_, v)| v.clone())
         .collect();
 

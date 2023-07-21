@@ -32,35 +32,35 @@ pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
     let chara_db = <DbCharacter as DbData<DbCharacter>>::read().await?;
     let eq_db = <EquipmentConfig as DbData<EquipmentConfig>>::read().await?;
 
-    let equal = |a: &UpstreamAvatarAtlas, b: &UpstreamEquipmentAtlas| {
-        let (d1, d2) = (a.gacha_schedule, b.gacha_schedule);
-        let date_equal = match (d1, d2) {
-            (Some(d1), Some(d2)) => {
-                d1.year() == d2.year() && d1.month() == d2.month() && d1.day() == d2.day()
-            }
-            _ => false,
-        };
-        let c = chara_db.get(&a.avatar_id.to_string());
-        let e = eq_db.get(&b.equipment_id.to_string());
-        let rarity_equal = match (c, e) {
-            (Some(a), Some(b)) => a.rarity == b.rarity,
-            _ => false,
-        };
-        date_equal && rarity_equal
-    };
+    // let equal = |a: &UpstreamAvatarAtlas, b: &UpstreamEquipmentAtlas| {
+    //     let (d1, d2) = (a.gacha_schedule, b.gacha_schedule);
+    //     let date_equal = match (d1, d2) {
+    //         (Some(d1), Some(d2)) => {
+    //             d1.year() == d2.year() && d1.month() == d2.month() && d1.day() == d2.day()
+    //         }
+    //         _ => false,
+    //     };
+    //     let c = chara_db.get(&a.avatar_id.to_string());
+    //     let e = eq_db.get(&b.equipment_id.to_string());
+    //     let rarity_equal = match (c, e) {
+    //         (Some(a), Some(b)) => a.rarity == b.rarity,
+    //         _ => false,
+    //     };
+    //     date_equal && rarity_equal
+    // };
     // feature ungrouped tuple of charid, weap_id
     // NOTE: make map joining avatar_atlas and equipment_atlas, filter out
     // banner (map A)
     let char_map = <UpstreamAvatarAtlas as DbData<UpstreamAvatarAtlas>>::read().await?;
     let char_map: HashMap<String, UpstreamAvatarAtlas> = char_map
         .into_iter()
-        .filter(|(_, v)| v.gacha_schedule.is_some())
+        // .filter(|(_, v)| v.gacha_schedule.is_some())
         .collect();
 
     let eq_map = <UpstreamEquipmentAtlas as DbData<UpstreamEquipmentAtlas>>::read().await?;
     let eq_map: HashMap<String, UpstreamEquipmentAtlas> = eq_map
         .into_iter()
-        .filter(|(_, v)| v.gacha_schedule.is_some())
+        // .filter(|(_, v)| v.gacha_schedule.is_some())
         .collect();
 
     let eq_map_arced = Arc::new(eq_map);
@@ -69,9 +69,10 @@ pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
     let banner_feature_pair: Arc<[(u32, Vec<u32>)]> = char_map_arced
         .iter()
         .map(|(char_id, char_atlas)| {
-            let eq_date = eq_map_arced
-                .iter()
-                .find(|(_, eq_atlas)| equal(char_atlas, eq_atlas));
+            // let eq_date = eq_map_arced
+            //     .iter()
+            //     .find(|(_, eq_atlas)| equal(char_atlas, eq_atlas));
+            let eq_date: Option<(String, u32)> = None;
             match eq_date {
                 Some((eq_id, _)) => (
                     char_id.parse::<u32>().unwrap(),
@@ -107,6 +108,9 @@ pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
         (1206, vec![21010]),        // sushang
         (1207, vec![21025]),        // yukong
         (1211, vec![23013]),        // bailu
+        (1005, vec![23009]),        // blade
+        (1205, vec![23006]),        // kafka
+        (1111, vec![21015]),        // luka
     ]);
     let mut base_feature_map: HashMap<u32, Vec<u32>> = HashMap::new();
     // populate

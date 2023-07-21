@@ -15,11 +15,11 @@ const EQUIPMENT_ATLAS_REMOTE: &str =
 pub(super) struct UpstreamEquipmentAtlas {
     #[serde(alias = "EquipmentID")]
     pub equipment_id: u32,
-    #[serde(alias = "GachaSchedule")]
-    #[serde(deserialize_with = "serialize_date_string")]
-    pub gacha_schedule: Option<DateTime<Utc>>,
-    #[serde(alias = "IsLocalTime")]
-    pub is_local_time: Option<bool>,
+    // #[serde(alias = "GachaSchedule")]
+    // #[serde(deserialize_with = "serialize_date_string")]
+    // pub gacha_schedule: Option<DateTime<Utc>>,
+    // #[serde(alias = "IsLocalTime")]
+    // pub is_local_time: Option<bool>,
 }
 
 impl<T: DbDataLike> DbData<T> for UpstreamEquipmentAtlas {

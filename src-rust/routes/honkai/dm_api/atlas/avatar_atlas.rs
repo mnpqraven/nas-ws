@@ -15,7 +15,7 @@ const AVATAR_ATLAS_REMOTE: &str =
     "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/AvatarAtlas.json";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub(super) struct UpstreamAvatarAtlas {
+pub struct UpstreamAvatarAtlas {
     #[serde(alias = "AvatarID")]
     pub avatar_id: u32,
     // #[serde(alias = "GachaSchedule")]

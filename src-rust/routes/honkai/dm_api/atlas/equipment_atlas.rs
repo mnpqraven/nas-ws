@@ -12,7 +12,7 @@ const EQUIPMENT_ATLAS_REMOTE: &str =
     "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/EquipmentAtlas.json";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub(super) struct UpstreamEquipmentAtlas {
+pub struct UpstreamEquipmentAtlas {
     #[serde(alias = "EquipmentID")]
     pub equipment_id: u32,
     // #[serde(alias = "GachaSchedule")]

@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashMap};
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{
-        dm_api::{avatar_config::upstream_avatar_config::Item, types::Param},
+        dm_api::{character::upstream_avatar_config::Item, types::Param},
         traits::{DbData, DbDataLike},
     },
 };

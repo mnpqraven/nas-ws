@@ -7,13 +7,13 @@ pub mod probability_rate;
 pub mod traits;
 pub mod utils;
 
-use self::dm_api::equipment_config::stat_ranking::stat_ranking;
-use self::dm_api::equipment_config::{
+use self::dm_api::equipment::stat_ranking::stat_ranking;
+use self::dm_api::equipment::{
     light_cone, light_cone_many, light_cone_promotion, light_cone_promotion_many, light_cone_skill,
     light_cone_skill_many,
 };
-use self::dm_api::skill_tree_config::trace;
-use self::dm_api::{atlas, avatar_config, avatar_skill_config};
+use self::dm_api::equipment_skill::trace;
+use self::dm_api::{atlas, character, character_skill};
 use self::mhy_api::internal::{self, properties};
 use axum::routing::{get, post};
 use axum::Router;
@@ -55,10 +55,10 @@ pub fn honkai_routes() -> Router {
         .route("/signature_atlas", get(atlas::atlas_list))
         .route(
             "/avatar",
-            get(avatar_config::character_many).post(avatar_config::character_many),
+            get(character::character_many).post(character::character_many),
         )
-        .route("/avatar/:id", get(avatar_config::character))
-        .route("/avatar/:id/skill", get(avatar_skill_config::skill))
-        .route("/skills", post(avatar_skill_config::skills))
+        .route("/avatar/:id", get(character::character))
+        .route("/avatar/:id/skill", get(character_skill::skill))
+        .route("/skills", post(character_skill::skills))
         .route("/trace/:char_id", get(trace))
 }

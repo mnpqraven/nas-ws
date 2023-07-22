@@ -1,5 +1,5 @@
 use self::{avatar_atlas::UpstreamAvatarAtlas, equipment_atlas::UpstreamEquipmentAtlas};
-use super::equipment_config::equipment_config::EquipmentConfig;
+use super::equipment::equipment_config::EquipmentConfig;
 use crate::{
     handler::error::WorkerError,
     routes::{

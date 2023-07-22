@@ -1,12 +1,17 @@
 use clap::Parser;
 use nas_ws::routes::honkai::{
     dm_api::{
-        atlas::SignatureAtlas, avatar_config::upstream_avatar_config::AvatarConfig,
-        avatar_skill_config::types::AvatarSkillConfig,
-        skill_tree_config::skill_tree_config::SkillTreeConfig, equipment_config::{equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig, stat_ranking::EquipmentRanking},
+        atlas::SignatureAtlas,
+        character::upstream_avatar_config::AvatarConfig,
+        character_skill::types::AvatarSkillConfig,
+        equipment::{
+            equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig,
+            stat_ranking::EquipmentRanking,
+        },
+        equipment_skill::skill_tree_config::SkillTreeConfig,
     },
     mhy_api::{
-        internal::categorizing::{DbCharacter, DbCharacterEidolon, DbCharacterSkillTree},
+        internal::categorizing::DbCharacterEidolon,
         types_parsed::{shared::DbAttributeProperty, MihoResponse},
     },
     patch::types::{Patch, PatchBanner},
@@ -46,8 +51,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let type_names = vec![
         Schema::new(schema_for!(MihoResponse), "MihoResponse"),
         Schema::new(schema_for!(PatchBanner), "PatchBanner"),
-        Schema::new(schema_for!(DbCharacter), "DbCharacter"), // TODO: delete refactor
-        Schema::new(schema_for!(DbCharacterSkillTree), "DbCharacterSkillTree"),
         Schema::new(schema_for!(DbCharacterEidolon), "DbCharacterEidolon"),
         Schema::new(schema_for!(DbAttributeProperty), "DbAttributeProperty"),
         Schema::new(schema_for!(Patch), "Patch"),

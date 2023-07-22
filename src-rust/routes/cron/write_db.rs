@@ -7,12 +7,12 @@ use crate::{
                 atlas::{
                     avatar_atlas::UpstreamAvatarAtlas, equipment_atlas::UpstreamEquipmentAtlas,
                 },
-                avatar_config::upstream_avatar_config::AvatarConfig,
-                avatar_skill_config::types::AvatarSkillConfig,
-                equipment_config::{
+                character::upstream_avatar_config::AvatarConfig,
+                character_skill::types::AvatarSkillConfig,
+                equipment::{
                     equipment_config::*, equipment_promotion_config::*, equipment_skill_config::*,
                 },
-                skill_tree_config::skill_tree_config::SkillTreeConfig,
+                equipment_skill::skill_tree_config::SkillTreeConfig,
                 types::TextMap,
             },
             mhy_api::{internal::categorizing::*, types_parsed::shared::DbAttributeProperty},

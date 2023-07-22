@@ -3,7 +3,7 @@ use crate::{
     routes::{
         endpoint_types::List,
         honkai::{
-            dm_api::equipment_config::{
+            dm_api::equipment::{
                 equipment_config::EquipmentConfig,
                 equipment_promotion_config::EquipmentPromotionConfig,
                 equipment_skill_config::EquipmentSkillConfig,

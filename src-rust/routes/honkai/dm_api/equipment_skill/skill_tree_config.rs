@@ -2,7 +2,7 @@ use crate::{
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
-            avatar_config::upstream_avatar_config::Item,
+            character::upstream_avatar_config::Item,
             desc_param::{get_sorted_params, ParameterizedDescription},
             hash::{HashedString, TextHash},
             types::{AbilityProperty, Param, TextMap},
@@ -207,7 +207,7 @@ impl<T: DbDataLike> DbData<T> for SkillTreeConfig {
 #[cfg(test)]
 mod tests {
     use crate::routes::honkai::{
-        dm_api::skill_tree_config::skill_tree_config::SkillTreeConfig, traits::DbData,
+        dm_api::equipment_skill::skill_tree_config::SkillTreeConfig, traits::DbData,
     };
 
     #[tokio::test]

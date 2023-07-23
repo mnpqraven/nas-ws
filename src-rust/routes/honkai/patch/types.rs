@@ -1,13 +1,9 @@
 use crate::{
     handler::error::{ComputationType, WorkerError},
     routes::honkai::{
+        dm_api::character::upstream_avatar_config::AvatarConfig,
         mhy_api::{
-            internal::{
-                categorizing::{DbCharacter, DbCharacterSkill, Parameter, SkillType},
-                constants::{CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE},
-                get_db_list,
-                impls::Queryable,
-            },
+            internal::categorizing::SkillType,
             types_parsed::{character::CharacterElement, shared::AssetPath},
         },
         traits::DbData,
@@ -20,7 +16,6 @@ use schemars::{
 };
 use semver::Version;
 use serde::Serialize;
-use std::{collections::HashMap, sync::Arc};
 
 #[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -36,7 +31,7 @@ pub struct Patch {
 #[derive(Serialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchBanner {
-    pub character_data: Character,
+    pub character_data: Option<AvatarConfig>,
     pub version: PatchVersion,
     pub date_start: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
@@ -80,10 +75,8 @@ impl PatchBanner {
     ) -> Result<Vec<Self>, WorkerError> {
         let mut banners: Vec<PatchBanner> = vec![];
 
-        let character_list: HashMap<String, DbCharacter> = DbCharacter::read().await?;
+        let character_list = AvatarConfig::read().await?;
 
-        let skill_db =
-            get_db_list::<DbCharacterSkill>(CHARACTER_SKILL_LOCAL, CHARACTER_SKILL_REMOTE).await?;
         let mut patches = patches;
         patches.push(Patch::current());
 
@@ -98,65 +91,27 @@ impl PatchBanner {
 
             let fk1 = character_list
                 .iter()
-                .find(|(_, e)| char1.is_some() && e.name.eq(char1.unwrap()));
+                .find(|(_, e)| char1.is_some() && e.avatar_votag.eq(char1.unwrap()));
             let fk2 = character_list
                 .iter()
-                .find(|(_, e)| char2.is_some() && e.name.eq(char2.unwrap()));
-            let split = |fk: Option<(&String, &DbCharacter)>| match fk {
-                Some((_, x)) => (Some(x.icon.clone()), Some(x.element.clone().into())),
-                None => (None, None),
-            };
-            let char_skill = |fk_char: Option<(&String, &DbCharacter)>| match fk_char {
-                Some((_, character)) => skill_db
-                    .find_many(character.skill_ids())
-                    .iter()
-                    .map(|db_character_skill| SimpleSkill {
-                        id: db_character_skill.id,
-                        description: db_character_skill
-                            .split_description()
-                            .iter()
-                            .map(|e| e.to_string())
-                            .collect::<Vec<String>>(),
-                        params: db_character_skill
-                            .params
-                            .iter()
-                            .map(|skill_by_slv: &Parameter| {
-                                let sorter = db_character_skill.get_sorted_params_inds();
-                                let t = skill_by_slv.sort_by_tuple(sorter);
-                                t.iter().map(|e| e.to_string()).collect()
-                            })
-                            .collect(),
-                        name: db_character_skill.name.clone(),
-                        ttype: db_character_skill.ttype,
-                    })
-                    .collect::<Arc<[SimpleSkill]>>(),
-                None => vec![].into(),
-            };
+                .find(|(_, e)| char2.is_some() && e.avatar_votag.eq(char2.unwrap()));
 
-            let (icon, element) = split(fk1);
+            let char_data1 = match fk1 {
+                Some((key, _)) => character_list.get(key).cloned(),
+                None => None,
+            };
+            let char_data2 = match fk2 {
+                Some((key, _)) => character_list.get(key).cloned(),
+                None => None,
+            };
             banners.push(PatchBanner {
-                character_data: Character {
-                    character_name: char1.map(|e| e.into()),
-                    character_id: fk1.map(|(_, e)| e.id),
-                    icon,
-                    element,
-                    skills: char_skill(fk1).to_vec(),
-                    max_energy: fk1.map(|(_, e)| e.max_sp).unwrap_or_default(),
-                },
+                character_data: char_data1,
                 version: patch.version.clone(),
                 date_start: patch.date_start,
                 date_end: patch.date_2nd_banner,
             });
-            let (icon, element) = split(fk2);
             banners.push(PatchBanner {
-                character_data: Character {
-                    character_name: char2.map(|e| e.into()),
-                    character_id: fk2.map(|(_, e)| e.id),
-                    icon,
-                    element,
-                    skills: char_skill(fk2).to_vec(),
-                    max_energy: fk2.map(|(_, e)| e.max_sp).unwrap_or_default(),
-                },
+                character_data: char_data2,
                 version: patch.version.clone(),
                 date_start: patch.date_2nd_banner,
                 date_end: patch.date_end,
@@ -206,6 +161,7 @@ impl Patch {
     /// WARN: the name and version is not (yet) edited
     pub fn next(&mut self) {
         self.date_start += Duration::weeks(6);
+        self.date_2nd_banner += Duration::weeks(6);
         self.date_end += Duration::weeks(6);
         self.version.0.minor += 1;
     }

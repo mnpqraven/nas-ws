@@ -27,7 +27,6 @@ pub async fn warp_banner_list() -> Result<Json<List<Banner>>, WorkerError> {
     Ok(Json(banner_list))
 }
 
-#[instrument(ret, err)]
 pub async fn patch_banner_list() -> Result<Json<List<PatchBanner>>, WorkerError> {
     let now = std::time::Instant::now();
 

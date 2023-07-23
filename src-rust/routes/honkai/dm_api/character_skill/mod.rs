@@ -6,20 +6,30 @@ use crate::{
 use axum::{extract::Path, Json};
 use std::collections::HashMap;
 
+use super::character::upstream_avatar_config::AvatarConfig;
+
 pub mod types;
 
 pub async fn skill(
     Path(character_id): Path<u32>,
 ) -> Result<Json<List<AvatarSkillConfig>>, WorkerError> {
-    let skill_db: HashMap<String, AvatarSkillConfig> = AvatarSkillConfig::read().await?;
-    let res: Vec<AvatarSkillConfig> = skill_db
+    let skill_db: HashMap<u32, AvatarSkillConfig> = AvatarSkillConfig::read().await?;
+    let character_db = AvatarConfig::read().await?;
+    let character = character_db
+        .get(&character_id)
+        .ok_or(WorkerError::NotFound(character_id.to_string()))?;
+    let skills = character.skill_list.clone();
+    dbg!(&skills);
+
+    let res: Vec<AvatarSkillConfig> = skills
         .iter()
-        .filter(|(_, v)| {
-            v.skill_id
-                .to_string()
-                .starts_with(&character_id.to_string())
+        .map(|skill_id| {
+            skill_db
+                .get(skill_id)
+                .ok_or(WorkerError::NotFound(skill_id.to_string()))
+                .unwrap()
         })
-        .map(|(_, v)| v.clone())
+        .cloned()
         .collect();
 
     Ok(Json(List::new(res)))
@@ -28,16 +38,17 @@ pub async fn skill(
 pub async fn skills(
     Json(skill_ids): Json<List<u32>>,
 ) -> Result<Json<List<AvatarSkillConfig>>, WorkerError> {
-    let skill_db: HashMap<String, AvatarSkillConfig> = AvatarSkillConfig::read().await?;
-    let skill_ids: Vec<String> = skill_ids.list.iter().map(|e| e.to_string()).collect();
-    dbg!(&skill_ids);
-    let res: Vec<AvatarSkillConfig> = skill_db
+    let skill_db: HashMap<u32, AvatarSkillConfig> = AvatarSkillConfig::read().await?;
+    let res: Vec<AvatarSkillConfig> = skill_ids
+        .list
         .iter()
-        .filter(|(key, _)| {
-            dbg!(&key);
-            skill_ids.contains(&key)
+        .map(|key| {
+            skill_db
+                .get(key)
+                .ok_or(WorkerError::NotFound(key.to_string()))
+                .unwrap()
         })
-        .map(|(_, v)| v.clone())
+        .cloned()
         .collect();
 
     Ok(Json(List::new(res)))

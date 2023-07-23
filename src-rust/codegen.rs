@@ -2,17 +2,16 @@ use clap::Parser;
 use nas_ws::routes::honkai::{
     dm_api::{
         atlas::SignatureAtlas,
-        character::upstream_avatar_config::AvatarConfig,
+        character::{
+            promotion_config::AvatarPromotionConfig, upstream_avatar_config::AvatarConfig, eidolon::AvatarRankConfig,
+        },
         character_skill::types::AvatarSkillConfig,
         equipment::{
-            equipment_config::EquipmentConfig, equipment_skill_config::EquipmentSkillConfig,
-            stat_ranking::EquipmentRanking,
+            equipment_config::EquipmentConfig,
+            equipment_promotion_config::EquipmentPromotionConfig,
+            equipment_skill_config::EquipmentSkillConfig, stat_ranking::EquipmentRanking,
         },
-        equipment_skill::skill_tree_config::SkillTreeConfig,
-    },
-    mhy_api::{
-        internal::categorizing::DbCharacterEidolon,
-        types_parsed::{shared::DbAttributeProperty, MihoResponse},
+        equipment_skill::skill_tree_config::SkillTreeConfig, property::config::AvatarPropertyConfig,
     },
     patch::types::{Patch, PatchBanner},
 };
@@ -49,16 +48,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(schema_path).unwrap();
 
     let type_names = vec![
-        Schema::new(schema_for!(MihoResponse), "MihoResponse"),
         Schema::new(schema_for!(PatchBanner), "PatchBanner"),
-        Schema::new(schema_for!(DbCharacterEidolon), "DbCharacterEidolon"),
-        Schema::new(schema_for!(DbAttributeProperty), "DbAttributeProperty"),
         Schema::new(schema_for!(Patch), "Patch"),
         Schema::new(schema_for!(SkillTreeConfig), "SkillTreeConfig"),
         Schema::new(schema_for!(SignatureAtlas), "SignatureAtlas"),
         Schema::new(schema_for!(AvatarConfig), "AvatarConfig"),
+        Schema::new(schema_for!(AvatarPromotionConfig), "AvatarPromotionConfig"),
         Schema::new(schema_for!(AvatarSkillConfig), "AvatarSkillConfig"),
+        Schema::new(schema_for!(AvatarPropertyConfig), "AvatarPropertyConfig"),
+        Schema::new(schema_for!(AvatarRankConfig), "AvatarRankConfig"),
         Schema::new(schema_for!(EquipmentConfig), "EquipmentConfig"),
+        Schema::new(
+            schema_for!(EquipmentPromotionConfig),
+            "EquipmentPromotionConfig",
+        ),
         Schema::new(schema_for!(EquipmentSkillConfig), "EquipmentSkillConfig"),
         Schema::new(schema_for!(EquipmentRanking), "EquipmentRanking"),
     ];

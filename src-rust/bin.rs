@@ -1,15 +1,11 @@
-#![feature(trait_alias)]
-
 mod builder;
 mod handler;
 mod routes;
 
-use axum::Json;
+use crate::routes::{app_router, cron::dm_repo_clone, cron::write_db};
 use handler::error::WorkerError;
-use tokio_cron_scheduler::{Job, JobScheduler};
-
-use crate::routes::{app_router, cron::write_db::write_db};
 use std::{net::SocketAddr, time::Duration};
+use tokio_cron_scheduler::{Job, JobScheduler};
 
 #[tokio::main]
 async fn main() -> Result<(), WorkerError> {
@@ -19,23 +15,34 @@ async fn main() -> Result<(), WorkerError> {
         .init();
 
     let sched = JobScheduler::new().await?;
-    // TODO: derive macro
+    sched
+        .add(Job::new_repeated_async(
+            Duration::from_secs(1800), //half hour
+            |_uuid, _l| {
+                Box::pin(async move {
+                    let _ = dm_repo_clone::execute().await;
+                })
+            },
+        )?)
+        .await?;
+
     sched
         .add(Job::new_repeated_async(
             Duration::from_secs(3600 * 6), // every 6 hours
             |_uuid, _l| {
                 Box::pin(async move {
-                    let job = write_db().await;
-                    match job {
-                        Ok(Json(result)) => tracing::info!("{:?}", result),
-                        Err(err) => tracing::error!("{}", err.to_string()),
-                    }
+                    let _ = write_db::execute().await;
                 })
             },
         )?)
         .await?;
+
     tracing::info!("cronjob starting...");
     sched.start().await?;
+
+    tokio::spawn(async move {
+        let _ = dm_repo_clone::execute().await;
+    });
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5005));
     tracing::info!("listening on {}", addr);

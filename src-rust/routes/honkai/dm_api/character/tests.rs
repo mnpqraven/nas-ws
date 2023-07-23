@@ -5,6 +5,6 @@ use std::collections::HashMap;
 
 #[tokio::test]
 async fn reading() {
-    let t: HashMap<String, AvatarConfig> = AvatarConfig::read().await.unwrap();
+    let t: HashMap<u32, AvatarConfig> = AvatarConfig::read().await.unwrap();
     dbg!(t);
 }

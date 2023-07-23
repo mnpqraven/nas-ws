@@ -1,3 +1,6 @@
+use super::{
+    equipment_config::EquipmentConfig, equipment_promotion_config::EquipmentPromotionConfig,
+};
 use crate::{
     handler::error::WorkerError,
     routes::{endpoint_types::List, honkai::traits::DbData},
@@ -5,11 +8,7 @@ use crate::{
 use axum::Json;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
-
-use super::{
-    equipment_config::EquipmentConfig, equipment_promotion_config::EquipmentPromotionConfig,
-};
+use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
 pub struct EquipmentRanking {
@@ -21,26 +20,24 @@ pub struct EquipmentRanking {
     pub def: Vec<f64>,
 }
 pub async fn stat_ranking() -> Result<Json<List<EquipmentRanking>>, WorkerError> {
-    let promotion_db: HashMap<String, EquipmentPromotionConfig> =
-        EquipmentPromotionConfig::read().await?;
-    let equipment_config: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
+    let promotion_db = EquipmentPromotionConfig::read().await?;
+    let equipment_config = EquipmentConfig::read().await?;
     let equipment_config = Arc::new(equipment_config);
 
     let ranking: Vec<EquipmentRanking> = promotion_db
         .into_iter()
-        .map(|(k, v)| {
+        .map(|(key, v)| {
             let cloned = v.max_level.clone();
-            let equipment_id = k.parse().unwrap();
             let clos = |list: Vec<f64>, add: Vec<f64>| {
                 list.into_iter()
                     .enumerate()
                     .map(|(index, tier)| tier + (add[index] * (cloned[index] as f64 - 1.0)))
                     .collect()
             };
-            let name = &equipment_config.get(&k).unwrap().equipment_name;
+            let name = &equipment_config.get(&key).unwrap().equipment_name;
 
             EquipmentRanking {
-                equipment_id,
+                equipment_id: key,
                 equipment_name: name.to_owned(),
                 level: v.max_level,
                 hp: clos(v.base_hp, v.base_hpadd),

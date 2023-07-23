@@ -16,6 +16,8 @@ pub enum WorkerError {
     Computation(ComputationType),
     WrongMethod,
     EmptyBody,
+    ServerSide,
+    NotFound(String),
     Unknown(anyhow::Error),
 }
 
@@ -29,10 +31,10 @@ impl WorkerError {
     pub fn code(&self) -> StatusCode {
         match self {
             WorkerError::ParseData(_) => StatusCode::BAD_REQUEST,
-            WorkerError::Computation(_) => StatusCode::INTERNAL_SERVER_ERROR,
             WorkerError::EmptyBody => StatusCode::BAD_REQUEST,
+            WorkerError::NotFound(_) => StatusCode::BAD_REQUEST,
             WorkerError::WrongMethod => StatusCode::METHOD_NOT_ALLOWED,
-            WorkerError::Unknown(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
@@ -48,9 +50,11 @@ impl Display for WorkerError {
                 // ComputationType::BadNumberCast => todo!(),
                 _ => "Computation error from the server".to_owned(),
             },
+            Self::NotFound(resource) => format!("Resrouce/ID {resource} not found"),
             Self::WrongMethod => "Method is not supported".to_owned(),
             Self::EmptyBody => "Missing body data".to_owned(),
             Self::Unknown(err) => format!("Unknown error: {}", err),
+            Self::ServerSide => "Unknown server error".to_owned()
         };
         write!(f, "{}", fmt)
     }

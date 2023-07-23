@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use self::skill_tree_config::SkillTreeConfig;
 use crate::{
     handler::error::WorkerError,
@@ -10,7 +8,7 @@ use axum::{extract::Path, Json};
 pub mod skill_tree_config;
 
 pub async fn trace(Path(char_id): Path<u32>) -> Result<Json<List<SkillTreeConfig>>, WorkerError> {
-    let trace_db: HashMap<String, SkillTreeConfig> = SkillTreeConfig::read().await?;
+    let trace_db = SkillTreeConfig::read().await?;
 
     let res: Vec<SkillTreeConfig> = trace_db
         .iter()

@@ -8,21 +8,13 @@ use crate::{
             types::{AbilityProperty, Param, TextMap},
         },
         mhy_api::{internal::categorizing::Anchor, types_parsed::shared::AssetPath},
-        traits::{DbData, DbDataLike},
+        traits::DbData,
     },
 };
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
-
-#[cfg(target_os = "windows")]
-const SKILL_TREE_CONFIG_LOCAL: &str = "c:\\tmp\\avatar_skill_tree_config.json";
-#[cfg(target_os = "linux")]
-const SKILL_TREE_CONFIG_LOCAL: &str = "/tmp/avatar_skill_tree_config.json";
-
-const SKILL_TREE_CONFIG_REMOTE: &str =
-    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/AvatarSkillTreeConfig.json";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpstreamSkillTreeConfig {
@@ -106,21 +98,21 @@ pub struct SkillTreeConfig {
 }
 
 #[async_trait]
-impl<T: DbDataLike> DbData<T> for SkillTreeConfig {
-    fn path_data() -> (&'static str, &'static str) {
-        (SKILL_TREE_CONFIG_LOCAL, SKILL_TREE_CONFIG_REMOTE)
+impl DbData for SkillTreeConfig {
+    type TUpstream = HashMap<u32, BTreeMap<u32, UpstreamSkillTreeConfig>>;
+    type TLocal = HashMap<u32, SkillTreeConfig>;
+
+    fn path_data() -> &'static str {
+        "ExcelOutput/AvatarSkillTreeConfig.json"
     }
 
-    async fn try_write_disk() -> Result<String, WorkerError> {
-        let mut res: HashMap<String, SkillTreeConfig> = HashMap::new();
+    async fn upstream_convert(
+        from: HashMap<u32, BTreeMap<u32, UpstreamSkillTreeConfig>>,
+    ) -> Result<HashMap<u32, SkillTreeConfig>, WorkerError> {
+        let mut transformed: HashMap<u32, SkillTreeConfig> = HashMap::new();
         let text_map: HashMap<String, String> = TextMap::read().await?;
 
-        let trace_db = reqwest::get(SKILL_TREE_CONFIG_REMOTE).await?.text().await?;
-        // WARN: BTreeMap authenticity check
-        let trace_db: HashMap<String, BTreeMap<u32, UpstreamSkillTreeConfig>> =
-            serde_json::from_str(&trace_db)?;
-
-        for (k, inner_map) in trace_db.into_iter() {
+        for (k, inner_map) in from.into_iter() {
             let rest = inner_map.get(&1).unwrap();
             let unsplitted_desc =
                 TextHash::from(rest.point_desc.clone()).read_from_textmap(&text_map)?;
@@ -143,7 +135,7 @@ impl<T: DbDataLike> DbData<T> for SkillTreeConfig {
                     promotion_limits.push(b.avatar_promotion_limit);
                 });
 
-                res.insert(
+                transformed.insert(
                     k,
                     SkillTreeConfig {
                         point_id: rest.point_id,
@@ -195,12 +187,10 @@ impl<T: DbDataLike> DbData<T> for SkillTreeConfig {
                     point_trigger_key: value.point_trigger_key.read_from_textmap(&text_map)?,
                     param_list: sorted_params,
                 };
-                res.insert(k, value_into);
+                transformed.insert(k, value_into);
             }
         }
-        let data = serde_json::to_string_pretty(&res)?;
-        std::fs::write(SKILL_TREE_CONFIG_LOCAL, &data)?;
-        Ok(data)
+        Ok(transformed)
     }
 }
 
@@ -212,7 +202,7 @@ mod tests {
 
     #[tokio::test]
     async fn read() {
-        let trace_db = <SkillTreeConfig as DbData<SkillTreeConfig>>::read().await;
+        let trace_db = SkillTreeConfig::read().await;
         assert!(trace_db.is_ok());
     }
 }

@@ -1,10 +1,10 @@
 pub mod atlas;
 pub mod character;
 pub mod character_skill;
-mod constants;
 pub mod desc_param;
 pub mod equipment;
 pub mod hash;
 pub mod impls;
 pub mod equipment_skill;
 pub mod types;
+pub mod property;

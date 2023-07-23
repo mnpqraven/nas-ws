@@ -7,15 +7,16 @@ use crate::{
                 atlas::{
                     avatar_atlas::UpstreamAvatarAtlas, equipment_atlas::UpstreamEquipmentAtlas,
                 },
-                character::upstream_avatar_config::AvatarConfig,
+                character::{
+                    promotion_config::AvatarPromotionConfig, upstream_avatar_config::AvatarConfig, eidolon::AvatarRankConfig,
+                },
                 character_skill::types::AvatarSkillConfig,
                 equipment::{
                     equipment_config::*, equipment_promotion_config::*, equipment_skill_config::*,
                 },
                 equipment_skill::skill_tree_config::SkillTreeConfig,
-                types::TextMap,
+                types::TextMap, property::config::AvatarPropertyConfig,
             },
-            mhy_api::{internal::categorizing::*, types_parsed::shared::DbAttributeProperty},
             traits::DbData,
         },
     },
@@ -41,28 +42,24 @@ impl CronResult {
     }
 }
 
-pub async fn write_db() -> Result<Json<List<CronResult>>, WorkerError> {
+pub async fn execute() -> Result<Json<List<CronResult>>, WorkerError> {
     info!("write_db ...");
-    let skill_db = <DbCharacterSkill as DbData<DbCharacterSkill>>::try_write_disk().await.is_ok();
-    let trace_db = <DbCharacterSkillTree as DbData<DbCharacterSkillTree>>::try_write_disk().await.is_ok();
+    let avatar_db = AvatarConfig::try_write_disk().await.is_ok();
+    let avatar_skill_db = AvatarSkillConfig::try_write_disk().await.is_ok();
+    let eq_metadata_db = EquipmentConfig::try_write_disk().await.is_ok();
+    let eq_skill_db = EquipmentSkillConfig::try_write_disk().await.is_ok();
+    let eq_promotion_db = EquipmentPromotionConfig::try_write_disk().await.is_ok();
 
-    let avatar_db = <AvatarConfig as DbData<AvatarConfig>>::try_write_disk().await.is_ok();
-    let avatar_skill_db = <AvatarSkillConfig as DbData<AvatarSkillConfig>>::try_write_disk().await.is_ok();
-    let eq_metadata_db = <EquipmentConfig as DbData<EquipmentConfig>>::try_write_disk().await.is_ok();
-    let eq_skill_db = <EquipmentSkillConfig as DbData<EquipmentSkillConfig>>::try_write_disk().await.is_ok();
-    let eq_promotion_db = <EquipmentPromotionConfig as DbData<EquipmentPromotionConfig>>::try_write_disk().await.is_ok();
-
-    let avatar_atlas = <UpstreamAvatarAtlas as DbData<UpstreamAvatarAtlas>>::try_write_disk().await.is_ok();
-    let equipment_atlas = <UpstreamEquipmentAtlas as DbData<UpstreamEquipmentAtlas>>::try_write_disk().await.is_ok();
-    let eq_promotion = <EquipmentPromotionConfig as DbData<EquipmentPromotionConfig>>::try_write_disk().await.is_ok();
-    let text_map = <TextMap as DbData<TextMap>>::try_write_disk().await.is_ok();
-    let skill_tree_config = <SkillTreeConfig as DbData<SkillTreeConfig>>::try_write_disk().await.is_ok();
-    let db_character_eidolon = <DbCharacterEidolon as DbData<DbCharacterEidolon>>::try_write_disk().await.is_ok();
-    let attribute_property = <DbAttributeProperty as DbData<DbAttributeProperty>>::try_write_disk().await.is_ok();
+    let avatar_atlas = UpstreamAvatarAtlas::try_write_disk().await.is_ok();
+    let equipment_atlas = UpstreamEquipmentAtlas::try_write_disk().await.is_ok();
+    let eq_promotion = EquipmentPromotionConfig::try_write_disk().await.is_ok();
+    let text_map = TextMap::try_write_disk().await.is_ok();
+    let skill_tree_config = SkillTreeConfig::try_write_disk().await.is_ok();
+    let db_character_eidolon = AvatarPromotionConfig::try_write_disk().await.is_ok();
+    let property_config = AvatarPropertyConfig::try_write_disk().await.is_ok();
+    let eidolon = AvatarRankConfig::try_write_disk().await.is_ok();
 
     Ok(Json(List::new(vec![
-        CronResult::new("skill_db", skill_db),
-        CronResult::new("trace_db", trace_db),
         CronResult::new("avatar_db", avatar_db),
         CronResult::new("avatar_skill_db", avatar_skill_db),
         CronResult::new("eq_metadata_db", eq_metadata_db),
@@ -74,6 +71,7 @@ pub async fn write_db() -> Result<Json<List<CronResult>>, WorkerError> {
         CronResult::new("text_map", text_map),
         CronResult::new("skill_tree_config", skill_tree_config),
         CronResult::new("db_character_eidolon", db_character_eidolon),
-        CronResult::new("attribute_property", attribute_property),
+        CronResult::new("property_config", property_config),
+        CronResult::new("eidolon", eidolon),
     ])))
 }

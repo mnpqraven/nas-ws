@@ -13,6 +13,8 @@ use crate::{
     },
 };
 use axum::{extract::Path, Json};
+use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
+use regex::Regex;
 use reqwest::Method;
 use std::{collections::HashMap, sync::Arc};
 use tracing::info;
@@ -25,14 +27,34 @@ pub mod stat_ranking;
 pub async fn light_cone(Path(lc_id): Path<u32>) -> Result<Json<EquipmentConfig>, WorkerError> {
     let now = std::time::Instant::now();
 
-    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
+    let db_metadata: HashMap<u32, EquipmentConfig> = EquipmentConfig::read().await?;
 
-    let res = db_metadata
-        .get(&lc_id.to_string())
-        .ok_or(WorkerError::EmptyBody)?;
+    let res = db_metadata.get(&lc_id).ok_or(WorkerError::EmptyBody)?;
 
     info!("Duration: {:?}", now.elapsed());
     Ok(Json(res.clone()))
+}
+pub async fn light_cone_search(
+    Path(lc_name): Path<String>,
+) -> Result<Json<Option<EquipmentConfig>>, WorkerError> {
+    // sanitizes params, only interested in chracters
+    let regex = Regex::new("[^a-zA-Z0-9]").unwrap();
+    let lc_name = regex.replace_all(&lc_name, "").to_string();
+
+    let matcher = SkimMatcherV2::default();
+    let db_metadata: HashMap<u32, EquipmentConfig> = EquipmentConfig::read().await?;
+    let names: Vec<EquipmentConfig> = db_metadata
+        .into_values()
+        .filter(|v| {
+            let fuzz_result = matcher.fuzzy_match(&v.equipment_name, &lc_name);
+            fuzz_result.is_some()
+        })
+        .collect();
+    if names.is_empty() {
+        return Ok(Json(None));
+    }
+
+    Ok(Json(names.get(0).cloned()))
 }
 
 pub async fn light_cone_many(
@@ -45,11 +67,11 @@ pub async fn light_cone_many(
         _ => None,
     };
 
-    let db_metadata: HashMap<String, EquipmentConfig> = EquipmentConfig::read().await?;
+    let db_metadata = EquipmentConfig::read().await?;
 
     let res: Arc<[EquipmentConfig]> = db_metadata
         .iter()
-        .filter(|(k, _)| lc_ids.is_none() || lc_ids.as_ref().unwrap().contains(&k.parse().unwrap()))
+        .filter(|(k, _)| lc_ids.is_none() || lc_ids.as_ref().unwrap().contains(k))
         .map(|(_, v)| v.clone())
         .collect();
 
@@ -62,11 +84,9 @@ pub async fn light_cone_skill(
 ) -> Result<Json<EquipmentSkillConfig>, WorkerError> {
     let now = std::time::Instant::now();
 
-    let db_metadata: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
+    let db_metadata = EquipmentSkillConfig::read().await?;
 
-    let res = db_metadata
-        .get(&lc_id.to_string())
-        .ok_or(WorkerError::EmptyBody)?;
+    let res = db_metadata.get(&lc_id).ok_or(WorkerError::EmptyBody)?;
 
     info!("Duration: {:?}", now.elapsed());
     Ok(Json(res.clone()))
@@ -82,11 +102,11 @@ pub async fn light_cone_skill_many(
         _ => None,
     };
 
-    let db_metadata: HashMap<String, EquipmentSkillConfig> = EquipmentSkillConfig::read().await?;
+    let db_metadata = EquipmentSkillConfig::read().await?;
 
     let res: Arc<[EquipmentSkillConfig]> = db_metadata
         .iter()
-        .filter(|(k, _)| lc_ids.is_none() || lc_ids.as_ref().unwrap().contains(&k.parse().unwrap()))
+        .filter(|(k, _)| lc_ids.is_none() || lc_ids.as_ref().unwrap().contains(k))
         .map(|(_, v)| v.clone())
         .collect();
 
@@ -99,12 +119,9 @@ pub async fn light_cone_promotion(
 ) -> Result<Json<EquipmentPromotionConfig>, WorkerError> {
     let now = std::time::Instant::now();
 
-    let promotion_db: HashMap<String, EquipmentPromotionConfig> =
-        EquipmentPromotionConfig::read().await?;
+    let promotion_db = EquipmentPromotionConfig::read().await?;
 
-    let res = promotion_db
-        .get(&lc_id.to_string())
-        .ok_or(WorkerError::EmptyBody)?;
+    let res = promotion_db.get(&lc_id).ok_or(WorkerError::EmptyBody)?;
 
     info!("Duration: {:?}", now.elapsed());
     Ok(Json(res.clone()))
@@ -120,12 +137,11 @@ pub async fn light_cone_promotion_many(
         _ => None,
     };
 
-    let db_metadata: HashMap<String, EquipmentPromotionConfig> =
-        EquipmentPromotionConfig::read().await?;
+    let db_metadata = EquipmentPromotionConfig::read().await?;
 
     let res: Arc<[EquipmentPromotionConfig]> = db_metadata
         .iter()
-        .filter(|(k, _)| lc_ids.is_none() || lc_ids.as_ref().unwrap().contains(&k.parse().unwrap()))
+        .filter(|(k, _)| lc_ids.is_none() || lc_ids.as_ref().unwrap().contains(k))
         .map(|(_, v)| v.clone())
         .collect();
 

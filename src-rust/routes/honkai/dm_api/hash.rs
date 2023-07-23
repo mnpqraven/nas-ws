@@ -8,7 +8,7 @@ use std::collections::HashMap;
 pub struct HashedString(pub String);
 
 impl HashedString {
-    pub fn get_stable_hash(&self) -> i32 {
+    fn get_stable_hash(&self) -> i32 {
         let hash: &str = self.0.as_ref();
 
         let mut hash1: i32 = 5381;
@@ -29,7 +29,7 @@ impl HashedString {
 
     pub fn dehash(&self, text_map: &HashMap<String, String>) -> Result<String, WorkerError> {
         let hash: TextHash = self.get_stable_hash().into();
-        hash.read_from_textmap(&text_map)
+        hash.read_from_textmap(text_map)
     }
 }
 
@@ -58,13 +58,13 @@ impl TextHash {
         text_map: &HashMap<String, String>,
     ) -> Result<String, WorkerError> {
         let value = text_map.get(&self.hash.to_string()).cloned();
-        value.map_or(Ok(String::new()), |v| Ok(v))
+        value.map_or(Ok(String::new()), Ok)
     }
 
     pub async fn async_read_from_textmap(&self) -> Result<String, WorkerError> {
         let text_map: HashMap<String, String> = TextMap::read().await?;
 
         let value = text_map.get(&self.hash.to_string()).cloned();
-        value.map_or(Ok(String::new()), |v| Ok(v))
+        value.map_or(Ok(String::new()), Ok)
     }
 }

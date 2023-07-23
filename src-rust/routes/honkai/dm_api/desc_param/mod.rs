@@ -6,9 +6,10 @@ use std::fmt::Display;
 #[cfg(test)]
 mod tests;
 
+const DESC_SANITIZE: &str = r"(?<codeleft><.+?>)+(?<coderight><.+?>)*";
 const DESC_IDENT: &str = r"(?<codeleft><.+?>)*(?<slot>#\d\[.\d?\]%?)(?<coderight><.+?>)*";
 
-/// Usually served to the front end and connect string slices there
+// Usually served to the front end and connect string slices there
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct ParameterizedDescription(pub Vec<String>);
 
@@ -20,6 +21,10 @@ pub struct ParameterValue(pub (f64, bool));
 
 impl From<String> for ParameterizedDescription {
     fn from(value: String) -> Self {
+        // sanitize the string, removing all xml tags
+        let sanitizer = Regex::new(DESC_SANITIZE).unwrap();
+        let value = sanitizer.replace_all(&value, "");
+
         let regex = Regex::new(DESC_IDENT).unwrap();
 
         let res: Vec<String> = regex.split(&value).map(|e| e.into()).collect();

@@ -36,6 +36,7 @@ fake = { version = "2.6.1", features = ["derive"] }
 clap = { version = "4.3.5", features = ["derive"] }
 tokio-cron-scheduler = "0.9.4"
 futures = "0.3.28"
+fuzzy-matcher = "0.3.7"
 
 [[bin]]
 name = "nas-ws"
@@ -48,9 +49,6 @@ path = "src-rust/codegen.rs"
 [lib]
 path = "src-rust/lib.rs"
 
-[[bin]]
-name = "write_db"
-path = "api/cron/write_db.rs"
 [[bin]]
 name = "install_schema"
 path = "api/dotfiles/install_schema.rs"
@@ -72,7 +70,3 @@ path = "api/honkai/probability_rate.rs"
 [[bin]]
 name = "parse_mdx"
 path = "api/utils/parse_mdx.rs"
-
-[[bin]]
-name = "json_writer"
-path = "src-rust/json_writer.rs"

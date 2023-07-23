@@ -7,14 +7,15 @@ pub mod probability_rate;
 pub mod traits;
 pub mod utils;
 
-use self::dm_api::equipment_config::stat_ranking::stat_ranking;
-use self::dm_api::equipment_config::{
-    light_cone, light_cone_many, light_cone_promotion, light_cone_promotion_many, light_cone_skill,
-    light_cone_skill_many,
+use self::dm_api::character::{character_by_name, promotion, character_many, eidolon};
+use self::dm_api::equipment::stat_ranking::stat_ranking;
+use self::dm_api::equipment::{
+    light_cone, light_cone_many, light_cone_promotion, light_cone_promotion_many,
+    light_cone_search, light_cone_skill, light_cone_skill_many,
 };
-use self::dm_api::skill_tree_config::trace;
-use self::dm_api::{atlas, avatar_config, avatar_skill_config};
-use self::mhy_api::internal::{self, properties};
+use self::dm_api::equipment_skill::trace;
+use self::dm_api::property::property;
+use self::dm_api::{atlas, character, character_skill};
 use axum::routing::{get, post};
 use axum::Router;
 
@@ -32,10 +33,12 @@ pub fn honkai_routes() -> Router {
         .route("/patch_banners", get(banner::patch_banner_list))
         .route("/warp_banners", get(banner::warp_banner_list))
         .route("/mhy", post(mhy_api::handle))
-        .route("/mhy/character", get(internal::all_characters))
-        .route("/mhy/character/:id", get(internal::character_by_id))
-        .route("/mhy/eidolon/:char_id", get(internal::eidolon_by_char_id))
-        .route("/mhy/attribute_property_list", get(properties))
+        // .route("/mhy/character", get(internal::all_characters))
+        // .route("/mhy/character/:id", get(internal::character_by_id))
+        // .route("/mhy/eidolon/:char_id", get(internal::eidolon_by_char_id))
+        // .route("/mhy/attribute_property_list", get(properties))
+        .route("/properties", get(property))
+        .route("/light_cone/search/:name", get(light_cone_search))
         .route(
             "/light_cone/metadata",
             get(light_cone_many).post(light_cone_many),
@@ -53,12 +56,14 @@ pub fn honkai_routes() -> Router {
         .route("/light_cone/:id/promotion", get(light_cone_promotion))
         .route("/light_cone/ranking", get(stat_ranking))
         .route("/signature_atlas", get(atlas::atlas_list))
-        .route(
-            "/avatar",
-            get(avatar_config::character_many).post(avatar_config::character_many),
-        )
-        .route("/avatar/:id", get(avatar_config::character))
-        .route("/avatar/:id/skill", get(avatar_skill_config::skill))
-        .route("/skills", post(avatar_skill_config::skills))
-        .route("/trace/:char_id", get(trace))
+
+        .route("/avatar", get(character_many).post(character_many))
+        .route("/avatar/:id", get(character::character))
+        .route("/avatar/:id/skill", get(character_skill::skill))
+        .route("/avatar/:id/trace", get(trace))
+        .route("/avatar/:id/promotion", get(promotion))
+        .route("/avatar/:id/eidolon", get(eidolon))
+        .route("/character/search/:name", get(character_by_name))
+
+        .route("/skills", post(character_skill::skills))
 }

@@ -4,7 +4,7 @@ use axum::Json;
 
 #[tokio::test]
 async fn serde() {
-    let t = <UpstreamAvatarAtlas as DbData<UpstreamAvatarAtlas>>::read().await;
+    let t = UpstreamAvatarAtlas::read().await;
     assert!(t.is_ok());
 }
 

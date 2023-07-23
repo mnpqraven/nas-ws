@@ -7,21 +7,13 @@ use crate::{
             types::{Param, TextMap},
         },
         mhy_api::types_parsed::shared::{AssetPath, Element, Path},
-        traits::{DbData, DbDataLike},
+        traits::DbData,
     },
 };
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-#[cfg(target_os = "windows")]
-const AVATAR_CONFIG_LOCAL: &str = "c:\\tmp\\avatar_config.json";
-#[cfg(target_os = "linux")]
-const AVATAR_CONFIG_LOCAL: &str = "/tmp/avatar_config.json";
-
-const AVATAR_CONFIG_REMOTE: &str =
-    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/AvatarConfig.json";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UpstreamAvatarConfig {
@@ -93,7 +85,7 @@ pub struct AvatarConfig {
     #[serde(alias = "DamageType")]
     pub damage_type: Element,
     #[serde(alias = "SPNeed")]
-    pub spneed: f64,
+    pub spneed: u32,
     #[serde(alias = "ExpGroup")]
     #[serde(skip)]
     exp_group: u32,
@@ -150,28 +142,26 @@ pub struct DamageTypeResistance {
 }
 
 #[async_trait]
-impl<T: DbDataLike> DbData<T> for AvatarConfig {
-    fn path_data() -> (&'static str, &'static str) {
-        (AVATAR_CONFIG_LOCAL, AVATAR_CONFIG_REMOTE)
+impl DbData for AvatarConfig {
+    type TUpstream = HashMap<u32, UpstreamAvatarConfig>;
+    type TLocal = HashMap<u32, AvatarConfig>;
+
+    fn path_data() -> &'static str {
+        "ExcelOutput/AvatarConfig.json"
     }
 
-    async fn try_write_disk() -> Result<String, WorkerError> {
+    async fn upstream_convert(
+        from: HashMap<u32, UpstreamAvatarConfig>,
+    ) -> Result<HashMap<u32, AvatarConfig>, WorkerError> {
         let text_map: HashMap<String, String> = TextMap::read().await?;
-        let data = reqwest::get(AVATAR_CONFIG_REMOTE).await?.text().await?;
-
-        let typed: HashMap<String, UpstreamAvatarConfig> = serde_json::from_str(&data)?;
-
-        let transformed: HashMap<String, AvatarConfig> = typed
+        let data = from
             .into_iter()
             .map(|(k, v)| {
                 let v = v.into_using_resource(&text_map).unwrap();
                 (k, v)
             })
             .collect();
-
-        let transformed_text = serde_json::to_string_pretty(&transformed)?;
-        std::fs::write(AVATAR_CONFIG_LOCAL, &transformed_text)?;
-        Ok(transformed_text)
+        Ok(data)
     }
 }
 
@@ -212,7 +202,7 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
             rarity: rarity as u8,
             json_path,
             damage_type,
-            spneed: spneed.into(),
+            spneed: spneed.value as u32,
             exp_group,
             max_promotion,
             max_rank,
@@ -271,7 +261,7 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
             rarity: rarity as u8,
             json_path,
             damage_type,
-            spneed: spneed.into(),
+            spneed: spneed.value as u32,
             exp_group,
             max_promotion,
             max_rank,

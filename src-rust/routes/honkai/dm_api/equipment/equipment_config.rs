@@ -6,21 +6,13 @@ use crate::{
             types::{LightConeRarity, TextMap},
         },
         mhy_api::types_parsed::shared::{AssetPath, Path},
-        traits::{DbData, DbDataLike},
+        traits::DbData,
     },
 };
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
-
-#[cfg(target_os = "windows")]
-pub const EQUIPMENT_CONFIG_LOCAL: &str = "c:\\tmp\\equipment_config.json";
-#[cfg(target_os = "linux")]
-pub const EQUIPMENT_CONFIG_LOCAL: &str = "/tmp/equipment_config.json";
-
-pub const EQUIPMENT_CONFIG_REMOTE: &str =
-    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/EquipmentConfig.json";
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
@@ -141,42 +133,34 @@ impl UpstreamEquipmentConfig {
 }
 
 #[async_trait]
-impl<T: DbDataLike> DbData<T> for EquipmentConfig {
-    fn path_data() -> (&'static str, &'static str) {
-        (EQUIPMENT_CONFIG_LOCAL, EQUIPMENT_CONFIG_REMOTE)
+impl DbData for EquipmentConfig {
+    type TUpstream = HashMap<u32, UpstreamEquipmentConfig>;
+    type TLocal = HashMap<u32, EquipmentConfig>;
+
+    fn path_data() -> &'static str {
+        "ExcelOutput/EquipmentConfig.json"
     }
 
-    async fn try_write_disk() -> Result<String, WorkerError> {
-        let (local_path, fallback_url) = <EquipmentConfig as DbData<T>>::path_data();
-        // EquipmentConfig
-        let data = reqwest::get(fallback_url).await?.text().await?;
-        let data: HashMap<String, UpstreamEquipmentConfig> = serde_json::from_str(&data)?;
+    async fn upstream_convert(
+        from: HashMap<u32, UpstreamEquipmentConfig>,
+    ) -> Result<HashMap<u32, EquipmentConfig>, WorkerError> {
+        let text_map: HashMap<String, String> = TextMap::read().await?;
+        let arced_text_map = Arc::new(text_map);
 
-        // textmap chunk
-        let text_map_chunk: HashMap<String, String> = TextMap::read().await?;
-        // allow usage of generators (HashMap getter) inside `async move`
-        // closures (which requires `Fn`)
-        let arced_chunk = Arc::new(text_map_chunk);
-        let to_write_db: HashMap<String, EquipmentConfig> = data
-            .iter()
-            .map(|(key, value)| {
-                let arced_chunk = arced_chunk.clone();
+        let transformed: HashMap<u32, EquipmentConfig> = from
+            .into_iter()
+            .map(|(k, value)| {
+                let arced_chunk = arced_text_map.clone();
                 let get_value = move |key: &str| arced_chunk.get(key).cloned().unwrap_or_default();
 
                 let (eq_name, eq_desc) = (
                     get_value(&value.equipment_name.hash.to_string()),
                     get_value(&value.equipment_desc.hash.to_string()),
                 );
-
-                let value = value.to_merged((eq_name, eq_desc));
-                (key.clone(), value)
+                let v = value.to_merged((eq_name, eq_desc));
+                (k, v)
             })
             .collect();
-
-        let to_write_text = serde_json::to_string_pretty(&to_write_db)?;
-
-        // convert to EquipmentSkillConfigMerged
-        std::fs::write(local_path, &to_write_text)?;
-        Ok(to_write_text)
+        Ok(transformed)
     }
 }

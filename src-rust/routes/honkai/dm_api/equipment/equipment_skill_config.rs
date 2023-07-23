@@ -6,7 +6,7 @@ use crate::{
             hash::TextHash,
             types::{AbilityProperty, Param, TextMap},
         },
-        traits::{DbData, DbDataLike},
+        traits::DbData,
     },
 };
 use async_trait::async_trait;
@@ -16,14 +16,6 @@ use std::{
     collections::{BTreeMap, HashMap},
     sync::Arc,
 };
-
-#[cfg(target_os = "windows")]
-pub const EQUIPMENT_SKILL_CONFIG_LOCAL: &str = "c:\\tmp\\equipment_skill_config.json";
-#[cfg(target_os = "linux")]
-pub const EQUIPMENT_SKILL_CONFIG_LOCAL: &str = "/tmp/equipment_skill_config.json";
-
-pub const EQUIPMENT_SKILL_CONFIG_REMOTE: &str =
-    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/EquipmentSkillConfig.json";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpstreamEquipmentSkillConfig {
@@ -67,33 +59,28 @@ pub struct EquipmentSkillConfig {
 }
 
 #[async_trait]
-impl<T: DbDataLike> DbData<T> for EquipmentSkillConfig {
-    fn path_data() -> (&'static str, &'static str) {
-        (EQUIPMENT_SKILL_CONFIG_LOCAL, EQUIPMENT_SKILL_CONFIG_REMOTE)
+impl DbData for EquipmentSkillConfig {
+    type TUpstream = HashMap<u32, BTreeMap<u32, UpstreamEquipmentSkillConfig>>;
+    type TLocal = HashMap<u32, EquipmentSkillConfig>;
+
+    fn path_data() -> &'static str {
+        "ExcelOutput/EquipmentSkillConfig.json"
     }
 
-    // WARN: needs to traverse 1 depth and merge diffs, converting
-    // Vec<Vec<UpstreamEquipmentSkillConfig>> to this (serialized Vec<EquipmentSkillConfig>)
-    async fn try_write_disk() -> Result<String, WorkerError> {
-        let (local_path, fallback_url) = <EquipmentSkillConfig as DbData<T>>::path_data();
-        // EquipmentSkillConfig
-        let data = reqwest::get(fallback_url).await?.text().await?;
-        let data: HashMap<String, BTreeMap<String, UpstreamEquipmentSkillConfig>> =
-            serde_json::from_str(&data)?;
+    async fn upstream_convert(
+        from: HashMap<u32, BTreeMap<u32, UpstreamEquipmentSkillConfig>>,
+    ) -> Result<HashMap<u32, EquipmentSkillConfig>, WorkerError> {
+        let text_map: HashMap<String, String> = TextMap::read().await?;
 
-        // textmap chunk
-        let text_map_chunk: HashMap<String, String> = TextMap::read().await?;
-
-        // NOTE: probably better to fk hash here
-        let to_write_db: HashMap<String, EquipmentSkillConfig> = data
+        let transformed: HashMap<u32, EquipmentSkillConfig> = from
             .iter()
             .map(|(key, inner_map)| {
                 // NOTE: iterate through inner_map > sort (done via BTreeMap) > merge merge
-                let first = inner_map.get("1").unwrap(); // WARN: unwrap
+                let first = inner_map.get(&1).unwrap(); // WARN: unwrap
 
                 // multiple reads in `for_each`
                 let skill_desc_raw = Arc::new(
-                    text_map_chunk
+                    text_map
                         .get(&first.skill_desc.hash.to_string())
                         .unwrap_or(&"NOT FOUND".into())
                         .to_string(),
@@ -101,7 +88,7 @@ impl<T: DbDataLike> DbData<T> for EquipmentSkillConfig {
 
                 let skill_desc: ParameterizedDescription = skill_desc_raw.to_string().into();
 
-                let skill_name: String = text_map_chunk
+                let skill_name: String = text_map
                     .get(&first.skill_name.hash.to_string())
                     .unwrap_or(&"NOT FOUND".into())
                     .to_owned();
@@ -134,15 +121,9 @@ impl<T: DbDataLike> DbData<T> for EquipmentSkillConfig {
                         .push(skill_config.ability_property.clone());
                 });
 
-                (key.clone(), next)
+                (*key, next)
             })
             .collect();
-
-        let to_write_text = serde_json::to_string_pretty(&to_write_db)?;
-
-        // convert to EquipmentSkillConfigMerged
-        std::fs::write(local_path, &to_write_text)?;
-
-        Ok(to_write_text)
+        Ok(transformed)
     }
 }

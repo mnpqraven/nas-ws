@@ -1,11 +1,18 @@
-use super::{
-    constants::{TEXT_MAP_LOCAL, TEXT_MAP_REMOTE},
-    types::TextMap,
-};
-use crate::routes::honkai::traits::{DbData, DbDataLike};
+use super::types::TextMap;
+use crate::{handler::error::WorkerError, routes::honkai::traits::DbData};
+use async_trait::async_trait;
+use std::collections::HashMap;
 
-impl<T: DbDataLike> DbData<T> for TextMap {
-    fn path_data() -> (&'static str, &'static str) {
-        (TEXT_MAP_LOCAL, TEXT_MAP_REMOTE)
+#[async_trait]
+impl DbData for TextMap {
+    type TUpstream = HashMap<String, String>;
+    type TLocal = HashMap<String, String>;
+
+    fn path_data() -> &'static str {
+        "TextMap/TextMapEN.json"
+    }
+
+    async fn upstream_convert(from: Self::TUpstream) -> Result<Self::TLocal, WorkerError> {
+        Ok(from)
     }
 }

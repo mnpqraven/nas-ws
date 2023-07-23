@@ -1,9 +1,7 @@
-use crate::routes::honkai::dm_api::desc_param::ParameterValue;
 use crate::routes::honkai::mhy_api::WorkerError;
 use crate::{handler::FromAxumResponse, routes::honkai::mhy_api::types_parsed::shared::Property};
 use axum::Json;
 use core::fmt;
-use regex::{Captures, Regex};
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use std::{fmt::Display, marker::PhantomData, num::ParseIntError, str::FromStr, sync::Arc};
@@ -222,18 +220,6 @@ struct MaterialKV {
     num: i32,
 }
 
-impl Parameter {
-    pub fn sort_by_tuple(&self, sorter: Vec<(usize, bool)>) -> Vec<ParameterValue> {
-        // get index from a and b
-        // do normal sort rule but for our tuple vec using a,b index
-        let mut params: Vec<ParameterValue> = vec![];
-        for (key, is_percent) in sorter.into_iter() {
-            params.push(ParameterValue((*self.0.get(key).unwrap(), is_percent)));
-        }
-        params
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct ParameterizedFmt(pub String);
 
@@ -246,67 +232,6 @@ pub enum SkillType {
     Talent,     // Talent
     MazeNormal, // overworld normal
     Maze,       // overworld Technique
-}
-
-impl DbCharacterSkill {
-    const DESC_IDENT: &str = r"(<.+?>)*#\d\[.\d?\]%?(<.+?>)*";
-    #[allow(dead_code)]
-    pub fn parse_description(&self) -> Vec<String> {
-        // desc
-        // "Deals Lightning DMG equal to #1[i]% of Kafka's ATK to a single enemy.",
-        // params
-        // [ [0.5], [0.6] ,.. , [] ]
-        let regex = Regex::new(Self::DESC_IDENT).unwrap();
-        let mut res: Vec<String> = vec![];
-        for level in self.params.iter() {
-            let result = regex.replace_all(&self.desc.0, |caps: &Captures| {
-                let mut res = String::new();
-                for cap in caps.iter().flatten() {
-                    let is_percent: bool = cap.as_str().ends_with('%');
-
-                    let index = cap.as_str().chars().nth(1).unwrap().to_digit(10).unwrap() as usize;
-
-                    // TODO: safe unwrap, check with params length
-                    // first index is slv index, 2nd index is value index
-                    let params_data = match is_percent {
-                        true => level.0.get(index - 1).unwrap() * 100.0,
-                        false => *level.0.get(index - 1).unwrap(),
-                    };
-                    match is_percent {
-                        true => res.push_str(&format!("{:.2}%", &params_data)),
-                        false => res.push_str(&format!("{:.2}", &params_data)),
-                    }
-                }
-                res
-            });
-            res.push(result.to_string());
-        }
-        res
-    }
-
-    pub fn split_description(&self) -> Arc<[Arc<str>]> {
-        let regex = Regex::new(Self::DESC_IDENT).unwrap();
-        let t: Arc<[Arc<str>]> = regex.split(&self.desc.0).map(|e| e.into()).collect();
-        t
-    }
-
-    /// returns a tuple of
-    /// 1. index of the params value
-    /// 2. whether the params value should be displayed as percentage
-    pub fn get_sorted_params_inds(&self) -> Vec<(usize, bool)> {
-        let regex = Regex::new(Self::DESC_IDENT).unwrap();
-        let inds = regex
-            .find_iter(&self.desc.0)
-            .map(|e| {
-                let ind: usize = (e.as_str().chars().nth(1).unwrap().to_digit(10).unwrap() - 1)
-                    .try_into()
-                    .unwrap();
-                let is_percent = e.as_str().ends_with('%');
-                (ind, is_percent)
-            })
-            .collect::<Vec<(usize, bool)>>();
-        inds
-    }
 }
 
 /// https://tikv.github.io/doc/src/serde_with/rust.rs.html#874-940

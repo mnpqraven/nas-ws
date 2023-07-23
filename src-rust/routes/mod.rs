@@ -29,5 +29,5 @@ async fn root() -> &'static str {
 }
 
 fn cron_routes() -> Router {
-    Router::new().route("/write_db", get(write_db::write_db))
+    Router::new().route("/write_db", get(write_db::execute))
 }

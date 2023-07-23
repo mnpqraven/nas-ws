@@ -10,21 +10,13 @@ use crate::{
             internal::categorizing::SkillType,
             types_parsed::shared::{AssetPath, Element},
         },
-        traits::{DbData, DbDataLike},
+        traits::DbData,
     },
 };
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
-
-#[cfg(target_os = "windows")]
-const SKILL_CONFIG_LOCAL: &str = "c:\\tmp\\avatar_skill_config.json";
-#[cfg(target_os = "linux")]
-const SKILL_CONFIG_LOCAL: &str = "/tmp/avatar_skill_config.json";
-
-const SKILL_CONFIG_REMOTE: &str =
-    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/AvatarSkillConfig.json";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UpstreamAvatarSkillConfig {
@@ -191,95 +183,48 @@ enum SKillEffect {
 }
 
 #[async_trait]
-impl<T: DbDataLike> DbData<T> for AvatarSkillConfig {
-    fn path_data() -> (&'static str, &'static str) {
-        (SKILL_CONFIG_LOCAL, SKILL_CONFIG_REMOTE)
+impl DbData for AvatarSkillConfig {
+    type TUpstream = HashMap<u32, BTreeMap<u32, UpstreamAvatarSkillConfig>>;
+    type TLocal = HashMap<u32, AvatarSkillConfig>;
+
+    fn path_data() -> &'static str {
+        "ExcelOutput/AvatarSkillConfig.json"
     }
 
-    async fn try_write_disk() -> Result<String, WorkerError> {
-        let mut res: HashMap<String, AvatarSkillConfig> = HashMap::new();
+    async fn upstream_convert(
+        skill_db: HashMap<u32, BTreeMap<u32, UpstreamAvatarSkillConfig>>,
+    ) -> Result<HashMap<u32, AvatarSkillConfig>, WorkerError> {
+        let mut res: HashMap<u32, AvatarSkillConfig> = HashMap::new();
         let text_map: HashMap<String, String> = TextMap::read().await?;
-
-        let trace_db = reqwest::get(SKILL_CONFIG_REMOTE).await?.text().await?;
-        // WARN: BTreeMap authenticity check
-        let skill_db: HashMap<String, BTreeMap<u32, UpstreamAvatarSkillConfig>> =
-            serde_json::from_str(&trace_db)?;
-
         for (k, inner_map) in skill_db.into_iter() {
             let rest = inner_map.get(&1).unwrap().clone();
-            let unsplitted_desc =
-                TextHash::from(rest.skill_desc.clone()).read_from_textmap(&text_map)?;
-            if inner_map.len() > 1 {
-                // merge algorithms
-                let (mut levels, mut param_lists, mut simple_param_lists) =
-                    (Vec::new(), Vec::new(), Vec::new());
-                inner_map.iter().for_each(|(_, b)| {
-                    levels.push(b.level);
-                    let current_param: Vec<String> = get_sorted_params(
-                        b.param_list.iter().map(|e| e.value).collect(),
-                        &unsplitted_desc,
-                    )
-                    .iter()
-                    .map(|e| e.to_string())
-                    .collect();
+            let unsplitted_desc = rest.skill_desc.read_from_textmap(&text_map)?;
 
-                    param_lists.push(current_param);
-                    simple_param_lists.push(b.simple_param_list.clone());
-                });
-
-                res.insert(
-                    k,
-                    AvatarSkillConfig {
-                        skill_id: rest.skill_id,
-                        skill_name: rest.skill_name.read_from_textmap(&text_map)?,
-                        skill_tag: rest.skill_tag.read_from_textmap(&text_map)?,
-                        skill_type_desc: rest.skill_type_desc.read_from_textmap(&text_map)?,
-                        level: levels,
-                        max_level: rest.max_level,
-                        skill_trigger_key: rest.skill_trigger_key,
-                        skill_icon: rest.skill_icon,
-                        ultra_skill_icon: rest.ultra_skill_icon,
-                        level_up_cost_list: rest.level_up_cost_list,
-                        skill_desc: unsplitted_desc.into(),
-                        simple_skill_desc: rest.simple_skill_desc.read_from_textmap(&text_map)?,
-                        rated_skill_tree_id: rest.rated_skill_tree_id,
-                        rated_rank_id: rest.rated_rank_id,
-                        extra_effect_idlist: rest.extra_effect_idlist,
-                        simple_extra_effect_idlist: rest.simple_extra_effect_idlist,
-                        show_stance_list: rest.show_stance_list,
-                        show_damage_list: rest.show_damage_list,
-                        show_heal_list: rest.show_heal_list,
-                        init_cool_down: rest.init_cool_down,
-                        cool_down: rest.cool_down,
-                        spbase: rest.spbase,
-                        spmultiple_ratio: rest.spmultiple_ratio,
-                        bpneed: rest.bpneed,
-                        bpadd: rest.bpadd,
-                        skill_need: rest.skill_need.read_from_textmap(&text_map)?,
-                        delay_ratio: rest.delay_ratio,
-                        param_list: param_lists,
-                        simple_param_list: simple_param_lists,
-                        stance_damage_type: rest.stance_damage_type,
-                        attack_type: rest.attack_type,
-                        skill_effect: rest.skill_effect,
-                        skill_combo_value_delta: rest.skill_combo_value_delta,
-                    },
-                );
-            } else if let Some(_) = inner_map.get(&1) {
-                let sorted_params: Vec<String> = get_sorted_params(
-                    rest.param_list.iter().map(|e| e.value).collect(),
+            // merge algorithms
+            let (mut levels, mut param_lists, mut simple_param_lists) =
+                (Vec::new(), Vec::new(), Vec::new());
+            inner_map.iter().for_each(|(_, b)| {
+                levels.push(b.level);
+                let current_param: Vec<String> = get_sorted_params(
+                    b.param_list.iter().map(|e| e.value).collect(),
                     &unsplitted_desc,
                 )
                 .iter()
                 .map(|e| e.to_string())
                 .collect();
 
-                let value_into = AvatarSkillConfig {
+                param_lists.push(current_param);
+                simple_param_lists.push(b.simple_param_list.clone());
+            });
+
+            res.insert(
+                k,
+                AvatarSkillConfig {
                     skill_id: rest.skill_id,
                     skill_name: rest.skill_name.read_from_textmap(&text_map)?,
                     skill_tag: rest.skill_tag.read_from_textmap(&text_map)?,
                     skill_type_desc: rest.skill_type_desc.read_from_textmap(&text_map)?,
-                    level: vec![rest.level],
+                    level: levels,
                     max_level: rest.max_level,
                     skill_trigger_key: rest.skill_trigger_key,
                     skill_icon: rest.skill_icon,
@@ -302,18 +247,15 @@ impl<T: DbDataLike> DbData<T> for AvatarSkillConfig {
                     bpadd: rest.bpadd,
                     skill_need: rest.skill_need.read_from_textmap(&text_map)?,
                     delay_ratio: rest.delay_ratio,
-                    param_list: vec![sorted_params],
-                    simple_param_list: vec![rest.simple_param_list],
+                    param_list: param_lists,
+                    simple_param_list: simple_param_lists,
                     stance_damage_type: rest.stance_damage_type,
                     attack_type: rest.attack_type,
                     skill_effect: rest.skill_effect,
                     skill_combo_value_delta: rest.skill_combo_value_delta,
-                };
-                res.insert(k, value_into);
-            }
+                },
+            );
         }
-        let data = serde_json::to_string_pretty(&res)?;
-        std::fs::write(SKILL_CONFIG_LOCAL, &data)?;
-        Ok(data)
+        Ok(res)
     }
 }

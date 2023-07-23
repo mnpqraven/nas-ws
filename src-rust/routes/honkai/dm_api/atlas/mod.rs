@@ -1,11 +1,7 @@
-use self::{avatar_atlas::UpstreamAvatarAtlas, equipment_atlas::UpstreamEquipmentAtlas};
-use super::equipment_config::equipment_config::EquipmentConfig;
+use self::avatar_atlas::UpstreamAvatarAtlas;
 use crate::{
     handler::error::WorkerError,
-    routes::{
-        endpoint_types::List,
-        honkai::{mhy_api::internal::categorizing::DbCharacter, traits::DbData},
-    },
+    routes::{endpoint_types::List, honkai::traits::DbData},
 };
 use axum::Json;
 use chrono::{DateTime, Datelike, NaiveDateTime, TimeZone, Timelike, Utc};
@@ -29,58 +25,17 @@ pub struct SignatureAtlas {
 }
 
 pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
-    let chara_db = <DbCharacter as DbData<DbCharacter>>::read().await?;
-    let eq_db = <EquipmentConfig as DbData<EquipmentConfig>>::read().await?;
-
-    // let equal = |a: &UpstreamAvatarAtlas, b: &UpstreamEquipmentAtlas| {
-    //     let (d1, d2) = (a.gacha_schedule, b.gacha_schedule);
-    //     let date_equal = match (d1, d2) {
-    //         (Some(d1), Some(d2)) => {
-    //             d1.year() == d2.year() && d1.month() == d2.month() && d1.day() == d2.day()
-    //         }
-    //         _ => false,
-    //     };
-    //     let c = chara_db.get(&a.avatar_id.to_string());
-    //     let e = eq_db.get(&b.equipment_id.to_string());
-    //     let rarity_equal = match (c, e) {
-    //         (Some(a), Some(b)) => a.rarity == b.rarity,
-    //         _ => false,
-    //     };
-    //     date_equal && rarity_equal
-    // };
-    // feature ungrouped tuple of charid, weap_id
-    // NOTE: make map joining avatar_atlas and equipment_atlas, filter out
-    // banner (map A)
-    let char_map = <UpstreamAvatarAtlas as DbData<UpstreamAvatarAtlas>>::read().await?;
-    let char_map: HashMap<String, UpstreamAvatarAtlas> = char_map
+    let char_map = UpstreamAvatarAtlas::read().await?;
+    let char_map: HashMap<u32, UpstreamAvatarAtlas> = char_map
         .into_iter()
         // .filter(|(_, v)| v.gacha_schedule.is_some())
         .collect();
 
-    let eq_map = <UpstreamEquipmentAtlas as DbData<UpstreamEquipmentAtlas>>::read().await?;
-    let eq_map: HashMap<String, UpstreamEquipmentAtlas> = eq_map
-        .into_iter()
-        // .filter(|(_, v)| v.gacha_schedule.is_some())
-        .collect();
-
-    let eq_map_arced = Arc::new(eq_map);
     let char_map_arced = Arc::new(char_map);
 
     let banner_feature_pair: Arc<[(u32, Vec<u32>)]> = char_map_arced
         .iter()
-        .map(|(char_id, char_atlas)| {
-            // let eq_date = eq_map_arced
-            //     .iter()
-            //     .find(|(_, eq_atlas)| equal(char_atlas, eq_atlas));
-            let eq_date: Option<(String, u32)> = None;
-            match eq_date {
-                Some((eq_id, _)) => (
-                    char_id.parse::<u32>().unwrap(),
-                    vec![eq_id.parse::<u32>().unwrap()],
-                ),
-                None => (char_id.parse::<u32>().unwrap(), vec![]),
-            }
-        })
+        .map(|(char_id, _)| (*char_id, vec![]))
         .collect();
 
     let base_feature_pair: Arc<[(u32, Vec<u32>)]> = Arc::new([
@@ -137,7 +92,7 @@ pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
     Ok(Json(List::new(vec)))
 }
 
-pub fn serialize_date_string<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
+pub fn _serialize_date_string<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
 where
     D: Deserializer<'de>,
 {

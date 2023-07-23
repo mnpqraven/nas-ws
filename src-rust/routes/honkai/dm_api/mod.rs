@@ -1,10 +1,10 @@
 pub mod atlas;
-pub mod avatar_config;
-pub mod avatar_skill_config;
-mod constants;
+pub mod character;
+pub mod character_skill;
 pub mod desc_param;
-pub mod equipment_config;
+pub mod equipment;
 pub mod hash;
 pub mod impls;
-pub mod skill_tree_config;
+pub mod equipment_skill;
 pub mod types;
+pub mod property;

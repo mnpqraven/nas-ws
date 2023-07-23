@@ -1,18 +1,8 @@
-use super::serialize_date_string;
-use crate::routes::honkai::{
-    dm_api::hash::TextHash,
-    traits::{DbData, DbDataLike},
-};
-use chrono::{DateTime, Utc};
+use std::collections::HashMap;
+
+use crate::{routes::honkai::{dm_api::hash::TextHash, traits::DbData}, handler::error::WorkerError};
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-
-#[cfg(target_os = "windows")]
-const AVATAR_ATLAS_LOCAL: &str = "c:\\tmp\\avatar_atlas.json";
-#[cfg(target_os = "linux")]
-const AVATAR_ATLAS_LOCAL: &str = "/tmp/avatar_atlas.json";
-
-const AVATAR_ATLAS_REMOTE: &str =
-    "https://raw.githubusercontent.com/Dimbreath/StarRailData/master/ExcelOutput/AvatarAtlas.json";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UpstreamAvatarAtlas {
@@ -35,8 +25,16 @@ pub struct UpstreamAvatarAtlas {
     pub camp_id: u32,
 }
 
-impl<T: DbDataLike> DbData<T> for UpstreamAvatarAtlas {
-    fn path_data() -> (&'static str, &'static str) {
-        (AVATAR_ATLAS_LOCAL, AVATAR_ATLAS_REMOTE)
+#[async_trait]
+impl DbData for UpstreamAvatarAtlas {
+    type TUpstream = HashMap<u32, UpstreamAvatarAtlas>;
+    type TLocal = HashMap<u32, UpstreamAvatarAtlas>;
+
+    fn path_data() -> &'static str {
+        "ExcelOutput/AvatarAtlas.json"
+    }
+
+    async fn upstream_convert(from: Self::TUpstream) -> Result<Self::TLocal, WorkerError> {
+        Ok(from)
     }
 }

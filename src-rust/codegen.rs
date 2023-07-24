@@ -3,7 +3,8 @@ use nas_ws::routes::honkai::{
     dm_api::{
         atlas::SignatureAtlas,
         character::{
-            promotion_config::AvatarPromotionConfig, upstream_avatar_config::AvatarConfig, eidolon::AvatarRankConfig,
+            eidolon::AvatarRankConfig, promotion_config::AvatarPromotionConfig,
+            upstream_avatar_config::AvatarConfig,
         },
         character_skill::types::AvatarSkillConfig,
         equipment::{
@@ -11,7 +12,9 @@ use nas_ws::routes::honkai::{
             equipment_promotion_config::EquipmentPromotionConfig,
             equipment_skill_config::EquipmentSkillConfig, stat_ranking::EquipmentRanking,
         },
-        equipment_skill::skill_tree_config::SkillTreeConfig, property::config::AvatarPropertyConfig, relic::set_config::RelicSetConfig,
+        equipment_skill::skill_tree_config::SkillTreeConfig,
+        property::config::AvatarPropertyConfig,
+        relic::set_config::RelicSetConfig,
     },
     patch::types::{Patch, PatchBanner},
 };

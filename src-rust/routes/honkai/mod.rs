@@ -7,7 +7,7 @@ pub mod probability_rate;
 pub mod traits;
 pub mod utils;
 
-use self::dm_api::character::{character_by_name, promotion, character_many, eidolon};
+use self::dm_api::character::{character_by_name, character_many, eidolon, promotion};
 use self::dm_api::equipment::stat_ranking::stat_ranking;
 use self::dm_api::equipment::{
     light_cone, light_cone_many, light_cone_promotion, light_cone_promotion_many,
@@ -15,7 +15,7 @@ use self::dm_api::equipment::{
 };
 use self::dm_api::equipment_skill::trace;
 use self::dm_api::property::property;
-use self::dm_api::relic::{relic_set, relic_set_many, relic_set_search, relics_by_set};
+use self::dm_api::relic::{relic_set, relic_set_search, relics_by_set};
 use self::dm_api::{atlas, character, character_skill};
 use axum::routing::{get, post};
 use axum::Router;
@@ -57,7 +57,6 @@ pub fn honkai_routes() -> Router {
         .route("/light_cone/:id/promotion", get(light_cone_promotion))
         .route("/light_cone/ranking", get(stat_ranking))
         .route("/signature_atlas", get(atlas::atlas_list))
-
         .route("/avatar", get(character_many).post(character_many))
         .route("/avatar/:id", get(character::character))
         .route("/avatar/:id/skill", get(character_skill::skill))
@@ -65,7 +64,6 @@ pub fn honkai_routes() -> Router {
         .route("/avatar/:id/promotion", get(promotion))
         .route("/avatar/:id/eidolon", get(eidolon))
         .route("/character/search/:name", get(character_by_name))
-
         .route("/skills", post(character_skill::skills))
         .route("/relics/:setid", get(relics_by_set))
         .route("/relic_set/:id", get(relic_set))

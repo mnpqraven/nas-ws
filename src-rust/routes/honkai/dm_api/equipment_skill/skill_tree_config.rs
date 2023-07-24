@@ -109,14 +109,16 @@ impl DbData for SkillTreeConfig {
     async fn upstream_convert(
         from: HashMap<u32, BTreeMap<u32, UpstreamSkillTreeConfig>>,
     ) -> Result<HashMap<u32, SkillTreeConfig>, WorkerError> {
-        let mut transformed: HashMap<u32, SkillTreeConfig> = HashMap::new();
         let text_map: HashMap<String, String> = TextMap::read().await?;
 
-        for (k, inner_map) in from.into_iter() {
-            let rest = inner_map.get(&1).unwrap();
-            let unsplitted_desc =
-                TextHash::from(rest.point_desc.clone()).read_from_textmap(&text_map)?;
-            if inner_map.len() > 1 {
+        let transformed = from
+            .into_iter()
+            .map(|(k, inner_map)| {
+                let rest = inner_map.get(&1).unwrap();
+                let unsplitted_desc = TextHash::from(rest.point_desc.clone())
+                    .read_from_textmap(&text_map)
+                    .unwrap_or_default();
+
                 let sorted_params: Vec<String> = get_sorted_params(
                     rest.param_list.iter().map(|e| e.value).collect(),
                     &unsplitted_desc,
@@ -135,61 +137,32 @@ impl DbData for SkillTreeConfig {
                     promotion_limits.push(b.avatar_promotion_limit);
                 });
 
-                transformed.insert(
-                    k,
-                    SkillTreeConfig {
-                        point_id: rest.point_id,
-                        level: levels,
-                        avatar_id: rest.avatar_id,
-                        point_type: rest.point_type,
-                        pre_point: rest.pre_point.clone(),
-                        anchor: rest.anchor.clone(),
-                        max_level: rest.max_level,
-                        default_unlock: default_unlocks,
-                        status_add_list: rest.status_add_list.clone(),
-                        material_list: material_lists,
-                        avatar_promotion_limit: promotion_limits,
-                        level_up_skill_id: rest.level_up_skill_id.clone(),
-                        icon_path: rest.icon_path.clone(),
-                        point_name: rest.point_name.dehash(&text_map)?,
-                        point_desc: unsplitted_desc.into(),
-                        ability_name: rest.ability_name.dehash(&text_map)?,
-                        point_trigger_key: rest.point_trigger_key.read_from_textmap(&text_map)?,
-                        param_list: sorted_params,
-                    },
-                );
-            } else if let Some(value) = inner_map.get(&1) {
-                let sorted_params: Vec<String> = get_sorted_params(
-                    rest.param_list.iter().map(|e| e.value).collect(),
-                    &unsplitted_desc,
-                )
-                .iter()
-                .map(|e| e.to_string())
-                .collect();
-
-                let value_into = SkillTreeConfig {
-                    point_id: value.point_id,
-                    level: vec![value.level],
-                    avatar_id: value.avatar_id,
-                    point_type: value.point_type,
-                    pre_point: value.pre_point.clone(),
-                    anchor: value.anchor.clone(),
-                    max_level: value.max_level,
-                    default_unlock: vec![value.default_unlock.unwrap_or(false)],
-                    status_add_list: value.status_add_list.clone(),
-                    material_list: vec![value.material_list.clone()],
-                    avatar_promotion_limit: vec![value.avatar_promotion_limit],
-                    level_up_skill_id: value.level_up_skill_id.clone(),
-                    icon_path: value.icon_path.clone(),
-                    point_name: rest.point_name.dehash(&text_map)?,
+                let transformed = SkillTreeConfig {
+                    point_id: rest.point_id,
+                    level: levels,
+                    avatar_id: rest.avatar_id,
+                    point_type: rest.point_type,
+                    pre_point: rest.pre_point.clone(),
+                    anchor: rest.anchor.clone(),
+                    max_level: rest.max_level,
+                    default_unlock: default_unlocks,
+                    status_add_list: rest.status_add_list.clone(),
+                    material_list: material_lists,
+                    avatar_promotion_limit: promotion_limits,
+                    level_up_skill_id: rest.level_up_skill_id.clone(),
+                    icon_path: rest.icon_path.clone(),
+                    point_name: rest.point_name.dehash(&text_map).unwrap_or_default(),
                     point_desc: unsplitted_desc.into(),
-                    ability_name: rest.ability_name.dehash(&text_map)?,
-                    point_trigger_key: value.point_trigger_key.read_from_textmap(&text_map)?,
+                    ability_name: rest.ability_name.dehash(&text_map).unwrap_or_default(),
+                    point_trigger_key: rest
+                        .point_trigger_key
+                        .read_from_textmap(&text_map)
+                        .unwrap_or_default(),
                     param_list: sorted_params,
                 };
-                transformed.insert(k, value_into);
-            }
-        }
+                (k, transformed)
+            })
+            .collect();
         Ok(transformed)
     }
 }

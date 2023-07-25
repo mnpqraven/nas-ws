@@ -69,6 +69,8 @@ pub struct UpstreamAvatarSkillConfig {
     cool_down: i32,
     #[serde(alias = "SPBase")]
     spbase: Option<Param>,
+    #[serde(alias = "SPNeed")]
+    spneed: Option<Param>,
     #[serde(alias = "SPMultipleRatio")]
     spmultiple_ratio: Param,
     #[serde(alias = "BPNeed")]
@@ -144,6 +146,8 @@ pub struct AvatarSkillConfig {
     cool_down: i32,
     #[serde(alias = "SPBase")]
     spbase: Option<Param>,
+    #[serde(alias = "SPNeed")]
+    spneed: Option<Param>,
     #[serde(alias = "SPMultipleRatio")]
     spmultiple_ratio: Param,
     #[serde(alias = "BPNeed")]
@@ -242,6 +246,7 @@ impl DbData for AvatarSkillConfig {
                     init_cool_down: rest.init_cool_down,
                     cool_down: rest.cool_down,
                     spbase: rest.spbase,
+                    spneed: rest.spneed,
                     spmultiple_ratio: rest.spmultiple_ratio,
                     bpneed: rest.bpneed,
                     bpadd: rest.bpadd,

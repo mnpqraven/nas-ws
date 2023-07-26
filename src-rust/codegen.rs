@@ -1,5 +1,5 @@
 use clap::Parser;
-use nas_ws::routes::honkai::{
+use nas_ws::routes::{honkai::{
     dm_api::{
         atlas::SignatureAtlas,
         character::{
@@ -17,7 +17,7 @@ use nas_ws::routes::honkai::{
         relic::{set_config::RelicSetConfig, set_skill_config::RelicSetSkillConfig},
     },
     patch::types::{Patch, PatchBanner},
-};
+}, utils::mock_hsr_stat::MvpAnalysis};
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
 
@@ -69,6 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(EquipmentRanking), "EquipmentRanking"),
         Schema::new(schema_for!(RelicSetConfig), "RelicSetConfig"),
         Schema::new(schema_for!(RelicSetSkillConfig), "RelicSetSkillConfig"),
+        Schema::new(schema_for!(MvpAnalysis), "MvpAnalysis"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

@@ -1,8 +1,5 @@
 use crate::handler::{error::WorkerError, FromAxumResponse};
-use crate::routes::honkai::mhy_api::types_parsed::character::Character;
 use axum::Json;
-use fake::faker::name::raw::*;
-use fake::locales::*;
 use fake::Dummy;
 use fake::{Fake, Faker};
 use response_derive::JsonResponse;
@@ -11,9 +8,14 @@ use serde::{Deserialize, Serialize};
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
-pub struct MvpWrapper {
-    pub character: Character,
-    pub team_distribution: Vec<[InTeamDistribution; 4]>,
+pub struct MvpAnalysis {
+    data: Vec<[CharacterDamage; 4]>,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
+pub struct CharacterDamage {
+    pub name: String,
+    pub team_distribution: InTeamDistribution,
     pub self_distribution: DamageSelfDistribution,
 }
 
@@ -29,16 +31,46 @@ pub struct DamageSelfDistribution {
     #[dummy(faker = "((0.0..1.0), (1..100), (1000..10000), (10000..20000))")]
     pub followup: (f32, u32, u32, u32),
 }
+
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct InTeamDistribution {
-    #[dummy(faker = "Name(EN)")]
-    pub name: String,
     #[dummy(faker = "0.0 .. 0.25")]
     pub rate: f32,
 }
 
-pub(super) async fn handle() -> Result<Json<MvpWrapper>, WorkerError> {
-    let randomized_character: MvpWrapper = Faker.fake();
+pub(super) async fn handle() -> Result<Json<MvpAnalysis>, WorkerError> {
+    // let names = ["Qingque", "Silver Wolf", "Natasha", "Bronya"];
+    let mut data: Vec<[CharacterDamage; 4]> = vec![];
+    for _ in 0..50 {
+        let value = generate_mock();
+        data.push(value);
+    }
 
-    Ok(Json(randomized_character))
+    Ok(Json(MvpAnalysis { data }))
+}
+
+fn generate_mock() -> [CharacterDamage; 4] {
+    let qingque = CharacterDamage {
+        name: "Qingque".to_string(),
+        ..Faker.fake()
+    };
+    let sw = CharacterDamage {
+        name: "Silver Wolf".to_string(),
+        ..Faker.fake()
+    };
+    let nat = CharacterDamage {
+        name: "Natasha".to_string(),
+        ..Faker.fake()
+    };
+    let rest_rate = 1.0
+        - qingque.team_distribution.rate
+        - sw.team_distribution.rate
+        - nat.team_distribution.rate;
+
+    let bronya = CharacterDamage {
+        name: "Bronya".to_string(),
+        team_distribution: InTeamDistribution { rate: rest_rate },
+        ..Faker.fake()
+    };
+    [qingque, sw, nat, bronya]
 }

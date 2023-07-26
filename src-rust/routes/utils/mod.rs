@@ -36,5 +36,5 @@ pub fn utils_routes() -> Router {
     Router::new()
         .route("/parse_mdx", post(parse_mdx))
         .route("/mock_hsr_log", get(mock_hsr_log::handle))
-        .route("/mock_hsr_stat", get(mock_hsr_stat::handle))
+        .route("/mock_hsr_mvp", get(mock_hsr_stat::handle))
 }

@@ -5,16 +5,17 @@ use fake::{Fake, Faker};
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct MvpAnalysis {
-    data: Vec<[CharacterDamage; 4]>,
+    data: HashMap<String, Vec<CharacterDamage>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]
 pub struct CharacterDamage {
-    pub name: String,
+    pub turn: u32,
     pub team_distribution: InTeamDistribution,
     pub self_distribution: DamageSelfDistribution,
 }
@@ -40,37 +41,41 @@ pub struct InTeamDistribution {
 
 pub(super) async fn handle() -> Result<Json<MvpAnalysis>, WorkerError> {
     // let names = ["Qingque", "Silver Wolf", "Natasha", "Bronya"];
-    let mut data: Vec<[CharacterDamage; 4]> = vec![];
-    for _ in 0..50 {
-        let value = generate_mock();
-        data.push(value);
+    let mut map: HashMap<String, Vec<CharacterDamage>> = HashMap::new();
+    let (mut qq, mut sw, mut nat, mut bronya) = (vec![], vec![], vec![], vec![]);
+    for ind in 0..50 {
+        let pnat = CharacterDamage {
+            turn: ind,
+            ..Faker.fake()
+        };
+        let psw = CharacterDamage {
+            turn: ind,
+            ..Faker.fake()
+        };
+        let pbronya = CharacterDamage {
+            turn: ind,
+            ..Faker.fake()
+        };
+        let pqq = CharacterDamage {
+            turn: ind,
+            team_distribution: InTeamDistribution {
+                rate: 1.0
+                    - pnat.team_distribution.rate
+                    - psw.team_distribution.rate
+                    - pbronya.team_distribution.rate,
+            },
+            ..Faker.fake()
+        };
+
+        qq.push(pqq);
+        sw.push(psw);
+        bronya.push(pbronya);
+        nat.push(pnat);
     }
+    map.insert("Quinque".to_owned(), qq);
+    map.insert("Silver Wolf".to_owned(), sw);
+    map.insert("Natasha".to_owned(), nat);
+    map.insert("Bronya".to_owned(), bronya);
 
-    Ok(Json(MvpAnalysis { data }))
-}
-
-fn generate_mock() -> [CharacterDamage; 4] {
-    let qingque = CharacterDamage {
-        name: "Qingque".to_string(),
-        ..Faker.fake()
-    };
-    let sw = CharacterDamage {
-        name: "Silver Wolf".to_string(),
-        ..Faker.fake()
-    };
-    let nat = CharacterDamage {
-        name: "Natasha".to_string(),
-        ..Faker.fake()
-    };
-    let rest_rate = 1.0
-        - qingque.team_distribution.rate
-        - sw.team_distribution.rate
-        - nat.team_distribution.rate;
-
-    let bronya = CharacterDamage {
-        name: "Bronya".to_string(),
-        team_distribution: InTeamDistribution { rate: rest_rate },
-        ..Faker.fake()
-    };
-    [qingque, sw, nat, bronya]
+    Ok(Json(MvpAnalysis { data: map }))
 }

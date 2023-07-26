@@ -14,7 +14,7 @@ use nas_ws::routes::honkai::{
         },
         equipment_skill::skill_tree_config::SkillTreeConfig,
         property::config::AvatarPropertyConfig,
-        relic::set_config::RelicSetConfig,
+        relic::{set_config::RelicSetConfig, set_skill_config::RelicSetSkillConfig},
     },
     patch::types::{Patch, PatchBanner},
 };
@@ -68,6 +68,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(EquipmentSkillConfig), "EquipmentSkillConfig"),
         Schema::new(schema_for!(EquipmentRanking), "EquipmentRanking"),
         Schema::new(schema_for!(RelicSetConfig), "RelicSetConfig"),
+        Schema::new(schema_for!(RelicSetSkillConfig), "RelicSetSkillConfig"),
     ];
 
     for Schema { root, name } in type_names.into_iter() {

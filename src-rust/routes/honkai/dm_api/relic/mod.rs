@@ -1,4 +1,8 @@
-use self::{config::RelicConfig, set_config::RelicSetConfig};
+use std::sync::Arc;
+
+use self::{
+    config::RelicConfig, set_config::RelicSetConfig, set_skill_config::RelicSetSkillConfig,
+};
 use crate::{
     handler::error::WorkerError,
     routes::{endpoint_types::List, honkai::traits::DbData},
@@ -6,13 +10,19 @@ use crate::{
 use axum::{extract::Path, Json};
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use regex::Regex;
+use reqwest::Method;
 
 pub mod config;
 pub mod set_config;
+pub mod set_skill_config;
 
-pub async fn relic_set() -> Result<Json<RelicSetConfig>, WorkerError> {
+pub async fn relic_set(Path(set_id): Path<u32>) -> Result<Json<RelicSetConfig>, WorkerError> {
     let relic_set_db = RelicSetConfig::read().await?;
-    todo!()
+    let data = relic_set_db
+        .get(&set_id)
+        .ok_or(WorkerError::NotFound(set_id.to_string()))?;
+
+    Ok(Json(data.clone()))
 }
 
 pub async fn relic_set_many() -> Result<Json<List<RelicSetConfig>>, WorkerError> {
@@ -47,4 +57,31 @@ pub async fn relics_by_set(
     Path(set_id): Path<u32>,
 ) -> Result<Json<List<RelicConfig>>, WorkerError> {
     todo!()
+}
+
+pub async fn set_bonus(Path(set_id): Path<u32>) -> Result<Json<RelicSetSkillConfig>, WorkerError> {
+    let bonus_db = RelicSetSkillConfig::read().await?;
+    let data = bonus_db
+        .get(&set_id)
+        .cloned()
+        .ok_or(WorkerError::NotFound(set_id.to_string()))?;
+    Ok(Json(data))
+}
+
+pub async fn set_bonus_many(
+    method: Method,
+    relic_ids: Option<Json<List<u32>>>,
+) -> Result<Json<List<RelicSetSkillConfig>>, WorkerError> {
+    let bonus_db = RelicSetSkillConfig::read().await?;
+    let ids = match (&method, relic_ids) {
+        (&Method::POST, Some(Json(List { list }))) => Some(list),
+        _ => None,
+    };
+
+    let data: Arc<[RelicSetSkillConfig]> = bonus_db
+        .iter()
+        .filter(|(k, v)| ids.is_none() || ids.as_ref().unwrap().contains(k))
+        .map(|(_, v)| v.clone())
+        .collect();
+    Ok(Json(List::new(data.to_vec())))
 }

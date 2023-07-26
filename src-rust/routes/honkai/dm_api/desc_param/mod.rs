@@ -13,6 +13,12 @@ const DESC_IDENT: &str = r"(?<codeleft><.+?>)*(?<slot>#\d\[.\d?\]%?)(?<coderight
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct ParameterizedDescription(pub Vec<String>);
 
+impl ParameterizedDescription {
+    pub fn values(&self) -> Vec<String> {
+        self.0.clone()
+    }
+}
+
 /// a tuple of
 /// 1. index of the params value
 /// 2. whether the params value should be displayed as percentage

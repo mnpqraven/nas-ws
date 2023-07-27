@@ -27,7 +27,7 @@ pub async fn relic_set(Path(set_id): Path<u32>) -> Result<Json<RelicSetConfig>, 
 
 pub async fn relic_set_many() -> Result<Json<List<RelicSetConfig>>, WorkerError> {
     let relic_set_db = RelicSetConfig::read().await?;
-    todo!()
+    Ok(Json(List::new(relic_set_db.into_values().collect())))
 }
 
 pub async fn relic_set_search(

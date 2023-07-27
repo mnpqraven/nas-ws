@@ -31,7 +31,7 @@ pub async fn light_cone(Path(lc_id): Path<u32>) -> Result<Json<EquipmentConfig>,
 
     let res = db_metadata.get(&lc_id).ok_or(WorkerError::EmptyBody)?;
 
-    info!("Duration: {:?}", now.elapsed());
+    info!("[/light_cone/{lc_id}/metadata] light_cone: {:?}", now.elapsed());
     Ok(Json(res.clone()))
 }
 pub async fn light_cone_search(
@@ -75,7 +75,7 @@ pub async fn light_cone_many(
         .map(|(_, v)| v.clone())
         .collect();
 
-    info!("Duration: {:?}", now.elapsed());
+    info!("[/light_cone/metadata] light_cone_many: {:?}", now.elapsed());
     Ok(Json(List::new(res.to_vec())))
 }
 
@@ -88,7 +88,7 @@ pub async fn light_cone_skill(
 
     let res = db_metadata.get(&lc_id).ok_or(WorkerError::EmptyBody)?;
 
-    info!("Duration: {:?}", now.elapsed());
+    info!("[/light_cone/{lc_id}/skill] light_cone_skill: {:?}", now.elapsed());
     Ok(Json(res.clone()))
 }
 
@@ -110,7 +110,7 @@ pub async fn light_cone_skill_many(
         .map(|(_, v)| v.clone())
         .collect();
 
-    info!("Duration: {:?}", now.elapsed());
+    info!("[/light_cone/skill] light_cone_skill_many: {:?}", now.elapsed());
     Ok(Json(List::new(res.to_vec())))
 }
 
@@ -145,6 +145,6 @@ pub async fn light_cone_promotion_many(
         .map(|(_, v)| v.clone())
         .collect();
 
-    info!("Duration: {:?}", now.elapsed());
+    info!("[/light_cone/promotion] light_cone_promotion_many: {:?}", now.elapsed());
     Ok(Json(List::new(res.to_vec())))
 }

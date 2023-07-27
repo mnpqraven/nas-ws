@@ -11,6 +11,8 @@ use serde::{
     Deserializer, Serialize,
 };
 use std::{collections::HashMap, fmt, marker::PhantomData, sync::Arc};
+use tokio::time::Instant;
+use tracing::info;
 
 pub mod avatar_atlas;
 pub mod equipment_atlas;
@@ -25,6 +27,8 @@ pub struct SignatureAtlas {
 }
 
 pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
+    let now = Instant::now();
+
     let char_map = UpstreamAvatarAtlas::read().await?;
     let char_map: HashMap<u32, UpstreamAvatarAtlas> = char_map
         .into_iter()
@@ -89,6 +93,7 @@ pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
         })
         .collect();
 
+    info!("/signature_atlas: {:?}", now.elapsed());
     Ok(Json(List::new(vec)))
 }
 

@@ -15,7 +15,6 @@ strum_macros = "0.25"
 strum = { version = "0.25", features = ["derive"] }
 base64 = "0.21.0"
 gray_matter = "0.2.6"
-tower = "0.4.13"
 tower-http = { version = "0.4.0", features = ["trace"] }
 vercel_runtime = { version = "1.0.2" }
 rand = "0.8.5"
@@ -37,6 +36,12 @@ clap = { version = "4.3.5", features = ["derive"] }
 tokio-cron-scheduler = "0.9.4"
 futures = "0.3.28"
 fuzzy-matcher = "0.3.7"
+tonic = { version = "0.9.2", features = ["prost"] }
+prost = "0.11.9"
+tonic-web = "0.9.2"
+
+[build-dependencies]
+tonic-build = "0.9.2"
 
 [[bin]]
 name = "nas-ws"

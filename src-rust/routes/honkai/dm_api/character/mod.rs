@@ -18,6 +18,7 @@ pub mod promotion_config;
 #[cfg(test)]
 mod tests;
 pub mod upstream_avatar_config;
+pub mod rpc;
 
 /// Retrieves a single character info
 pub async fn character(Path(character_id): Path<u32>) -> Result<Json<AvatarConfig>, WorkerError> {

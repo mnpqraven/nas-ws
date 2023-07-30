@@ -1,0 +1,39 @@
+syntax = "proto3";
+package dm.character;
+import "shared.proto";
+
+service CharacterMetadataService {
+  rpc ById(CharacterId) returns (CharacterMetadata);
+  rpc List(dm.shared.Empty) returns (CharacterMetadatas);
+}
+
+// service CharacterEidolonService {}
+// service CharacterSkillService {}
+// service CharacterPromotionService {}
+
+message CharacterId { uint32 char_id = 1; }
+
+message CharacterMetadatas { repeated CharacterMetadata list = 1; }
+message CharacterMetadata {
+  uint32 avatar_id = 1;
+  string avatar_name = 2;
+  string avatar_full_name = 3;
+  // adventure_player_id: u32,
+  // pub avatar_votag: String,
+  // pub rarity: u8,
+  // json_path: AssetPath,
+  // pub damage_type: Element,
+  // pub spneed: u32,
+  // exp_group: u32,
+  // max_promotion: u8,
+  // max_rank: u8,
+  // pub rank_idlist: Vec<u32>,
+  // reward_list: Vec<Item>,
+  // reward_list_max: Vec<Item>,
+  // pub skill_list: Vec<u32>,
+  // pub avatar_base_type: Path,
+  // pub avatar_desc: String,
+  // damage_type_resistance: Vec<DamageTypeResistance>,
+  // pub release: bool,
+  // avatar_cutin_intro_text: String,
+}

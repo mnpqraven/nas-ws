@@ -54,7 +54,7 @@ impl Display for WorkerError {
             Self::WrongMethod => "Method is not supported".to_owned(),
             Self::EmptyBody => "Missing body data".to_owned(),
             Self::Unknown(err) => format!("Unknown error: {}", err),
-            Self::ServerSide => "Unknown server error".to_owned()
+            Self::ServerSide => "Unknown server error".to_owned(),
         };
         write!(f, "{}", fmt)
     }
@@ -89,6 +89,12 @@ impl From<WorkerError> for vercel_runtime::Response<vercel_runtime::Body> {
 impl From<WorkerError> for vercel_runtime::Error {
     fn from(value: WorkerError) -> Self {
         vercel_runtime::Error::from(value.to_string())
+    }
+}
+
+impl From<WorkerError> for tonic::Status {
+    fn from(value: WorkerError) -> Self {
+        Self::internal(value.to_string())
     }
 }
 

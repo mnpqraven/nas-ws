@@ -80,7 +80,7 @@ pub async fn set_bonus_many(
 
     let data: Arc<[RelicSetSkillConfig]> = bonus_db
         .iter()
-        .filter(|(k, v)| ids.is_none() || ids.as_ref().unwrap().contains(k))
+        .filter(|(k, _)| ids.is_none() || ids.as_ref().unwrap().contains(k))
         .map(|(_, v)| v.clone())
         .collect();
     Ok(Json(List::new(data.to_vec())))

@@ -1,10 +1,13 @@
-use self::avatar_atlas::UpstreamAvatarAtlas;
 use crate::{
     handler::error::WorkerError,
-    routes::{endpoint_types::List, honkai::traits::DbData},
+    routes::{
+        endpoint_types::List,
+        honkai::{dm_api::atlas::avatar_atlas::UpstreamAvatarAtlas, traits::DbData},
+    },
 };
 use axum::Json;
 use chrono::{DateTime, Datelike, NaiveDateTime, TimeZone, Timelike, Utc};
+use prost::Message;
 use schemars::JsonSchema;
 use serde::{
     de::{self, Visitor},
@@ -16,13 +19,17 @@ use tracing::info;
 
 pub mod avatar_atlas;
 pub mod equipment_atlas;
+pub mod rpc;
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Serialize, Clone, JsonSchema)]
+#[allow(non_snake_case)]
+#[derive(Serialize, Clone, JsonSchema, Message, PartialEq)]
 #[serde(rename(serialize = "camelCase"))]
 pub struct SignatureAtlas {
+    #[prost(uint32, tag = "1")]
     pub char_id: u32,
+    #[prost(uint32, repeated, tag = "2")]
     pub lc_id: Vec<u32>,
 }
 

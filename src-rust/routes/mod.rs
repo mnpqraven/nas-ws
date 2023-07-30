@@ -1,6 +1,6 @@
 use self::{
     cron::write_db, dotfiles::dotfiles_routes, foo::foo_routes, honkai::honkai_routes,
-    rpc::rpc_routes, utils::utils_routes,
+    rpc_routes::rpc_routes, utils::utils_routes,
 };
 use axum::{routing::get, Router};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
@@ -10,7 +10,7 @@ pub mod dotfiles;
 pub mod endpoint_types;
 mod foo;
 pub mod honkai;
-pub mod rpc;
+pub mod rpc_routes;
 pub mod utils;
 
 pub fn app_router() -> Router {

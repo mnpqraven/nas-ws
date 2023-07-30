@@ -1,5 +1,4 @@
 use crate::handler::error::WorkerError;
-use semver::Version;
 use serde::{Deserialize, Serialize};
 
 // char1, char2, version
@@ -30,16 +29,15 @@ struct EdgeResponse {
     value: Vec<PatchData>,
 }
 
-const EDGE_ID: &str = "ecfg_mf3afhofr3c94tr0gimsibnmo454";
+const _EDGE_ID: &str = "ecfg_mf3afhofr3c94tr0gimsibnmo454";
 
-pub(super) async fn get_banner_char2() -> Result<(), WorkerError> {
+pub(super) async fn _get_banner_char2() -> Result<(), WorkerError> {
     let client = reqwest::Client::new();
 
     let key = "EDGE";
-    let t = std::env::var(key);
 
     if let Ok(token) = std::env::var(key) {
-        let url = format!("https://api.vercel.com/v1/edge-config/{}/items", EDGE_ID);
+        let url = format!("https://api.vercel.com/v1/edge-config/{}/items", _EDGE_ID);
 
         let res = client
             .get(url)
@@ -69,10 +67,10 @@ pub(super) async fn get_banner_char2() -> Result<(), WorkerError> {
 
 #[cfg(test)]
 mod tests {
-    use super::get_banner_char2;
+    use super::_get_banner_char2;
 
     #[tokio::test]
     async fn t() {
-        get_banner_char2().await.unwrap();
+        _get_banner_char2().await.unwrap();
     }
 }

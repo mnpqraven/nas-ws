@@ -7,13 +7,15 @@ use crate::{
 };
 use axum::Json;
 use chrono::{DateTime, Datelike, Duration, TimeZone, Utc, Weekday};
+use num_derive::{FromPrimitive, ToPrimitive};
+use prost::Enumeration;
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Deserialize, Clone, Debug, JsonSchema)]
+#[derive(Debug, Deserialize, Clone, JsonSchema)]
 #[serde(rename_all(deserialize = "camelCase"))]
 pub struct EstimateCfg {
     pub server: Server,
@@ -28,12 +30,12 @@ pub struct EstimateCfg {
     pub daily_refills: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone)]
+#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Default)]
 pub struct JadeEstimateResponse {
-    pub sources: Vec<RewardSource>,
-    pub total_jades: i32,
+    pub days: i32,
     pub rolls: i32,
-    pub days: i64,
+    pub total_jades: i32,
+    pub sources: Vec<RewardSource>,
 }
 
 #[derive(Deserialize, Clone, Debug, JsonSchema)]
@@ -43,15 +45,16 @@ pub struct SimpleDate {
     pub year: u32,
 }
 
-#[derive(Deserialize, Clone, Debug, JsonSchema)]
+#[derive(Deserialize, Clone, Debug, JsonSchema, FromPrimitive, ToPrimitive, Enumeration)]
+#[repr(i32)]
 pub enum EqTier {
-    Zero,
-    One,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
+    Zero = 0,
+    One = 1,
+    Two = 2,
+    Three = 3,
+    Four = 4,
+    Five = 5,
+    Six = 6,
 }
 
 impl EqTier {
@@ -73,11 +76,27 @@ impl EqTier {
     }
 }
 
-#[derive(Deserialize, Clone, Debug, JsonSchema)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    JsonResponse,
+    JsonSchema,
+    Clone,
+    Copy,
+    Enumeration,
+    FromPrimitive,
+)]
+#[repr(i32)]
 pub enum Server {
-    Asia,
-    America,
-    Europe,
+    Asia = 0,
+    America = 1,
+    Europe = 2,
 }
 
 impl Server {
@@ -99,15 +118,29 @@ pub struct RewardSource {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    JsonResponse,
+    Clone,
+    Copy,
+    Enumeration,
+)]
+#[repr(i32)]
 pub enum RewardFrequency {
-    Daily,
-    Weekly,
-    BiWeekly,
-    Monthly,
-    WholePatch,
-    HalfPatch,
-    OneTime,
+    Daily = 0,
+    Weekly = 1,
+    BiWeekly = 2,
+    Monthly = 3,
+    WholePatch = 4,
+    HalfPatch = 5,
+    OneTime = 6,
 }
 
 impl RewardFrequency {
@@ -237,14 +270,30 @@ pub struct RailPassCfg {
 #[derive(Debug, Serialize, Deserialize, JsonResponse, Clone, Copy, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct BattlePassOption {
-    battle_pass_type: BattlePassType,
-    current_level: u32,
+    pub battle_pass_type: BattlePassType,
+    pub current_level: u32,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, JsonSchema)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    JsonResponse,
+    JsonSchema,
+    Clone,
+    Copy,
+    Enumeration,
+    FromPrimitive,
+)]
+#[repr(i32)]
 pub enum BattlePassType {
-    None,
-    Basic,
-    Premium,
+    None = 0,
+    Basic = 1,
+    Premium = 2,
 }
 
 pub fn today_right_after_reset(a: &DateTime<Utc>, server: &Server) -> DateTime<Utc> {
@@ -297,7 +346,7 @@ impl RewardSource {
         let src_daily_mission = Self::src_daily_mission(diff_days);
         let src_daily_text = Self::src_daily_text(diff_days);
         let src_hoyolab_checkin = Self::src_hoyolab_checkin(dt_to);
-        let src_moc = Self::src_moc(cfg.moc,cfg.moc_current_week_done, dt_to, &cfg.server)?;
+        let src_moc = Self::src_moc(cfg.moc, cfg.moc_current_week_done, dt_to, &cfg.server)?;
         let src_char_trial = Self::src_char_trial(dt_to, &cfg.server)?;
         let src_ember_trade = Self::src_ember_trade(dt_to, &cfg.server)?;
         let mut sources = vec![

@@ -1,0 +1,81 @@
+syntax = "proto3";
+package jadeestimate;
+
+service JadeEstimateService {
+  rpc Post(JadeEstimateCfg) returns (JadeEstimateResponse);
+}
+
+message JadeEstimateCfg {
+  Server server = 1;
+  SimpleDate until_date = 2;
+  RailPassCfg rail_pass = 3;
+  BattlePassOption battle_pass = 4;
+  EqTier eq = 5;
+  uint32 moc = 6;
+  bool moc_current_week_done = 7;
+  optional int32 current_rolls = 8;
+  optional int32 current_jades = 9;
+  optional uint32 daily_refills = 10;
+}
+
+message JadeEstimateResponse {
+  int32 days = 1;
+  int32 rolls = 2;
+  int32 total_jades = 3;
+  repeated RewardSource sources = 4;
+}
+
+enum Server {
+  Asia = 0;
+  America = 1;
+  Europe = 2;
+}
+
+enum EqTier {
+  Zero = 0;
+  One = 1;
+  Two = 2;
+  Three = 3;
+  Four = 4;
+  Five = 5;
+  Six = 6;
+}
+message SimpleDate {
+  uint32 day = 1;
+  uint32 month = 2;
+  uint32 year = 3;
+}
+
+message RailPassCfg {
+  bool use_rail_pass = 1;
+  optional uint32 days_left = 2;
+}
+
+message BattlePassOption {
+  BattlePassType battle_pass_type = 1;
+  uint32 current_level = 2;
+}
+
+enum BattlePassType {
+  None = 0;
+  Basic = 1;
+  Premium = 2;
+}
+
+message RewardSource {
+  string source = 1;
+  RewardFrequency source_type = 4;
+  optional int32 jades_amount = 2;
+  optional int32 rolls_amount = 3;
+  optional string description = 5;
+}
+
+enum RewardFrequency {
+  Daily = 0;
+  Weekly = 1;
+  BiWeekly = 2;
+  Monthly = 3;
+  WholePatch = 4;
+  HalfPatch = 5;
+  OneTime = 6;
+}

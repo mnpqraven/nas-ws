@@ -7,6 +7,7 @@ use tracing::{error, instrument};
 #[cfg(test)]
 mod tests;
 pub mod types;
+pub mod rpc;
 
 #[instrument(ret, err)]
 pub async fn handle(

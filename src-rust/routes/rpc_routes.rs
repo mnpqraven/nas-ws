@@ -14,6 +14,10 @@ use super::honkai::{
         rpc::jadeestimate::jade_estimate_service_server::JadeEstimateServiceServer,
         types::JadeEstimateResponse,
     },
+    probability_rate::{
+        rpc::probabilityrate::probability_rate_service_server::ProbabilityRateServiceServer,
+        types::ProbabilityRateResponse,
+    },
 };
 
 pub fn rpc_routes() -> Router {
@@ -24,11 +28,18 @@ pub fn rpc_routes() -> Router {
     let jadeestimate_sv = any_service(enable(JadeEstimateServiceServer::new(
         JadeEstimateResponse::default(),
     )));
+    let probabilityrate_sv = any_service(enable(ProbabilityRateServiceServer::new(
+        ProbabilityRateResponse::default(),
+    )));
 
     Router::new()
         .route("/helloworld.Greeter/*rpc", my_greeter)
         .route("/dm.atlas.SignatureAtlasService/*rpc", atlas_sv)
         .route("/jadeestimate.JadeEstimateService/*rpc", jadeestimate_sv)
+        .route(
+            "/probabilityrate.ProbabilityRateService/*rpc",
+            probabilityrate_sv,
+        )
 }
 
 #[allow(non_snake_case)]

@@ -33,7 +33,7 @@ pub struct ProbabilityRatePayload {
 }
 
 // master struct
-#[derive(Debug, Serialize, JsonResponse, Clone)]
+#[derive(Debug, Serialize, JsonResponse, Clone, Default)]
 pub struct ProbabilityRateResponse {
     pub roll_budget: i32,
     pub data: Vec<Vec<ReducedSim>>,

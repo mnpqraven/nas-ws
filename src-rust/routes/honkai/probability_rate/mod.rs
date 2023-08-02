@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use tracing::{error, instrument};
 
 pub mod types;
+pub mod rpc;
 
 #[instrument(ret)]
 pub async fn handle(

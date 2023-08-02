@@ -1,0 +1,35 @@
+syntax = "proto3";
+package probabilityrate;
+
+service ProbabilityRateService {
+  rpc Post(ProbabilityRatePayload) returns (ProbabilityRateResponse);
+}
+
+message ProbabilityRatePayload {
+  int32 current_eidolon = 1;
+  int32 pity = 2;
+  int32 pulls = 3;
+  bool next_guaranteed = 4;
+  optional int32 enpitomized_pity = 5;
+  BannerType banner = 6;
+}
+
+message ProbabilityRateResponse {
+    int32 roll_budget = 1;
+    repeated ReducedSims data = 2;
+}
+
+message ReducedSims {
+    repeated ReducedSim index = 1;
+}
+
+message ReducedSim {
+    int32 eidolon = 1;
+    double rate = 2;
+}
+
+enum BannerType {
+  SSR = 0;
+  SR = 1;
+  LC = 2;
+}

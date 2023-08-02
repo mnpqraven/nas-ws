@@ -1,5 +1,7 @@
 use crate::handler::{error::WorkerError, FromAxumResponse};
 use axum::Json;
+use num_derive::FromPrimitive;
+use prost::Enumeration;
 use response_derive::JsonResponse;
 use serde::{Deserialize, Serialize};
 use vercel_runtime::{Body, Response, StatusCode};
@@ -20,14 +22,15 @@ pub struct Banner {
     pub banner_type: BannerType,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, Enumeration, FromPrimitive)]
+#[repr(i32)]
 pub enum BannerType {
     #[serde(rename = "SSR")]
-    Ssr,
+    Ssr = 0,
     #[serde(rename = "SR")]
-    Sr,
+    Sr = 1,
     #[serde(rename = "LC")]
-    Lc,
+    Lc = 2,
 }
 
 impl Banner {

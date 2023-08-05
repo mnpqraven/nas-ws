@@ -9,9 +9,17 @@ use tokio_cron_scheduler::{Job, JobScheduler};
 
 #[tokio::main]
 async fn main() -> Result<(), WorkerError> {
+    #[cfg(debug_assertions)]
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .pretty()
+        .init();
+
+    #[cfg(not(debug_assertions))]
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .pretty()
+        .with_ansi(false)
         .init();
 
     let sched = JobScheduler::new().await?;

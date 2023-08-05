@@ -18,6 +18,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
+        name: Install Protoc
+        uses: arduino/setup-protoc@v2
+      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       -

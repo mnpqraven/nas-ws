@@ -16,7 +16,7 @@ COPY . .
 RUN . "$HOME/.cargo/env" && PROTOC=/usr/bin/protoc cargo install --path . --bin nas-ws
 
 FROM rust:latest
-COPY --from=builder /usr/local/cargo/bin/nas-ws /usr/local/bin/nas-ws
+COPY --from=builder /root/.cargo/bin/nas-ws /usr/local/bin/nas-ws
 
 CMD ["nas-ws"]
 EXPOSE 5005

@@ -7,19 +7,17 @@ use handler::error::WorkerError;
 use std::{net::SocketAddr, time::Duration};
 use tokio_cron_scheduler::{Job, JobScheduler};
 
+#[cfg(debug_assertions)]
+const ANSI: bool = true;
+#[cfg(not(debug_assertions))]
+const ANSI: bool = false;
+
 #[tokio::main]
 async fn main() -> Result<(), WorkerError> {
-    #[cfg(debug_assertions)]
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .pretty()
-        .init();
-
-    #[cfg(not(debug_assertions))]
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .pretty()
-        .with_ansi(false)
+        .with_ansi(ANSI)
         .init();
 
     let sched = JobScheduler::new().await?;
@@ -49,7 +47,9 @@ async fn main() -> Result<(), WorkerError> {
     sched.start().await?;
 
     tokio::spawn(async move {
+        tracing::info!("spinning up DM repo...");
         let _ = dm_repo_clone::execute().await;
+        tracing::info!("DM repo cloned");
     });
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5005));

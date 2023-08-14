@@ -16,7 +16,12 @@ use crate::{
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt::format,
+    fs::File,
+    io::BufReader,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UpstreamAvatarSkillConfig {
@@ -262,5 +267,32 @@ impl DbData for AvatarSkillConfig {
             );
         }
         Ok(res)
+    }
+}
+
+impl AvatarSkillConfig {
+    /// write an `AvatarSkillConfig` to smaller chunks in `tmp`
+    pub async fn write_splitted() -> Result<(), WorkerError> {
+        let skill_db: HashMap<u32, AvatarSkillConfig> = AvatarSkillConfig::read().await?;
+        std::fs::create_dir_all("/tmp/AvatarSkillConfigs")?;
+        for (key, value) in skill_db.into_iter() {
+            let filepath = format!("/tmp/AvatarSkillConfigs/{}.json", key);
+            let json_blob = serde_json::to_string(&value)?;
+            // save to a new file
+            std::fs::write(filepath, json_blob)?;
+        }
+        Ok(())
+    }
+
+    pub async fn _read_splitted_by_charid(character_id: i32) -> Result<Vec<Self>, WorkerError> {
+        unimplemented!()
+    }
+
+    pub fn read_splitted_by_skillid(skill_id: u32) -> Result<Self, WorkerError> {
+        let filepath = format!("/tmp/AvatarSkillConfigs/{}.json", skill_id);
+        let file = File::open(filepath)?;
+        let reader = BufReader::new(file);
+        let data: Self = serde_json::from_reader(reader)?;
+        Ok(data)
     }
 }

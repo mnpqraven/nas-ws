@@ -1,4 +1,6 @@
-use crate::handler::error::WorkerError;
+use crate::{
+    handler::error::WorkerError, routes::honkai::dm_api::character_skill::types::AvatarSkillConfig,
+};
 use std::path::Path;
 use tokio::process::Command;
 use tracing::{error, info};
@@ -29,5 +31,12 @@ pub async fn execute() -> Result<(), WorkerError> {
             WorkerError::ServerSide
         });
     info!("clone completed");
+    Ok(())
+}
+
+pub async fn chunk_splitter() -> Result<(), WorkerError> {
+    info!("attempting file splitting...");
+    AvatarSkillConfig::write_splitted().await?;
+    info!("file splitting completed");
     Ok(())
 }

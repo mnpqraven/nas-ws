@@ -27,6 +27,7 @@ async fn main() -> Result<(), WorkerError> {
             |_uuid, _l| {
                 Box::pin(async move {
                     let _ = dm_repo_clone::execute().await;
+                    let _ = dm_repo_clone::chunk_splitter().await;
                 })
             },
         )?)
@@ -49,6 +50,7 @@ async fn main() -> Result<(), WorkerError> {
     tokio::spawn(async move {
         tracing::info!("spinning up DM repo...");
         let _ = dm_repo_clone::execute().await;
+        let _ = dm_repo_clone::chunk_splitter().await;
         tracing::info!("DM repo cloned");
     });
 

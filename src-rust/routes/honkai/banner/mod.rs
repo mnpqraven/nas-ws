@@ -48,7 +48,10 @@ pub async fn patch_banner_list() -> Result<Json<List<PatchBanner>>, WorkerError>
 pub async fn patch_date_list() -> Result<Json<List<Patch>>, WorkerError> {
     let patches_info: Vec<(&str, Version)> = vec![
         ("Even Immortality Ends", Version::parse("1.2.0")?),
-        // ("Meme", Version::parse("1.3.0").unwrap()),
+        (
+            "Celestial Eyes Above Mortal Ruins",
+            Version::parse("1.3.0")?,
+        ),
     ];
 
     let future_patches = Patch::generate(5, Some(patches_info));

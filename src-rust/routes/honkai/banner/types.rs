@@ -72,7 +72,7 @@ impl Banner {
             guaranteed: 1.0,
             guaranteed_pity: None,
             min_const: -1,
-            max_const: 5,
+            max_const: 4,
             max_pity: 80,
             const_prefix: BannerType::Lc.const_prefix(),
             const_shorthand: 'S',

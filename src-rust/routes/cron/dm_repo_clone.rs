@@ -6,6 +6,7 @@ use tokio::process::Command;
 use tracing::{error, info};
 
 pub async fn execute() -> Result<(), WorkerError> {
+    info!("spinning up DM repo...");
     if Path::new("../StarRailData").exists() {
         info!("local DM directory exists, attempting pull...");
         let _pull = Command::new("git")
@@ -15,8 +16,6 @@ pub async fn execute() -> Result<(), WorkerError> {
         info!("pull completed");
         return Ok(());
     }
-    // exist, we pull
-    // not exist, we clone
     info!("local DM directory does not exist, attempting clone...");
     let _clone = Command::new("git")
         .args([
@@ -30,7 +29,7 @@ pub async fn execute() -> Result<(), WorkerError> {
             error!("cloning failed");
             WorkerError::ServerSide
         });
-    info!("clone completed");
+    info!("DM repo cloned");
     Ok(())
 }
 

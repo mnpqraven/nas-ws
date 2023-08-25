@@ -48,10 +48,8 @@ async fn main() -> Result<(), WorkerError> {
     sched.start().await?;
 
     tokio::spawn(async move {
-        tracing::info!("spinning up DM repo...");
         let _ = dm_repo_clone::execute().await;
         let _ = dm_repo_clone::chunk_splitter().await;
-        tracing::info!("DM repo cloned");
     });
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5005));

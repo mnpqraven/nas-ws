@@ -3,10 +3,11 @@ use axum::Json;
 use num_derive::FromPrimitive;
 use prost::Enumeration;
 use response_derive::JsonResponse;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use vercel_runtime::{Body, Response, StatusCode};
 
-#[derive(Debug, Serialize, JsonResponse, Clone)]
+#[derive(Debug, Serialize, JsonResponse, Clone, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Banner {
     pub banner_name: String,
@@ -22,7 +23,7 @@ pub struct Banner {
     pub banner_type: BannerType,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, Enumeration, FromPrimitive)]
+#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, Enumeration, FromPrimitive, JsonSchema)]
 #[repr(i32)]
 pub enum BannerType {
     #[serde(rename = "SSR")]

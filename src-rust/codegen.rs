@@ -16,7 +16,7 @@ use nas_ws::routes::{honkai::{
         property::config::AvatarPropertyConfig,
         relic::{set_config::RelicSetConfig, set_skill_config::RelicSetSkillConfig},
     },
-    patch::types::{Patch, PatchBanner},
+    patch::types::{Patch, PatchBanner}, banner::types::Banner,
 }, utils::mock_hsr_stat::MvpAnalysis};
 use schemars::{schema::RootSchema, schema_for};
 use std::{error::Error, fs, path::Path};
@@ -53,6 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let type_names = vec![
         Schema::new(schema_for!(PatchBanner), "PatchBanner"),
         Schema::new(schema_for!(Patch), "Patch"),
+        Schema::new(schema_for!(Banner), "Banner"),
         Schema::new(schema_for!(SkillTreeConfig), "SkillTreeConfig"),
         Schema::new(schema_for!(SignatureAtlas), "SignatureAtlas"),
         Schema::new(schema_for!(AvatarConfig), "AvatarConfig"),

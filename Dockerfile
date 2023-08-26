@@ -9,7 +9,7 @@
 
 FROM debian:bullseye-slim as builder
 WORKDIR /usr/src/nas-ws
-RUN apt-get update && apt-get install -y protobuf-compiler libprotobuf-dev curl build-essential pkg-config libssl-dev
+RUN apt-get update && apt-get install -y protobuf-compiler libprotobuf-dev curl build-essential pkg-config libssl-dev libssl1.1
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 COPY . .
 

@@ -1,4 +1,8 @@
-use std::collections::HashMap;
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io::BufReader,
+};
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -49,7 +53,7 @@ impl DbData for RelicConfig {
     type TLocal = HashMap<u32, RelicConfig>;
 
     fn path_data() -> &'static str {
-        "ExcelConfig/RelicConfig.json"
+        "ExcelOutput/RelicConfig.json"
     }
 
     async fn upstream_convert(from: Self::TUpstream) -> Result<Self::TLocal, WorkerError> {
@@ -58,7 +62,7 @@ impl DbData for RelicConfig {
             .map(|(k, v)| {
                 let value = RelicConfig {
                     id: v.id,
-                    set_id: v.id,
+                    set_id: v.set_id,
                     rarity: v.rarity as u8,
                     ttype: v.ttype,
                     exp_type: v.exp_type,
@@ -72,6 +76,43 @@ impl DbData for RelicConfig {
             })
             .collect();
         Ok(transformed)
+    }
+}
+
+impl RelicConfig {
+    pub async fn write_splitted() -> Result<(), WorkerError> {
+        let relic_db: HashMap<u32, RelicConfig> = RelicConfig::read().await?;
+        let set_ids = relic_db
+            .values()
+            .map(|relic| relic.set_id)
+            .collect::<HashSet<u32>>()
+            .into_iter()
+            .collect::<Vec<u32>>();
+
+        std::fs::create_dir_all("/tmp/RelicConfigs")?;
+
+        for set_id in set_ids.into_iter() {
+            let relics = relic_db
+                .values()
+                .filter(|relic| relic.set_id == set_id)
+                .cloned()
+                .collect::<Vec<RelicConfig>>();
+            let filepath = format!("/tmp/RelicConfigs/{}.json", set_id);
+            let json_blob = serde_json::to_string(&relics)?;
+            // save to a new file
+            std::fs::write(filepath, json_blob)?;
+        }
+        Ok(())
+    }
+
+    pub async fn read_splitted_by_setid(
+        set_id: u32,
+    ) -> Result<Vec<RelicConfig>, WorkerError> {
+        let filepath = format!("/tmp/RelicConfigs/{}.json", set_id);
+        let file = File::open(filepath)?;
+        let reader = BufReader::new(file);
+        let data: Vec<RelicConfig> = serde_json::from_reader(reader)?;
+        Ok(data)
     }
 }
 

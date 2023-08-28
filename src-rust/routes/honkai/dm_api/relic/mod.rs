@@ -56,7 +56,14 @@ pub async fn relic_set_search(
 pub async fn relics_by_set(
     Path(set_id): Path<u32>,
 ) -> Result<Json<List<RelicConfig>>, WorkerError> {
-    todo!()
+    let relic_db = RelicConfig::read_splitted_by_setid(set_id).await?;
+
+    let data = relic_db
+        .into_iter()
+        .filter(|value| value.set_id == set_id)
+        .collect();
+
+    Ok(Json(List::new(data)))
 }
 
 pub async fn set_bonus(Path(set_id): Path<u32>) -> Result<Json<RelicSetSkillConfig>, WorkerError> {

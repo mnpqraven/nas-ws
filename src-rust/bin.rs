@@ -2,7 +2,11 @@ mod builder;
 mod handler;
 mod routes;
 
-use crate::routes::{app_router, cron::dm_repo_clone, cron::write_db};
+use crate::routes::{
+    app_router,
+    cron::write_db,
+    cron::{dm_file_splitting, dm_repo_clone},
+};
 use handler::error::WorkerError;
 use std::{net::SocketAddr, time::Duration};
 use tokio_cron_scheduler::{Job, JobScheduler};
@@ -27,7 +31,7 @@ async fn main() -> Result<(), WorkerError> {
             |_uuid, _l| {
                 Box::pin(async move {
                     let _ = dm_repo_clone::execute().await;
-                    let _ = dm_repo_clone::chunk_splitter().await;
+                    let _ = dm_file_splitting::execute().await;
                 })
             },
         )?)
@@ -49,7 +53,7 @@ async fn main() -> Result<(), WorkerError> {
 
     tokio::spawn(async move {
         let _ = dm_repo_clone::execute().await;
-        let _ = dm_repo_clone::chunk_splitter().await;
+        let _ = dm_file_splitting::execute().await;
     });
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5005));

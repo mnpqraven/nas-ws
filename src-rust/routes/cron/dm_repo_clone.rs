@@ -1,6 +1,4 @@
-use crate::{
-    handler::error::WorkerError, routes::honkai::dm_api::character_skill::types::AvatarSkillConfig,
-};
+use crate::handler::error::WorkerError;
 use std::path::Path;
 use tokio::process::Command;
 use tracing::{error, info};
@@ -30,12 +28,5 @@ pub async fn execute() -> Result<(), WorkerError> {
             WorkerError::ServerSide
         });
     info!("DM repo cloned");
-    Ok(())
-}
-
-pub async fn chunk_splitter() -> Result<(), WorkerError> {
-    info!("attempting file splitting...");
-    AvatarSkillConfig::write_splitted().await?;
-    info!("file splitting completed");
     Ok(())
 }

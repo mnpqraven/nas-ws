@@ -77,6 +77,8 @@ pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
         (1205, vec![23009]),        // blade
         (1005, vec![23006]),        // kafka
         (1111, vec![21015]),        // luka
+        (1208, vec![23011]),        // fuxuan
+        (1213, vec![23015]),        // danhengil
     ]);
     let mut base_feature_map: HashMap<u32, Vec<u32>> = HashMap::new();
     // populate

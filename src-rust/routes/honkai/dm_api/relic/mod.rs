@@ -1,7 +1,6 @@
-use std::sync::Arc;
-
 use self::{
     config::RelicConfig, set_config::RelicSetConfig, set_skill_config::RelicSetSkillConfig,
+    sub_affix::RelicSubAffixConfig,
 };
 use crate::{
     handler::error::WorkerError,
@@ -11,10 +10,13 @@ use axum::{extract::Path, Json};
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use regex::Regex;
 use reqwest::Method;
+use std::sync::Arc;
 
 pub mod config;
+pub mod main_affix;
 pub mod set_config;
 pub mod set_skill_config;
+pub mod sub_affix;
 
 pub async fn relic_set(Path(set_id): Path<u32>) -> Result<Json<RelicSetConfig>, WorkerError> {
     let relic_set_db = RelicSetConfig::read().await?;
@@ -56,7 +58,21 @@ pub async fn relic_set_search(
 pub async fn relics_by_set(
     Path(set_id): Path<u32>,
 ) -> Result<Json<List<RelicConfig>>, WorkerError> {
-    todo!()
+    let relic_db = RelicConfig::read_splitted_by_setid(set_id).await?;
+
+    let data = relic_db
+        .into_iter()
+        .filter(|value| value.set_id == set_id)
+        .collect();
+
+    Ok(Json(List::new(data)))
+}
+
+pub async fn substat_spread() -> Result<Json<List<RelicSubAffixConfig>>, WorkerError> {
+    let spread_db = RelicSubAffixConfig::read().await?;
+
+    let as_list: Vec<RelicSubAffixConfig> = spread_db.into_values().collect();
+    Ok(Json(List::new(as_list)))
 }
 
 pub async fn set_bonus(Path(set_id): Path<u32>) -> Result<Json<RelicSetSkillConfig>, WorkerError> {

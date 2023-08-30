@@ -18,7 +18,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashMap},
-    fmt::format,
     fs::File,
     io::BufReader,
 };
@@ -282,10 +281,6 @@ impl AvatarSkillConfig {
             std::fs::write(filepath, json_blob)?;
         }
         Ok(())
-    }
-
-    pub async fn _read_splitted_by_charid(character_id: i32) -> Result<Vec<Self>, WorkerError> {
-        unimplemented!()
     }
 
     pub fn read_splitted_by_skillid(skill_id: u32) -> Result<Self, WorkerError> {

@@ -15,21 +15,21 @@ use axum::{routing::any_service, Router};
 use tonic_web::enable;
 
 pub fn rpc_routes() -> Router {
-    let atlas_sv = any_service(enable(SignatureAtlasServiceServer::new(
+    let dm_atlas = any_service(enable(SignatureAtlasServiceServer::new(
         SignatureAtlas::default(),
     )));
     let jadeestimate_sv = any_service(enable(JadeEstimateServiceServer::new(
         JadeEstimateResponse::default(),
     )));
-    let probabilityrate_sv = any_service(enable(ProbabilityRateServiceServer::new(
+    let probabilityrate = any_service(enable(ProbabilityRateServiceServer::new(
         ProbabilityRateResponse::default(),
     )));
 
     Router::new()
-        .route("/dm.atlas.SignatureAtlasService/*rpc", atlas_sv)
+        .route("/dm.atlas.SignatureAtlasService/*rpc", dm_atlas)
         .route("/jadeestimate.JadeEstimateService/*rpc", jadeestimate_sv)
         .route(
             "/probabilityrate.ProbabilityRateService/*rpc",
-            probabilityrate_sv,
+            probabilityrate,
         )
 }

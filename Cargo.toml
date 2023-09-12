@@ -4,35 +4,35 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.6.15", features = ["macros"] }
-serde = { version = "1.0.160", features = ["derive"] }
-serde_json = "1.0.96"
-serde_repr = "0.1.12"
-tokio = { version = "1.27.0", features = ["full"] }
+axum = { version = "0.6.20", features = ["macros"] }
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.106"
+serde_repr = "0.1.16"
+tokio = { version = "1.32.0", features = ["full"] }
 tracing = "0.1.37"
-tracing-subscriber = "0.3.16"
+tracing-subscriber = "0.3.17"
 strum_macros = "0.25"
 strum = { version = "0.25", features = ["derive"] }
-base64 = "0.21.0"
+base64 = "0.21.4"
 gray_matter = "0.2.6"
-tower-http = { version = "0.4.0", features = ["trace"] }
+tower-http = { version = "0.4.4", features = ["trace"] }
 vercel_runtime = { version = "1.0.2" }
 rand = "0.8.5"
-url = "2.3.1"
+url = "2.4.1"
 response_derive = { version = "0.1.0", path = "response_derive" }
 dotfiles-schema = { git = "https://github.com/mnpqraven/dotfiles-install" }
-csv = "1.2.1"
-chrono = { version = "0.4.24", features = ["serde"] }
-semver = { version = "1.0.17", features = ["serde"] }
-reqwest = { version = "0.11.18", features = ["json"] }
-schemars = { version = "0.8.12", features = ["chrono"] }
+csv = "1.2.2"
+chrono = { version = "0.4.30", features = ["serde"] }
+semver = { version = "1.0.18", features = ["serde"] }
+reqwest = { version = "0.11.20", features = ["json"] }
+schemars = { version = "0.8.13", features = ["chrono"] }
 serde-aux = "4.2.0"
-anyhow = { version = "1.0.71", features = ["backtrace"] }
-serde_with = "3.0.0"
-regex = "1.8.4"
-async-trait = "0.1.68"
-fake = { version = "2.6.1", features = ["derive"] }
-clap = { version = "4.3.5", features = ["derive"] }
+anyhow = { version = "1.0.75", features = ["backtrace"] }
+serde_with = "3.3.0"
+regex = "1.9.5"
+async-trait = "0.1.73"
+fake = { version = "2.8.0", features = ["derive"] }
+clap = { version = "4.4.2", features = ["derive"] }
 tokio-cron-scheduler = "0.9.4"
 futures = "0.3.28"
 fuzzy-matcher = "0.3.7"

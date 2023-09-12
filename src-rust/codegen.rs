@@ -14,7 +14,7 @@ use nas_ws::routes::{honkai::{
         },
         equipment_skill::skill_tree_config::SkillTreeConfig,
         property::config::AvatarPropertyConfig,
-        relic::{set_config::RelicSetConfig, set_skill_config::RelicSetSkillConfig, sub_affix::RelicSubAffixConfig},
+        relic::{set_config::RelicSetConfig, set_skill_config::RelicSetSkillConfig, sub_affix::RelicSubAffixConfig, main_affix::RelicMainAffixConfig},
     },
     patch::types::{Patch, PatchBanner}, banner::types::Banner,
 }, utils::mock_hsr_stat::MvpAnalysis};
@@ -71,6 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Schema::new(schema_for!(RelicSetConfig), "RelicSetConfig"),
         Schema::new(schema_for!(RelicSetSkillConfig), "RelicSetSkillConfig"),
         Schema::new(schema_for!(RelicSubAffixConfig), "RelicSubAffixConfig"),
+        Schema::new(schema_for!(RelicMainAffixConfig), "RelicMainAffixConfig"),
         Schema::new(schema_for!(MvpAnalysis), "MvpAnalysis"),
     ];
 

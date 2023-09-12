@@ -1,6 +1,6 @@
 use self::{
-    cron::write_db, dotfiles::dotfiles_routes, foo::foo_routes, health::health_check,
-    honkai::honkai_routes, rpc_routes::rpc_routes, utils::utils_routes,
+    cron::write_db, dotfiles::dotfiles_routes, health::health_check, honkai::honkai_routes,
+    rpc_routes::rpc_routes, utils::utils_routes,
 };
 use axum::{routing::get, Router};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
@@ -8,7 +8,6 @@ use tower_http::{cors::CorsLayer, trace::TraceLayer};
 pub mod cron;
 pub mod dotfiles;
 pub mod endpoint_types;
-mod foo;
 mod health;
 pub mod honkai;
 pub mod rpc_routes;
@@ -17,7 +16,6 @@ pub mod utils;
 pub fn app_router() -> Router {
     Router::new()
         .nest("/utils", utils_routes())
-        .nest("/foo", foo_routes())
         .nest("/dotfiles", dotfiles_routes())
         .nest("/honkai", honkai_routes())
         .nest("/cron", cron_routes())

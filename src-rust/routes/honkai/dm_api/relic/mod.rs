@@ -1,5 +1,8 @@
 use self::{
-    config::RelicConfig, set_config::RelicSetConfig, set_skill_config::RelicSetSkillConfig,
+    config::{RelicConfig, RelicType},
+    main_affix::RelicMainAffixConfig,
+    set_config::RelicSetConfig,
+    set_skill_config::RelicSetSkillConfig,
     sub_affix::RelicSubAffixConfig,
 };
 use crate::{
@@ -10,7 +13,7 @@ use axum::{extract::Path, Json};
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use regex::Regex;
 use reqwest::Method;
-use std::sync::Arc;
+use std::{collections::BTreeMap, sync::Arc};
 
 pub mod config;
 pub mod main_affix;
@@ -73,6 +76,13 @@ pub async fn substat_spread() -> Result<Json<List<RelicSubAffixConfig>>, WorkerE
 
     let as_list: Vec<RelicSubAffixConfig> = spread_db.into_values().collect();
     Ok(Json(List::new(as_list)))
+}
+
+pub async fn mainstat_spread(
+) -> Result<Json<BTreeMap<RelicType, Vec<RelicMainAffixConfig>>>, WorkerError> {
+    let spread_db = RelicMainAffixConfig::read().await?;
+
+    Ok(Json(spread_db))
 }
 
 pub async fn set_bonus(Path(set_id): Path<u32>) -> Result<Json<RelicSetSkillConfig>, WorkerError> {

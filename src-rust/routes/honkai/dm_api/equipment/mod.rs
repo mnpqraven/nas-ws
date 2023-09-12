@@ -31,7 +31,10 @@ pub async fn light_cone(Path(lc_id): Path<u32>) -> Result<Json<EquipmentConfig>,
 
     let res = db_metadata.get(&lc_id).ok_or(WorkerError::EmptyBody)?;
 
-    info!("[/light_cone/{lc_id}/metadata] light_cone: {:?}", now.elapsed());
+    info!(
+        "[/light_cone/{lc_id}/metadata] light_cone: {:?}",
+        now.elapsed()
+    );
     Ok(Json(res.clone()))
 }
 pub async fn light_cone_search(
@@ -45,10 +48,7 @@ pub async fn light_cone_search(
     let db_metadata: HashMap<u32, EquipmentConfig> = EquipmentConfig::read().await?;
     let names: Vec<EquipmentConfig> = db_metadata
         .into_values()
-        .filter(|v| {
-            let fuzz_result = matcher.fuzzy_match(&v.equipment_name, &lc_name);
-            fuzz_result.is_some()
-        })
+        .filter(|v| matcher.fuzzy_match(&v.equipment_name, &lc_name).is_some())
         .collect();
     if names.is_empty() {
         return Ok(Json(None));
@@ -57,7 +57,7 @@ pub async fn light_cone_search(
     Ok(Json(names.get(0).cloned()))
 }
 
-pub async fn light_cone_many(
+pub async fn light_cones(
     method: Method,
     lc_ids: Option<Json<List<u32>>>,
 ) -> Result<Json<List<EquipmentConfig>>, WorkerError> {
@@ -75,24 +75,28 @@ pub async fn light_cone_many(
         .map(|(_, v)| v.clone())
         .collect();
 
-    info!("[/light_cone/metadata] light_cone_many: {:?}", now.elapsed());
+    info!(
+        "[/light_cone/metadata] light_cone_many: {:?}",
+        now.elapsed()
+    );
     Ok(Json(List::new(res.to_vec())))
 }
 
-pub async fn light_cone_skill(
-    Path(lc_id): Path<u32>,
-) -> Result<Json<EquipmentSkillConfig>, WorkerError> {
+pub async fn lc_skill(Path(lc_id): Path<u32>) -> Result<Json<EquipmentSkillConfig>, WorkerError> {
     let now = std::time::Instant::now();
 
     let db_metadata = EquipmentSkillConfig::read().await?;
 
     let res = db_metadata.get(&lc_id).ok_or(WorkerError::EmptyBody)?;
 
-    info!("[/light_cone/{lc_id}/skill] light_cone_skill: {:?}", now.elapsed());
+    info!(
+        "[/light_cone/{lc_id}/skill] light_cone_skill: {:?}",
+        now.elapsed()
+    );
     Ok(Json(res.clone()))
 }
 
-pub async fn light_cone_skill_many(
+pub async fn lc_skills(
     method: Method,
     lc_ids: Option<Json<List<u32>>>,
 ) -> Result<Json<List<EquipmentSkillConfig>>, WorkerError> {
@@ -110,11 +114,14 @@ pub async fn light_cone_skill_many(
         .map(|(_, v)| v.clone())
         .collect();
 
-    info!("[/light_cone/skill] light_cone_skill_many: {:?}", now.elapsed());
+    info!(
+        "[/light_cone/skill] light_cone_skill_many: {:?}",
+        now.elapsed()
+    );
     Ok(Json(List::new(res.to_vec())))
 }
 
-pub async fn light_cone_promotion(
+pub async fn lc_promotion(
     Path(lc_id): Path<u32>,
 ) -> Result<Json<EquipmentPromotionConfig>, WorkerError> {
     let now = std::time::Instant::now();
@@ -127,7 +134,7 @@ pub async fn light_cone_promotion(
     Ok(Json(res.clone()))
 }
 
-pub async fn light_cone_promotion_many(
+pub async fn lc_promotions(
     method: Method,
     lc_ids: Option<Json<List<u32>>>,
 ) -> Result<Json<List<EquipmentPromotionConfig>>, WorkerError> {
@@ -145,6 +152,9 @@ pub async fn light_cone_promotion_many(
         .map(|(_, v)| v.clone())
         .collect();
 
-    info!("[/light_cone/promotion] light_cone_promotion_many: {:?}", now.elapsed());
+    info!(
+        "[/light_cone/promotion] light_cone_promotion_many: {:?}",
+        now.elapsed()
+    );
     Ok(Json(List::new(res.to_vec())))
 }

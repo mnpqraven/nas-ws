@@ -6,6 +6,7 @@ use std::{
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use strum_macros::EnumIter;
 
 use crate::{handler::error::WorkerError, routes::honkai::traits::DbData};
 
@@ -105,9 +106,7 @@ impl RelicConfig {
         Ok(())
     }
 
-    pub async fn read_splitted_by_setid(
-        set_id: u32,
-    ) -> Result<Vec<RelicConfig>, WorkerError> {
+    pub async fn read_splitted_by_setid(set_id: u32) -> Result<Vec<RelicConfig>, WorkerError> {
         let filepath = format!("/tmp/RelicConfigs/{}.json", set_id);
         let file = File::open(filepath)?;
         let reader = BufReader::new(file);
@@ -117,7 +116,7 @@ impl RelicConfig {
 }
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, PartialOrd, Ord, EnumIter, Hash)]
 pub enum RelicType {
     HEAD,
     HAND,

@@ -1,6 +1,6 @@
 use self::probabilityrate::probability_rate_service_server::ProbabilityRateService;
 use super::types::{ProbabilityRatePayload, ProbabilityRateResponse, ReducedSim};
-use crate::routes::honkai::{banner::types::BannerType, probability_rate::handle};
+use crate::routes::honkai::probability_rate::handle;
 use axum::Json;
 use tonic::{Request, Response, Status};
 
@@ -50,7 +50,7 @@ impl From<probabilityrate::ProbabilityRatePayload> for ProbabilityRatePayload {
             pulls: value.pulls,
             next_guaranteed: value.next_guaranteed,
             enpitomized_pity: value.enpitomized_pity,
-            banner: BannerType::from_i32(value.banner).unwrap(),
+            banner: value.banner.try_into().unwrap(),
         }
     }
 }

@@ -52,17 +52,17 @@ impl TryFrom<jadeestimate::JadeEstimateCfg> for EstimateCfg {
         } = value.battle_pass.ok_or(WorkerError::EmptyBody)?;
 
         let data = EstimateCfg {
-            server: super::types::Server::from_i32(value.server).unwrap(),
+            server: value.server.try_into().unwrap(),
             until_date: super::types::SimpleDate { day, month, year },
             rail_pass: super::types::RailPassCfg {
                 use_rail_pass,
                 days_left,
             },
             battle_pass: super::types::BattlePassOption {
-                battle_pass_type: super::types::BattlePassType::from_i32(battle_pass_type).unwrap(),
+                battle_pass_type: battle_pass_type.try_into().unwrap(),
                 current_level,
             },
-            eq: super::types::EqTier::from_i32(value.eq).unwrap(),
+            eq: value.eq.try_into().unwrap(),
             moc: value.moc,
             moc_current_week_done: value.moc_current_week_done,
             current_rolls: value.current_rolls,

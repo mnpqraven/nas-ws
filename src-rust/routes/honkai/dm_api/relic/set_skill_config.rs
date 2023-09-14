@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap},
+    str::FromStr,
+};
 
 use crate::{
     handler::error::WorkerError,
@@ -25,7 +28,7 @@ pub struct UpStreamRelicSetSkillConfig {
     #[serde(alias = "SkillDesc")]
     skill_desc: HashedString,
     #[serde(alias = "PropertyList")]
-    property_list: Vec<RelicParam>,
+    property_list: Vec<HashMap<String, serde_json::Value>>,
     #[serde(alias = "AbilityName")]
     ability_name: HashedString,
     #[serde(alias = "AbilityParamList")]
@@ -34,10 +37,18 @@ pub struct UpStreamRelicSetSkillConfig {
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RelicParam {
-    #[serde(alias = "FGBOJAIOFIJ")]
+    // #[serde(alias = "NAOGDGBJNOJ")]
     pub property: Property,
-    #[serde(alias = "LGKGOMNMBAH")]
-    pub param: Param,
+    // #[serde(alias = "MBOHKHKHFPD")]
+    pub value: f64,
+}
+impl Default for RelicParam {
+    fn default() -> Self {
+        Self {
+            property: Property::Attack,
+            value: Default::default(),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
@@ -94,7 +105,27 @@ impl DbData for RelicSetSkillConfig {
                     set_id: key,
                     require_num: v.values().map(|e| e.require_num).collect(),
                     skill_desc: dehashed_desc,
-                    property_list: v.values().map(|e| e.property_list.clone()).collect(),
+                    // property_list: v.values().map(|e| e.property_list.clone()).collect(),
+                    property_list: v
+                        .values()
+                        .map(|e| {
+                            let mut ret: Vec<RelicParam> = Vec::new();
+                            for prop in &e.property_list {
+                                let mut relic = RelicParam::default();
+                                for val in prop.values() {
+                                    match val.is_string() {
+                                        true => {
+                                            relic.property =
+                                                Property::from_str(val.as_str().unwrap()).unwrap()
+                                        }
+                                        false => relic.value = val["Value"].as_f64().unwrap(),
+                                    }
+                                }
+                                ret.push(relic)
+                            }
+                            ret
+                        })
+                        .collect(),
                     ability_name: vec![],
                     ability_param_list: param_as_string,
                 };

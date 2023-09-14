@@ -75,7 +75,7 @@ pub struct AttributeProperty {
     percent: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Dummy)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Dummy, EnumString)]
 pub enum Property {
     MaxHP,
     Attack,

@@ -5,6 +5,7 @@ use std::{
 };
 
 use async_trait::async_trait;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
@@ -34,7 +35,7 @@ pub struct UpstreamRelicConfig {
     coin_cost: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RelicConfig {
     pub id: u32,
     pub set_id: u32,
@@ -116,7 +117,7 @@ impl RelicConfig {
 }
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, PartialOrd, Ord, EnumIter, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, EnumIter, Hash, JsonSchema)]
 pub enum RelicType {
     HEAD,
     HAND,

@@ -15,8 +15,8 @@ use self::dm_api::equipment::{
 use self::dm_api::equipment_skill::trace;
 use self::dm_api::property::property;
 use self::dm_api::relic::{
-    mainstat_spread, relic_set, relic_set_many, relic_set_search, relics_by_set, set_bonus,
-    set_bonus_many, substat_spread,
+    mainstat_spread, relic_set, relic_set_many, relic_set_search, relic_slot_type, relics_by_set,
+    set_bonus, set_bonus_many, substat_spread, relics_by_set_post,
 };
 use self::dm_api::{atlas, character, character_skill};
 use axum::routing::{get, post};
@@ -51,7 +51,9 @@ pub fn honkai_routes() -> Router {
         .route("/avatar/:id/eidolon", get(eidolon))
         .route("/character/search/:name", get(character_by_name))
         .route("/skills", post(character_skill::skills))
+        .route("/relics", post(relics_by_set_post))
         .route("/relics/:setid", get(relics_by_set))
+        .route("/relics/slot_type", post(relic_slot_type))
         .route("/relics/statspread/sub", get(substat_spread))
         .route("/relics/statspread/main", get(mainstat_spread))
         .route("/relic_set/bonus", get(set_bonus_many).post(set_bonus_many))

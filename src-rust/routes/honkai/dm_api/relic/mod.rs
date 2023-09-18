@@ -10,10 +10,14 @@ use crate::{
     routes::{endpoint_types::List, honkai::traits::DbData},
 };
 use axum::{extract::Path, Json};
+use futures::future::try_join_all;
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use regex::Regex;
 use reqwest::Method;
-use std::{collections::BTreeMap, sync::Arc};
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
 
 pub mod config;
 pub mod main_affix;
@@ -71,6 +75,35 @@ pub async fn relics_by_set(
     Ok(Json(List::new(data)))
 }
 
+pub async fn relics_by_set_post(
+    Json(params): Json<List<u32>>,
+) -> Result<Json<List<RelicConfig>>, WorkerError> {
+    let List { list: set_ids } = params;
+    println!("should see {:?}", set_ids);
+    let data = try_join_all(
+        set_ids
+            .iter()
+            .map(|set_id| RelicConfig::read_splitted_by_setid(*set_id)),
+    )
+    .await?;
+    let mut binding: Vec<RelicConfig> = data.into_iter().flatten().collect();
+    // WARN: this swap is needed because DM data have their type flipped
+    let flattened_data = binding
+        .iter_mut()
+        .map(|relic| {
+            match relic.ttype {
+                RelicType::OBJECT => relic.ttype = RelicType::NECK,
+                RelicType::NECK => relic.ttype = RelicType::OBJECT,
+                _ => {}
+            }
+            let t = &*relic;
+            t.clone()
+        })
+        .collect();
+
+    Ok(Json(List::new(flattened_data)))
+}
+
 pub async fn substat_spread() -> Result<Json<List<RelicSubAffixConfig>>, WorkerError> {
     let spread_db = RelicSubAffixConfig::read().await?;
 
@@ -110,4 +143,18 @@ pub async fn set_bonus_many(
         .map(|(_, v)| v.clone())
         .collect();
     Ok(Json(List::new(data.to_vec())))
+}
+
+pub async fn relic_slot_type(
+    set_ids: Json<List<u32>>,
+) -> Result<Json<HashMap<u32, RelicType>>, WorkerError> {
+    let Json(List { list: set_ids }) = set_ids;
+    let mut ret: HashMap<u32, RelicType> = HashMap::new();
+    for set_id in set_ids {
+        let db = RelicConfig::read_splitted_by_setid(set_id).await.unwrap();
+        db.iter().for_each(|relic_cfg| {
+            ret.insert(relic_cfg.id, relic_cfg.ttype);
+        })
+    }
+    Ok(Json(ret))
 }

@@ -106,6 +106,7 @@ pub async fn lc_skills(
         _ => None,
     };
 
+    // TODO: split reader for perf
     let db_metadata = EquipmentSkillConfig::read().await?;
 
     let res: Arc<[EquipmentSkillConfig]> = db_metadata

@@ -52,6 +52,7 @@ pub async fn patch_date_list() -> Result<Json<List<Patch>>, WorkerError> {
             "Celestial Eyes Above Mortal Ruins",
             Version::parse("1.3.0")?,
         ),
+        ("Jolted Awake From a Winter Dream", Version::parse("1.4.0")?),
     ];
 
     let future_patches = Patch::generate(5, Some(patches_info));

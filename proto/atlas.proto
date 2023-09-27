@@ -1,9 +1,11 @@
 syntax = "proto3";
 package dm.atlas;
 import "shared.proto";
+import "google/protobuf/empty.proto";
 
 service SignatureAtlasService {
-  rpc List(dm.shared.Empty) returns (SignatureReturns);
+  rpc List(google.protobuf.Empty) returns (SignatureReturns);
+  rpc ByCharId(dm.shared.CharId) returns (SignatureReturns);
 }
 
 message SignatureReturns { repeated SignatureReturn list = 1; }

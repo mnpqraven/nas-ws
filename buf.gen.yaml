@@ -12,5 +12,5 @@ plugins:
     out: ../vercel/jade-tracker-vercel/proto
     # With target=ts, we generate TypeScript files.
     opt:
-    - target=ts
-    - import_extension=none
+      - target=ts
+      - import_extension=none

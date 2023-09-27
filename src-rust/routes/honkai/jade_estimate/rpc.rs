@@ -1,10 +1,12 @@
-use axum::Json;
-use tonic::{Request, Response, Status};
-
-use crate::handler::error::WorkerError;
-
-use self::jadeestimate::jade_estimate_service_server::JadeEstimateService;
+use self::jadeestimate::jade_estimate_service_server::*;
 use super::types::{EstimateCfg, JadeEstimateResponse, RewardSource};
+use crate::handler::error::WorkerError;
+use axum::{
+    routing::{any_service, MethodRouter},
+    Json,
+};
+use tonic::{Request, Response, Status};
+use tonic_web::enable;
 
 pub mod jadeestimate {
     tonic::include_proto!("jadeestimate");
@@ -83,4 +85,10 @@ impl From<RewardSource> for jadeestimate::RewardSource {
             description: value.description,
         }
     }
+}
+
+pub fn jadeestimate_route() -> MethodRouter {
+    any_service(enable(JadeEstimateServiceServer::new(
+        JadeEstimateResponse::default(),
+    )))
 }

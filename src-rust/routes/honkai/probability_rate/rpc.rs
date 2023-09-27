@@ -1,8 +1,12 @@
-use self::probabilityrate::probability_rate_service_server::ProbabilityRateService;
+use self::probabilityrate::probability_rate_service_server::*;
 use super::types::{ProbabilityRatePayload, ProbabilityRateResponse, ReducedSim};
 use crate::routes::honkai::probability_rate::handle;
-use axum::Json;
+use axum::{
+    routing::{any_service, MethodRouter},
+    Json,
+};
 use tonic::{Request, Response, Status};
+use tonic_web::enable;
 
 pub mod probabilityrate {
     tonic::include_proto!("probabilityrate");
@@ -53,4 +57,10 @@ impl From<probabilityrate::ProbabilityRatePayload> for ProbabilityRatePayload {
             banner: value.banner.try_into().unwrap(),
         }
     }
+}
+
+pub fn probabilityrate_route() -> MethodRouter {
+    any_service(enable(ProbabilityRateServiceServer::new(
+        ProbabilityRateResponse::default(),
+    )))
 }

@@ -5,12 +5,12 @@ import "google/protobuf/empty.proto";
 
 service SignatureAtlasService {
   rpc List(google.protobuf.Empty) returns (SignatureReturns);
-  rpc ByCharId(dm.shared.CharId) returns (SignatureReturns);
+  rpc ByCharId(dm.shared.CharId) returns (SignatureReturn);
 }
 
 message SignatureReturns { repeated SignatureReturn list = 1; }
 
 message SignatureReturn {
   uint32 char_id = 1;
-  repeated uint32 lc_id = 2;
+  repeated uint32 lc_ids = 2;
 }

@@ -6,9 +6,7 @@ use crate::{
     },
 };
 use axum::Json;
-use base64::display;
 use chrono::{DateTime, Datelike, NaiveDateTime, TimeZone, Timelike, Utc};
-use prost::Message;
 use schemars::JsonSchema;
 use serde::{
     de::{self, Visitor},
@@ -25,13 +23,11 @@ pub mod rpc;
 mod tests;
 
 #[allow(non_snake_case)]
-#[derive(Debug, Serialize, Deserialize, Default, Clone, JsonSchema, PartialEq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema, PartialEq)]
 #[serde(rename(serialize = "camelCase"))]
 pub struct SignatureAtlas {
-    // #[prost(uint32, tag = "1")]
     pub char_id: u32,
-    // #[prost(uint32, repeated, tag = "2")]
-    pub lc_id: Vec<u32>,
+    pub lc_ids: Vec<u32>,
 }
 
 pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
@@ -99,7 +95,7 @@ pub async fn atlas_list() -> Result<Json<List<SignatureAtlas>>, WorkerError> {
         .iter()
         .map(|(k, v)| SignatureAtlas {
             char_id: *k,
-            lc_id: v.clone(),
+            lc_ids: v.clone(),
         })
         .collect();
 

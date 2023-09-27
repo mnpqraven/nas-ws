@@ -19,7 +19,7 @@ pub fn app_router() -> Router {
         .nest("/dotfiles", dotfiles_routes())
         .nest("/honkai", honkai_routes())
         .nest("/cron", cron_routes())
-        .nest("/rpc", rpc_routes())
+        .nest("/", rpc_routes())
         .route("/health", get(health_check).post(health_check))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())

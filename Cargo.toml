@@ -38,6 +38,7 @@ futures = "0.3.28"
 fuzzy-matcher = "0.3.7"
 tonic = { version = "0.10.0", features = ["prost"] }
 prost = "0.12.0"
+prost-types = "0.12.0"
 tonic-web = "0.10.0"
 num-derive = "0.4.0"
 num-traits = "0.2.16"
@@ -52,6 +53,10 @@ path = "src-rust/bin.rs"
 [[bin]]
 name = "codegen"
 path = "src-rust/codegen.rs"
+
+[[bin]]
+name = "rpc"
+path = "src-rust/rpc.rs"
 
 [lib]
 path = "src-rust/lib.rs"

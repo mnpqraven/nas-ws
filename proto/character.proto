@@ -1,17 +1,16 @@
 syntax = "proto3";
 package dm.character;
+import "google/protobuf/empty.proto";
 import "shared.proto";
 
 service CharacterMetadataService {
-  rpc ById(CharacterId) returns (CharacterMetadata);
-  rpc List(dm.shared.Empty) returns (CharacterMetadatas);
+  rpc ById(dm.shared.CharId) returns (CharacterMetadata);
+  rpc List(google.protobuf.Empty) returns (CharacterMetadatas);
 }
 
 // service CharacterEidolonService {}
 // service CharacterSkillService {}
 // service CharacterPromotionService {}
-
-message CharacterId { uint32 char_id = 1; }
 
 message CharacterMetadatas { repeated CharacterMetadata list = 1; }
 message CharacterMetadata {

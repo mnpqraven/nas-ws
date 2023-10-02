@@ -12,3 +12,7 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vercel
+
+# config toml
+config.toml
+Config.toml

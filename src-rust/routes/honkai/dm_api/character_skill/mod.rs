@@ -1,4 +1,4 @@
-use self::types::AvatarSkillConfig;
+use self::types::{AvatarSkillConfig, AvatarSkillTreeConfig};
 use crate::{
     handler::error::WorkerError,
     routes::{endpoint_types::List, honkai::traits::DbData},
@@ -39,5 +39,20 @@ pub async fn skills(
         .map(|key| AvatarSkillConfig::read_splitted_by_skillid(key).unwrap())
         .collect();
 
+    Ok(Json(List::new(res)))
+}
+
+pub async fn trace_tree(
+    Path(character_id): Path<u32>,
+) -> Result<Json<List<AvatarSkillTreeConfig>>, WorkerError> {
+    let now = std::time::Instant::now();
+
+    let trace_tree_db = AvatarSkillTreeConfig::read().await?;
+    let res = trace_tree_db
+        .into_values()
+        .filter(|e| e.avatar_id == character_id)
+        .collect();
+
+    info!("[avatar/:id/trace_tree] {:?}", now.elapsed());
     Ok(Json(List::new(res)))
 }

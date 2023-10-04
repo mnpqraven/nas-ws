@@ -1,4 +1,4 @@
-use super::upstream_avatar_config::Item;
+use super::upstream_avatar_config::MiniItem;
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{
@@ -35,7 +35,7 @@ pub struct UpstreamAvatarRankConfig {
     #[serde(alias = "RankAbility")]
     rank_ability: Vec<String>, // TODO: check if this is truly string or hashedString
     #[serde(alias = "UnlockCost")]
-    unlock_cost: Vec<Item>,
+    unlock_cost: Vec<MiniItem>,
     #[serde(alias = "Param")]
     param: Vec<Param>,
 }
@@ -50,7 +50,7 @@ pub struct AvatarRankConfig {
     pub icon_path: AssetPath,
     pub skill_add_level_list: SkillAddLevelList,
     pub rank_ability: Vec<String>, // TODO: check if this is truly string or hashedString
-    pub unlock_cost: Vec<Item>,
+    pub unlock_cost: Vec<MiniItem>,
     pub param: Vec<String>,
 }
 

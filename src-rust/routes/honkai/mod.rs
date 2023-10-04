@@ -13,6 +13,7 @@ use self::dm_api::equipment::{
     lc_promotion, lc_promotions, lc_skill, lc_skills, light_cone, light_cone_search, light_cones,
 };
 use self::dm_api::equipment_skill::trace;
+use self::dm_api::item::item_list;
 use self::dm_api::property::property;
 use self::dm_api::relic::{
     mainstat_spread, relic_set, relic_set_many, relic_set_search, relic_slot_type, relics_by_set,
@@ -46,6 +47,7 @@ pub fn honkai_routes() -> Router {
         .route("/avatar", get(character_many).post(character_many))
         .route("/avatar/:id", get(character::character))
         .route("/avatar/:id/skill", get(character_skill::skill))
+        .route("/avatar/:id/trace_tree", get(character_skill::trace_tree))
         .route("/avatar/:id/trace", get(trace))
         .route("/avatar/:id/promotion", get(promotion))
         .route("/avatar/:id/eidolon", get(eidolon))
@@ -61,4 +63,5 @@ pub fn honkai_routes() -> Router {
         .route("/relic_set", get(relic_set_many))
         .route("/relic_set/:id", get(relic_set))
         .route("/relic_set/search/:name", get(relic_set_search))
+        .route("/item", get(item_list).post(item_list))
 }

@@ -9,3 +9,4 @@ pub mod equipment_skill;
 pub mod types;
 pub mod property;
 pub mod relic;
+pub mod item;

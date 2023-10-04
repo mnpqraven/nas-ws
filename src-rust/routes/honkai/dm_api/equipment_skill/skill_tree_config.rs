@@ -2,7 +2,7 @@ use crate::{
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
-            character::upstream_avatar_config::Item,
+            character::upstream_avatar_config::MiniItem,
             desc_param::{get_sorted_params, ParameterizedDescription},
             hash::{HashedString, TextHash},
             types::{AbilityProperty, Param, TextMap},
@@ -37,7 +37,7 @@ pub struct UpstreamSkillTreeConfig {
     #[serde(alias = "StatusAddList")]
     status_add_list: Vec<AbilityProperty>,
     #[serde(alias = "MaterialList")]
-    material_list: Vec<Item>,
+    material_list: Vec<MiniItem>,
     #[serde(alias = "AvatarPromotionLimit")]
     pub avatar_promotion_limit: Option<u32>,
     #[serde(alias = "LevelUpSkillID")]
@@ -78,7 +78,7 @@ pub struct SkillTreeConfig {
     #[serde(alias = "StatusAddList")]
     status_add_list: Vec<AbilityProperty>,
     #[serde(alias = "MaterialList")]
-    material_list: Vec<Vec<Item>>,
+    material_list: Vec<Vec<MiniItem>>,
     #[serde(alias = "AvatarPromotionLimit")]
     pub avatar_promotion_limit: Vec<Option<u32>>,
     #[serde(alias = "LevelUpSkillID")]

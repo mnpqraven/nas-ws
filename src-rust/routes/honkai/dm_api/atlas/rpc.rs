@@ -21,7 +21,7 @@ pub mod shared {
 
 #[tonic::async_trait]
 impl SignatureAtlasService for SignatureAtlas {
-    async fn list(&self, _request: Request<()>) -> Result<Response<SignatureReturns>, Status> {
+    async fn list(&self, _: Request<()>) -> Result<Response<SignatureReturns>, Status> {
         let Json(List { list }) = atlas_list().await?;
         let list = SignatureReturns {
             list: list.into_iter().map(|e| e.into()).collect(),
@@ -33,24 +33,20 @@ impl SignatureAtlasService for SignatureAtlas {
     async fn by_char_id(
         &self,
         request: Request<CharId>,
-    ) -> Result<Response<SignatureReturns>, Status> {
+    ) -> Result<Response<SignatureReturn>, Status> {
         let CharId { char_id } = request.into_inner();
         let Json(List { list }) = atlas_list().await?;
-        let list = SignatureReturns {
-            list: list
-                .into_iter()
-                .filter(|e| e.char_id == char_id)
-                .map(|e| e.into())
-                .collect(),
-        };
-
-        Ok(Response::new(list))
+        let ret = list.into_iter().find(|e| e.char_id == char_id);
+        match ret {
+            Some(ret) => Ok(Response::new(ret.into())),
+            None => Err(Status::not_found(char_id.to_string())),
+        }
     }
 }
 
 impl From<SignatureAtlas> for SignatureReturn {
-    fn from(SignatureAtlas { char_id, lc_id }: SignatureAtlas) -> Self {
-        SignatureReturn { char_id, lc_id }
+    fn from(SignatureAtlas { char_id, lc_ids }: SignatureAtlas) -> Self {
+        SignatureReturn { char_id, lc_ids }
     }
 }
 

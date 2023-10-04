@@ -44,9 +44,9 @@ pub struct UpstreamAvatarConfig {
     #[serde(alias = "RankIDList")]
     pub rank_idlist: Vec<u32>,
     #[serde(alias = "RewardList")]
-    pub reward_list: Vec<Item>,
+    pub reward_list: Vec<MiniItem>,
     #[serde(alias = "RewardListMax")]
-    pub reward_list_max: Vec<Item>,
+    pub reward_list_max: Vec<MiniItem>,
     #[serde(alias = "SkillList")]
     pub skill_list: Vec<u32>,
     #[serde(alias = "AvatarBaseType")]
@@ -99,10 +99,10 @@ pub struct AvatarConfig {
     pub rank_idlist: Vec<u32>,
     #[serde(alias = "RewardList")]
     #[serde(skip)]
-    reward_list: Vec<Item>,
+    reward_list: Vec<MiniItem>,
     #[serde(alias = "RewardListMax")]
     #[serde(skip)]
-    reward_list_max: Vec<Item>,
+    reward_list_max: Vec<MiniItem>,
     #[serde(alias = "SkillList")]
     pub skill_list: Vec<u32>,
     #[serde(alias = "AvatarBaseType")]
@@ -126,7 +126,7 @@ pub enum AvatarRarity {
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(rename(serialize = "camelCase"))]
-pub struct Item {
+pub struct MiniItem {
     #[serde(alias = "ItemID")]
     item_id: u32,
     #[serde(alias = "ItemNum")]

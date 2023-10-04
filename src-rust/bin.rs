@@ -55,6 +55,7 @@ async fn main() -> Result<(), WorkerError> {
         let _ = dm_repo_clone::execute().await;
         let _ = dm_file_splitting::execute().await;
     });
+    // db_populate::execute().await?;
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5005));
     tracing::info!("listening on {}", addr);

@@ -2,12 +2,13 @@ use crate::{
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
+            character::upstream_avatar_config::MiniItem,
             desc_param::{get_sorted_params, ParameterizedDescription},
-            hash::TextHash,
-            types::{Param, TextMap},
+            hash::{HashedString, TextHash},
+            types::{AbilityProperty, Param, TextMap},
         },
         mhy_api::{
-            internal::categorizing::SkillType,
+            internal::categorizing::{Anchor, SkillType},
             types_parsed::shared::{AssetPath, Element},
         },
         traits::DbData,
@@ -176,6 +177,68 @@ pub struct AvatarSkillConfig {
     skill_combo_value_delta: Option<Param>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UpstreamAvatarSkillTreeConfig {
+    #[serde(alias = "PointID")]
+    point_id: u32,
+    #[serde(alias = "Level")]
+    level: u32,
+    #[serde(alias = "AvatarID")]
+    avatar_id: u32,
+    #[serde(alias = "PointType")]
+    point_type: u32,
+    #[serde(alias = "Anchor")]
+    anchor: Anchor,
+    #[serde(alias = "MaxLevel")]
+    max_level: u32,
+    #[serde(alias = "DefaultUnlock")]
+    default_unlock: Option<bool>,
+    #[serde(alias = "PrePoint")]
+    pre_point: Vec<u32>,
+    #[serde(alias = "StatusAddList")]
+    status_add_list: Vec<AbilityProperty>,
+    #[serde(alias = "MaterialList")]
+    material_list: Vec<MiniItem>,
+    #[serde(alias = "AvatarPromotionLimit")]
+    avatar_promotion_limit: Option<u32>,
+    #[serde(alias = "LevelUpSkillID")]
+    level_up_skill_id: Vec<u32>,
+    #[serde(alias = "IconPath")]
+    icon_path: AssetPath,
+    #[serde(alias = "PointName")]
+    point_name: HashedString,
+    #[serde(alias = "PointDesc")]
+    point_desc: HashedString,
+    #[serde(alias = "AbilityName")]
+    ability_name: String,
+    #[serde(alias = "PointTriggerKey")]
+    point_trigger_key: TextHash,
+    #[serde(alias = "ParamList")]
+    param_list: Vec<Param>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct AvatarSkillTreeConfig {
+    pub point_id: u32,
+    pub level: Vec<u32>,
+    pub avatar_id: u32,
+    pub point_type: u32,
+    pub anchor: Anchor,
+    pub max_level: u32,
+    pub default_unlock: bool,
+    pub pre_point: Vec<u32>,
+    pub status_add_list: Vec<AbilityProperty>,
+    pub material_list: Vec<Vec<MiniItem>>,
+    pub avatar_promotion_limit: Vec<u32>,
+    pub level_up_skill_id: Vec<u32>,
+    pub icon_path: AssetPath,
+    pub point_name: String,
+    pub point_desc: ParameterizedDescription,
+    pub ability_name: String,
+    pub point_trigger_key: String,
+    pub param_list: Vec<Vec<String>>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 enum SKillEffect {
     SingleAttack,
@@ -285,6 +348,120 @@ impl AvatarSkillConfig {
 
     pub fn read_splitted_by_skillid(skill_id: u32) -> Result<Self, WorkerError> {
         let filepath = format!("/tmp/AvatarSkillConfigs/{}.json", skill_id);
+        let file = File::open(filepath)?;
+        let reader = BufReader::new(file);
+        let data: Self = serde_json::from_reader(reader)?;
+        Ok(data)
+    }
+}
+
+#[async_trait]
+impl DbData for AvatarSkillTreeConfig {
+    type TUpstream = BTreeMap<u32, BTreeMap<u32, UpstreamAvatarSkillTreeConfig>>;
+    type TLocal = BTreeMap<u32, AvatarSkillTreeConfig>;
+
+    fn path_data() -> &'static str {
+        "ExcelOutput/AvatarSkillTreeConfig.json"
+    }
+    async fn upstream_convert(
+        tracetree_db: BTreeMap<u32, BTreeMap<u32, UpstreamAvatarSkillTreeConfig>>,
+    ) -> Result<BTreeMap<u32, AvatarSkillTreeConfig>, WorkerError> {
+        let text_map = TextMap::read().await?;
+
+        let transformed = tracetree_db
+            .into_iter()
+            .map(|(key, value)| {
+                let converted_value = raw_convert(value, &text_map);
+                (key, converted_value)
+            })
+            .collect();
+
+        Ok(transformed)
+    }
+}
+
+fn raw_convert(
+    value: BTreeMap<u32, UpstreamAvatarSkillTreeConfig>,
+    text_map: &HashMap<String, String>,
+) -> AvatarSkillTreeConfig {
+    let default_first = value.get(&1).unwrap().clone();
+
+    let levels: Vec<u32> = value.values().map(|big| big.level).collect();
+    let mats: Vec<Vec<MiniItem>> = value
+        .values()
+        .map(|big| big.material_list.clone())
+        .collect();
+    let promotion_limits: Vec<u32> = value
+        .values()
+        .map(|big| big.avatar_promotion_limit.unwrap_or_default())
+        .collect();
+    let params: Vec<Vec<String>> = value
+        .values()
+        .map(|big| {
+            let vals: Vec<f64> = big.param_list.iter().map(|e| e.value).collect();
+            match vals.is_empty() {
+                true => Vec::new(),
+                false => {
+                    let desc_dehashed = big.point_desc.dehash(text_map).unwrap_or_default();
+                    let current_param: Vec<String> = get_sorted_params(vals, &desc_dehashed)
+                        .iter()
+                        .map(|e| e.to_string())
+                        .collect();
+                    current_param
+                }
+            }
+        })
+        .collect();
+
+    AvatarSkillTreeConfig {
+        point_id: default_first.point_id,
+        level: levels,
+        avatar_id: default_first.avatar_id,
+        point_type: default_first.point_type,
+        anchor: default_first.anchor,
+        max_level: default_first.max_level,
+        default_unlock: default_first.default_unlock.unwrap_or(false),
+        pre_point: default_first.pre_point,
+        status_add_list: default_first.status_add_list,
+        material_list: mats,
+        avatar_promotion_limit: promotion_limits,
+        level_up_skill_id: default_first.level_up_skill_id,
+        icon_path: default_first.icon_path,
+        point_name: default_first
+            .point_name
+            .dehash(text_map)
+            .unwrap_or_default(),
+        point_desc: ParameterizedDescription::from(
+            default_first
+                .point_desc
+                .dehash(text_map)
+                .unwrap_or_default(),
+        ),
+        ability_name: default_first.ability_name,
+        point_trigger_key: default_first
+            .point_trigger_key
+            .read_from_textmap(text_map)
+            .unwrap_or_default(),
+        param_list: params,
+    }
+}
+
+// BUG: not actually working atm
+impl AvatarSkillTreeConfig {
+    pub async fn write_splitted() -> Result<(), WorkerError> {
+        let tracetree_db: BTreeMap<u32, Self> = Self::read().await?;
+        std::fs::create_dir_all("/tmp/AvatarSkillTreeConfigs")?;
+        for (key, value) in tracetree_db.into_iter() {
+            let filepath = format!("/tmp/AvatarSkillTreeConfigs/{}.json", key);
+            let json_blob = serde_json::to_string(&value)?;
+            // save to a new file
+            std::fs::write(filepath, json_blob)?;
+        }
+        Ok(())
+    }
+
+    pub fn read_splitted_by_skillid(skill_id: u32) -> Result<Self, WorkerError> {
+        let filepath = format!("/tmp/AvatarSkillTreeConfigs/{}.json", skill_id);
         let file = File::open(filepath)?;
         let reader = BufReader::new(file);
         let data: Self = serde_json::from_reader(reader)?;

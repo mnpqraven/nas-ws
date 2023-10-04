@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashMap};
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{
-        dm_api::{character::upstream_avatar_config::Item, types::Param},
+        dm_api::{character::upstream_avatar_config::MiniItem, types::Param},
         traits::DbData,
     },
 };
@@ -18,7 +18,7 @@ pub struct UpstreamEquipmentPromotionConfig {
     #[serde(alias = "Promotion")]
     promotion: u32,
     #[serde(alias = "PromotionCostList")]
-    promotion_cost_list: Vec<Item>,
+    promotion_cost_list: Vec<MiniItem>,
     #[serde(alias = "WorldLevelRequire")]
     world_level_require: Option<u32>,
     #[serde(alias = "MaxLevel")]
@@ -44,7 +44,7 @@ pub struct EquipmentPromotionConfig {
     #[serde(alias = "Promotion")]
     pub promotion: Vec<u32>,
     #[serde(alias = "PromotionCostList")]
-    pub promotion_cost_list: Vec<Vec<Item>>,
+    pub promotion_cost_list: Vec<Vec<MiniItem>>,
     #[serde(alias = "WorldLevelRequire")]
     pub world_level_require: Vec<u32>,
     #[serde(alias = "MaxLevel")]

@@ -1,4 +1,4 @@
-use super::upstream_avatar_config::Item;
+use super::upstream_avatar_config::MiniItem;
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{dm_api::types::Param, traits::DbData},
@@ -15,7 +15,7 @@ pub struct UpstreamAvatarPromotionConfig {
     #[serde(alias = "Promotion")]
     promotion: u32,
     #[serde(alias = "PromotionCostList")]
-    promotion_cost_list: Vec<Item>,
+    promotion_cost_list: Vec<MiniItem>,
     #[serde(alias = "MaxLevel")]
     max_level: u32,
     #[serde(alias = "PlayerLevelRequire")]
@@ -49,7 +49,7 @@ pub struct AvatarPromotionConfig {
     #[serde(alias = "Promotion")]
     pub promotion: Vec<u32>,
     #[serde(alias = "PromotionCostList")]
-    pub promotion_cost_list: Vec<Vec<Item>>,
+    pub promotion_cost_list: Vec<Vec<MiniItem>>,
     #[serde(alias = "MaxLevel")]
     pub max_level: Vec<u32>,
     #[serde(alias = "PlayerLevelRequire")]

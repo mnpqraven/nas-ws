@@ -233,10 +233,10 @@ pub struct AvatarSkillTreeConfig {
     pub level_up_skill_id: Vec<u32>,
     pub icon_path: AssetPath,
     pub point_name: String,
-    pub point_desc: String,
+    pub point_desc: ParameterizedDescription,
     pub ability_name: String,
     pub point_trigger_key: String,
-    pub param_list: Vec<Vec<f64>>,
+    pub param_list: Vec<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
@@ -395,9 +395,22 @@ fn raw_convert(
         .values()
         .map(|big| big.avatar_promotion_limit.unwrap_or_default())
         .collect();
-    let params: Vec<Vec<f64>> = value
+    let params: Vec<Vec<String>> = value
         .values()
-        .map(|big| big.param_list.iter().map(|e| e.value).collect())
+        .map(|big| {
+            let vals: Vec<f64> = big.param_list.iter().map(|e| e.value).collect();
+            match vals.is_empty() {
+                true => Vec::new(),
+                false => {
+                    let desc_dehashed = big.point_desc.dehash(text_map).unwrap_or_default();
+                    let current_param: Vec<String> = get_sorted_params(vals, &desc_dehashed)
+                        .iter()
+                        .map(|e| e.to_string())
+                        .collect();
+                    current_param
+                }
+            }
+        })
         .collect();
 
     AvatarSkillTreeConfig {
@@ -418,10 +431,12 @@ fn raw_convert(
             .point_name
             .dehash(text_map)
             .unwrap_or_default(),
-        point_desc: default_first
-            .point_desc
-            .dehash(text_map)
-            .unwrap_or_default(),
+        point_desc: ParameterizedDescription::from(
+            default_first
+                .point_desc
+                .dehash(text_map)
+                .unwrap_or_default(),
+        ),
         ability_name: default_first.ability_name,
         point_trigger_key: default_first
             .point_trigger_key

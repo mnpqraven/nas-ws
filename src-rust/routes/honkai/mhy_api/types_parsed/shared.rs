@@ -5,41 +5,63 @@ use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-use strum_macros::EnumString;
+use strum_macros::{Display, EnumIter, EnumString};
 use vercel_runtime::{Body, Response, StatusCode};
 
 #[derive(Debug, Deserialize, Serialize, Clone, JsonResponse, JsonSchema, Dummy, Default)]
 pub struct AssetPath(pub String);
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, EnumString, Dummy)]
+#[derive(
+    Debug,
+    Deserialize,
+    Serialize,
+    JsonResponse,
+    Clone,
+    Copy,
+    JsonSchema,
+    EnumString,
+    Dummy,
+    EnumIter,
+)]
 pub enum Element {
-    Fire,
-    Ice,
-    Physical,
-    Wind,
+    Fire = 0,
+    Ice = 1,
+    Physical = 2,
+    Wind = 3,
     #[serde(alias = "Thunder", alias = "Lightning")]
     #[strum(serialize = "Thunder", serialize = "Lightning")]
-    Lightning,
-    Quantum,
-    Imaginary,
+    Lightning = 4,
+    Quantum = 5,
+    Imaginary = 6,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, Copy, JsonSchema)]
+#[derive(
+    Debug,
+    Display,
+    Deserialize,
+    Serialize,
+    JsonResponse,
+    Clone,
+    Copy,
+    JsonSchema,
+    EnumString,
+    EnumIter,
+)]
 pub enum Path {
     #[serde(alias = "Warrior")]
-    Destruction,
+    Destruction = 0,
     #[serde(alias = "Rogue")]
-    Hunt,
+    Hunt = 1,
     #[serde(alias = "Mage")]
-    Erudition,
+    Erudition = 2,
     #[serde(alias = "Shaman")]
-    Harmony,
+    Harmony = 3,
     #[serde(alias = "Warlock")]
-    Nihility,
+    Nihility = 4,
     #[serde(alias = "Knight")]
-    Preservation,
+    Preservation = 5,
     #[serde(alias = "Priest")]
-    Abundance,
+    Abundance = 6,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonResponse, Clone, JsonSchema, Dummy)]

@@ -8,8 +8,9 @@ use crate::{
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
+use strum_macros::{Display, EnumIter, EnumString};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, EnumString, EnumIter, Display)]
 pub enum ItemType {
     Usable,
     Mission,
@@ -17,7 +18,7 @@ pub enum ItemType {
     Virtual,
     Material,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, EnumString, EnumIter, Display)]
 pub enum ItemSubType {
     Book,
     Virtual,
@@ -36,7 +37,7 @@ pub enum ItemSubType {
     Mission,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, EnumString, EnumIter, Display)]
 pub enum ItemRarity {
     VeryRare,
     SuperRare,
@@ -74,7 +75,7 @@ pub struct UpstreamItem {
     #[serde(alias = "ItemAvatarIconPath")]
     item_avatar_icon_path: String,
     #[serde(alias = "PileLimit")]
-    pile_limit: u64,
+    pile_limit: u32,
     // unknown
     #[serde(alias = "CustomDataList")]
     custom_data_list: Vec<u32>,
@@ -103,7 +104,7 @@ pub struct Item {
     item_currency_icon_path: String,
     #[serde(skip)]
     item_avatar_icon_path: String,
-    pub pile_limit: u64,
+    pub pile_limit: u32,
     // unknown
     pub custom_data_list: Vec<u32>,
     // unknown

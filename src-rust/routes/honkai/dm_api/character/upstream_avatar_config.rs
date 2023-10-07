@@ -1,5 +1,5 @@
 use crate::{
-    builder::AsyncInto,
+    builder::{traits::DbAction, AsyncInto, get_db_client},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
@@ -11,6 +11,7 @@ use crate::{
     },
 };
 use async_trait::async_trait;
+use libsql_client::{args, Statement};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -277,5 +278,44 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
         };
 
         Ok(res)
+    }
+}
+
+#[async_trait]
+impl DbAction for AvatarConfig {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let avatar_db = AvatarConfig::read().await?;
+        let batch_avatar: Vec<Statement> = avatar_db
+            .into_values()
+            .map(
+                |AvatarConfig {
+                     avatar_id,
+                     avatar_name,
+                     avatar_votag,
+                     rarity,
+                     damage_type,
+                     avatar_base_type,
+                     spneed,
+                     ..
+                 }| {
+                    Statement::with_args(
+                        "INSERT OR REPLACE INTO avatar VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        args!(
+                            avatar_id,
+                            avatar_name,
+                            rarity,
+                            avatar_votag,
+                            damage_type.to_string(),
+                            avatar_base_type.to_string(),
+                            spneed
+                        ),
+                    )
+                },
+            )
+            .collect();
+
+        client.batch(batch_avatar).await?;
+        Ok(())
     }
 }

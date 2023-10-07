@@ -1,10 +1,16 @@
-use crate::handler::{error::WorkerError, FromAxumResponse};
+use crate::{
+    builder::{traits::DbAction, get_db_client},
+    handler::{error::WorkerError, FromAxumResponse},
+};
+use async_trait::async_trait;
 use axum::Json;
 use fake::Dummy;
+use libsql_client::{Statement, args};
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter, EnumString};
 use vercel_runtime::{Body, Response, StatusCode};
 
@@ -184,5 +190,41 @@ impl Element {
     }
     pub fn icon(&self) -> AssetPath {
         AssetPath(format!("icon/element/{}.png", self))
+    }
+}
+
+#[async_trait]
+impl DbAction for Element {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = Element::iter()
+            .map(|element| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO element VALUES (?, ?)",
+                    args!(element.to_string(), element as i32),
+                )
+            })
+            .collect();
+
+        client.batch(st).await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl DbAction for Path {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = Path::iter()
+            .map(|path| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO path VALUES (?, ?)",
+                    args!(path.to_string(), path as i32),
+                )
+            })
+            .collect();
+
+        client.batch(st).await?;
+        Ok(())
     }
 }

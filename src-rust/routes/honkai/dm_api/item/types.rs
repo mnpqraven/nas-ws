@@ -1,4 +1,5 @@
 use crate::{
+    builder::{get_db_client, traits::DbAction},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{hash::TextHash, types::TextMap},
@@ -6,8 +7,10 @@ use crate::{
     },
 };
 use async_trait::async_trait;
+use libsql_client::{args, Statement};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
+use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, EnumString, EnumIter, Display)]
@@ -165,5 +168,90 @@ impl UpstreamItem {
             custom_data_list: self.custom_data_list.clone(),
             return_item_idlist: self.return_item_idlist.clone(),
         }
+    }
+}
+
+#[async_trait]
+impl DbAction for Item {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let item_db = Item::read().await?;
+        let st: Vec<Statement> = item_db
+            .into_values()
+            .map(|item| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO item VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    args!(
+                        item.id,
+                        item.item_name,
+                        item.rarity.to_string(),
+                        item.item_main_type.to_string(),
+                        item.item_sub_type.to_string(),
+                        item.inventory_display_tag,
+                        item.purpose_type,
+                        item.item_desc,
+                        item.item_bgdesc,
+                        item.pile_limit
+                    ),
+                )
+            })
+            .collect();
+
+        client.batch(st).await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl DbAction for ItemType {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = ItemType::iter()
+            .enumerate()
+            .map(|(i, value)| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO itemType VALUES (?, ?)",
+                    args!(value.to_string(), i),
+                )
+            })
+            .collect();
+        client.batch(st).await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl DbAction for ItemSubType {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = ItemSubType::iter()
+            .enumerate()
+            .map(|(i, value)| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO itemSubType VALUES (?, ?)",
+                    args!(value.to_string(), i),
+                )
+            })
+            .collect();
+        client.batch(st).await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl DbAction for ItemRarity {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = ItemRarity::iter()
+            .enumerate()
+            .map(|(i, value)| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO itemRarity VALUES (?, ?)",
+                    args!(value.to_string(), i),
+                )
+            })
+            .collect();
+        client.batch(st).await?;
+        Ok(())
     }
 }

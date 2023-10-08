@@ -1,10 +1,16 @@
+use crate::builder::get_db_client;
+use crate::builder::traits::DbAction;
 use crate::routes::honkai::mhy_api::WorkerError;
 use crate::{handler::FromAxumResponse, routes::honkai::mhy_api::types_parsed::shared::Property};
+use async_trait::async_trait;
 use axum::Json;
 use core::fmt;
+use libsql_client::{args, Statement};
 use response_derive::JsonResponse;
 use schemars::JsonSchema;
 use std::{fmt::Display, marker::PhantomData, num::ParseIntError, str::FromStr, sync::Arc};
+use strum::IntoEnumIterator;
+use strum_macros::{Display, EnumIter, EnumString};
 use vercel_runtime::{Body, Response, StatusCode};
 
 use crate::routes::honkai::mhy_api::types_parsed::shared::{AssetPath, Element, Path};
@@ -171,7 +177,7 @@ pub struct DbCharacterEidolon {
     icon: AssetPath,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[derive(Debug, Display, Serialize, Deserialize, Clone, JsonSchema, EnumString)]
 pub enum Anchor {
     Point01,
     Point02,
@@ -223,7 +229,19 @@ struct MaterialKV {
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct ParameterizedFmt(pub String);
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Eq, PartialEq, Copy)]
+#[derive(
+    Debug,
+    Display,
+    Serialize,
+    Deserialize,
+    Clone,
+    JsonSchema,
+    Eq,
+    PartialEq,
+    Copy,
+    EnumString,
+    EnumIter,
+)]
 pub enum SkillType {
     // id listing should always be in this order
     Normal,     // basic attack
@@ -232,6 +250,24 @@ pub enum SkillType {
     Talent,     // Talent
     MazeNormal, // overworld normal
     Maze,       // overworld Technique
+}
+
+#[async_trait]
+impl DbAction for SkillType {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = SkillType::iter()
+            .enumerate()
+            .map(|(index, ttype)| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO skillType (name, type) VALUES (?, ?)",
+                    args!(ttype.to_string(), index),
+                )
+            })
+            .collect();
+        client.batch(st).await?;
+        Ok(())
+    }
 }
 
 /// https://tikv.github.io/doc/src/serde_with/rust.rs.html#874-940

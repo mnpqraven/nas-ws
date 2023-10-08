@@ -56,44 +56,26 @@ pub struct UpstreamSkillTreeConfig {
     pub param_list: Vec<Param>,
 }
 
+// TODO: depecrate
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-#[serde(rename(serialize = "camelCase"))]
 pub struct SkillTreeConfig {
-    #[serde(alias = "PointID")]
     point_id: u32,
-    #[serde(alias = "Level")]
     level: Vec<u32>,
-    #[serde(alias = "AvatarID")]
     pub avatar_id: u32,
-    #[serde(alias = "PointType")]
     point_type: u32,
-    #[serde(alias = "PrePoint")]
     pre_point: Vec<u32>,
-    #[serde(alias = "Anchor")]
     anchor: Anchor,
-    #[serde(alias = "MaxLevel")]
     max_level: u32,
-    #[serde(alias = "DefaultUnlock")]
     default_unlock: Vec<bool>,
-    #[serde(alias = "StatusAddList")]
     status_add_list: Vec<AbilityProperty>,
-    #[serde(alias = "MaterialList")]
     material_list: Vec<Vec<MiniItem>>,
-    #[serde(alias = "AvatarPromotionLimit")]
     pub avatar_promotion_limit: Vec<Option<u32>>,
-    #[serde(alias = "LevelUpSkillID")]
     level_up_skill_id: Vec<u32>,
-    #[serde(alias = "IconPath")]
     pub icon_path: AssetPath,
-    #[serde(alias = "PointName")]
     point_name: String,
-    #[serde(alias = "PointDesc")]
     point_desc: ParameterizedDescription,
-    #[serde(alias = "AbilityName")]
     ability_name: String,
-    #[serde(alias = "PointTriggerKey")]
     point_trigger_key: String,
-    #[serde(alias = "ParamList")]
     pub param_list: Vec<String>, // TODO: own type
 }
 

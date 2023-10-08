@@ -129,9 +129,9 @@ pub enum AvatarRarity {
 #[serde(rename(serialize = "camelCase"))]
 pub struct MiniItem {
     #[serde(alias = "ItemID")]
-    item_id: u32,
+    pub item_id: u32,
     #[serde(alias = "ItemNum")]
-    item_num: u32,
+    pub item_num: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]

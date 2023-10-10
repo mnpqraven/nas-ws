@@ -1,25 +1,17 @@
 use crate::{
     builder::{get_db_client, traits::DbAction},
     handler::error::WorkerError,
-    routes::{
-        endpoint_types::List,
-        honkai::{
-            dm_api::{
-                character::upstream_avatar_config::{AvatarConfig, MiniItem},
-                desc_param::{get_sorted_params, ParameterizedDescription},
-                hash::{HashedString, TextHash},
-                types::{AbilityProperty, Param, TextMap},
-            },
-            mhy_api::{
-                internal::categorizing::{Anchor, SkillType},
-                types_parsed::shared::{AssetPath, Element},
-            },
-            traits::DbData,
+    routes::honkai::{
+        dm_api::{
+            character::types::{AvatarConfig, MiniItem},
+            desc_param::{get_sorted_params, ParameterizedDescription},
+            hash::{HashedString, TextHash},
+            types::{AbilityProperty, Anchor, AssetPath, Element, Param, SkillType, TextMap},
         },
+        traits::DbData,
     },
 };
 use async_trait::async_trait;
-use axum::extract::State;
 use libsql_client::{args, Statement};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

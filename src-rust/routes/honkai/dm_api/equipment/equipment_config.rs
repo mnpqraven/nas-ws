@@ -3,9 +3,8 @@ use crate::{
     routes::honkai::{
         dm_api::{
             hash::TextHash,
-            types::{LightConeRarity, TextMap},
+            types::{AssetPath, LightConeRarity, Path, TextMap},
         },
-        mhy_api::types_parsed::shared::{AssetPath, Path},
         traits::DbData,
     },
 };

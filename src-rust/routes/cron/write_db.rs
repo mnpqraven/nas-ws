@@ -8,7 +8,7 @@ use crate::{
                     avatar_atlas::UpstreamAvatarAtlas, equipment_atlas::UpstreamEquipmentAtlas,
                 },
                 character::{
-                    promotion_config::AvatarPromotionConfig, upstream_avatar_config::AvatarConfig, eidolon::AvatarRankConfig,
+                    promotion_config::AvatarPromotionConfig, types::AvatarConfig, eidolon::AvatarRankConfig,
                 },
                 character_skill::types::AvatarSkillConfig,
                 equipment::{

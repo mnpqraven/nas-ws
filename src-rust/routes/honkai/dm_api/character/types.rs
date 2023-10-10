@@ -1,12 +1,11 @@
 use crate::{
-    builder::{traits::DbAction, AsyncInto, get_db_client},
+    builder::{get_db_client, traits::DbAction, AsyncInto},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
             hash::TextHash,
-            types::{Param, TextMap},
+            types::{AssetPath, Element, Param, Path, TextMap},
         },
-        mhy_api::types_parsed::shared::{AssetPath, Element, Path},
         traits::DbData,
     },
 };
@@ -64,57 +63,35 @@ pub struct UpstreamAvatarConfig {
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-#[serde(rename(serialize = "camelCase"))]
 pub struct AvatarConfig {
-    #[serde(alias = "AvatarID")]
     pub avatar_id: u32,
-    #[serde(alias = "AvatarName")]
     pub avatar_name: String,
-    #[serde(alias = "AvatarFullName")]
     #[serde(skip)]
     avatar_full_name: String,
-    #[serde(alias = "AdventurePlayerID")]
     #[serde(skip)]
     adventure_player_id: u32,
-    #[serde(alias = "AvatarVOTag")]
     pub avatar_votag: String,
-    #[serde(alias = "Rarity")]
     pub rarity: u8,
-    #[serde(alias = "JsonPath")]
     #[serde(skip)]
     json_path: AssetPath,
-    #[serde(alias = "DamageType")]
     pub damage_type: Element,
-    #[serde(alias = "SPNeed")]
     pub spneed: u32,
-    #[serde(alias = "ExpGroup")]
     #[serde(skip)]
     exp_group: u32,
-    #[serde(alias = "MaxPromotion")]
     #[serde(skip)]
     max_promotion: u8,
-    #[serde(alias = "MaxRank")]
     #[serde(skip)]
     max_rank: u8,
-    #[serde(alias = "RankIDList")]
     pub rank_idlist: Vec<u32>,
-    #[serde(alias = "RewardList")]
     #[serde(skip)]
     reward_list: Vec<MiniItem>,
-    #[serde(alias = "RewardListMax")]
     #[serde(skip)]
     reward_list_max: Vec<MiniItem>,
-    #[serde(alias = "SkillList")]
     pub skill_list: Vec<u32>,
-    #[serde(alias = "AvatarBaseType")]
     pub avatar_base_type: Path,
-    #[serde(alias = "AvatarDesc")]
     pub avatar_desc: String,
-    #[serde(alias = "DamageTypeResistance")]
     damage_type_resistance: Vec<DamageTypeResistance>,
-    #[serde(alias = "Release")]
     pub release: bool,
-    #[serde(alias = "AvatarCutinIntroText")]
     #[serde(skip)]
     avatar_cutin_intro_text: String,
 }

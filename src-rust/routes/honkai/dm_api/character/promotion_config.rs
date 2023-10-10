@@ -1,4 +1,4 @@
-use super::upstream_avatar_config::MiniItem;
+use super::types::MiniItem;
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{dm_api::types::Param, traits::DbData},

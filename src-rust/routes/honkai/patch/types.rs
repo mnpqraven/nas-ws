@@ -1,11 +1,7 @@
 use crate::{
     handler::error::{ComputationType, WorkerError},
     routes::honkai::{
-        dm_api::character::upstream_avatar_config::AvatarConfig,
-        mhy_api::{
-            internal::categorizing::SkillType,
-            types_parsed::{character::CharacterElement, shared::AssetPath},
-        },
+        dm_api::{character::types::AvatarConfig, types::SkillType},
         traits::DbData,
     },
 };
@@ -35,17 +31,6 @@ pub struct PatchBanner {
     pub version: PatchVersion,
     pub date_start: DateTime<Utc>,
     pub date_end: DateTime<Utc>,
-}
-
-#[derive(Serialize, Clone, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Character {
-    pub character_name: Option<String>, // FK cmp with `name`
-    pub character_id: Option<u32>,
-    pub icon: Option<AssetPath>,           // FK
-    pub element: Option<CharacterElement>, // FK
-    pub skills: Vec<SimpleSkill>,
-    pub max_energy: u32,
 }
 
 #[derive(Serialize, Clone, Debug, JsonSchema)]

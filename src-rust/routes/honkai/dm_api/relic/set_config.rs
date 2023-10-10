@@ -1,8 +1,10 @@
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{
-        dm_api::{hash::TextHash, types::TextMap},
-        mhy_api::types_parsed::shared::AssetPath,
+        dm_api::{
+            hash::TextHash,
+            types::{AssetPath, TextMap},
+        },
         traits::DbData,
     },
 };

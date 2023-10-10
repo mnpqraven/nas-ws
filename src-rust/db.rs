@@ -1,4 +1,3 @@
-use libsql_client::Client;
 use nas_ws::builder::get_db_client;
 use nas_ws::handler::error::WorkerError;
 use nas_ws::runnables::db::{seed_common, seed_table};
@@ -25,7 +24,7 @@ async fn teardown() -> Result<(), WorkerError> {
 #[tokio::main]
 pub async fn main() -> Result<(), WorkerError> {
     // teardown().await?;
-    // seed_common().await?;
+    seed_common().await?;
     seed_table().await?;
     Ok(())
 }

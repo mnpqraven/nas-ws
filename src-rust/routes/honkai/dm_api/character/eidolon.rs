@@ -1,13 +1,12 @@
-use super::upstream_avatar_config::MiniItem;
+use super::types::MiniItem;
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
             desc_param::{get_sorted_params, ParameterizedDescription},
             hash::{HashedString, TextHash},
-            types::{Param, TextMap},
+            types::{AssetPath, Param, TextMap},
         },
-        mhy_api::types_parsed::shared::AssetPath,
         traits::DbData,
     },
 };

@@ -4,7 +4,7 @@ use nas_ws::routes::{honkai::{
         atlas::SignatureAtlas,
         character::{
             eidolon::AvatarRankConfig, promotion_config::AvatarPromotionConfig,
-            upstream_avatar_config::AvatarConfig,
+            types::AvatarConfig,
         },
         character_skill::types::AvatarSkillConfig,
         equipment::{

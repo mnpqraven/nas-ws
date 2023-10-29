@@ -1,16 +1,16 @@
 use crate::{
-    builder::AsyncInto,
+    builder::{get_db_client, traits::DbAction, AsyncInto},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
             hash::TextHash,
-            types::{Param, TextMap},
+            types::{AssetPath, Element, Param, Path, TextMap},
         },
-        mhy_api::types_parsed::shared::{AssetPath, Element, Path},
         traits::DbData,
     },
 };
 use async_trait::async_trait;
+use libsql_client::{args, Statement};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -63,57 +63,35 @@ pub struct UpstreamAvatarConfig {
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-#[serde(rename(serialize = "camelCase"))]
 pub struct AvatarConfig {
-    #[serde(alias = "AvatarID")]
     pub avatar_id: u32,
-    #[serde(alias = "AvatarName")]
     pub avatar_name: String,
-    #[serde(alias = "AvatarFullName")]
     #[serde(skip)]
     avatar_full_name: String,
-    #[serde(alias = "AdventurePlayerID")]
     #[serde(skip)]
     adventure_player_id: u32,
-    #[serde(alias = "AvatarVOTag")]
     pub avatar_votag: String,
-    #[serde(alias = "Rarity")]
     pub rarity: u8,
-    #[serde(alias = "JsonPath")]
     #[serde(skip)]
     json_path: AssetPath,
-    #[serde(alias = "DamageType")]
     pub damage_type: Element,
-    #[serde(alias = "SPNeed")]
     pub spneed: u32,
-    #[serde(alias = "ExpGroup")]
     #[serde(skip)]
     exp_group: u32,
-    #[serde(alias = "MaxPromotion")]
     #[serde(skip)]
     max_promotion: u8,
-    #[serde(alias = "MaxRank")]
     #[serde(skip)]
     max_rank: u8,
-    #[serde(alias = "RankIDList")]
     pub rank_idlist: Vec<u32>,
-    #[serde(alias = "RewardList")]
     #[serde(skip)]
     reward_list: Vec<MiniItem>,
-    #[serde(alias = "RewardListMax")]
     #[serde(skip)]
     reward_list_max: Vec<MiniItem>,
-    #[serde(alias = "SkillList")]
     pub skill_list: Vec<u32>,
-    #[serde(alias = "AvatarBaseType")]
     pub avatar_base_type: Path,
-    #[serde(alias = "AvatarDesc")]
     pub avatar_desc: String,
-    #[serde(alias = "DamageTypeResistance")]
     damage_type_resistance: Vec<DamageTypeResistance>,
-    #[serde(alias = "Release")]
     pub release: bool,
-    #[serde(alias = "AvatarCutinIntroText")]
     #[serde(skip)]
     avatar_cutin_intro_text: String,
 }
@@ -128,9 +106,9 @@ pub enum AvatarRarity {
 #[serde(rename(serialize = "camelCase"))]
 pub struct MiniItem {
     #[serde(alias = "ItemID")]
-    item_id: u32,
+    pub item_id: u32,
     #[serde(alias = "ItemNum")]
-    item_num: u32,
+    pub item_num: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
@@ -277,5 +255,50 @@ impl AsyncInto<AvatarConfig> for UpstreamAvatarConfig {
         };
 
         Ok(res)
+    }
+}
+
+#[async_trait]
+impl DbAction for AvatarConfig {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let avatar_db = AvatarConfig::read().await?;
+        let batch_avatar: Vec<Statement> = avatar_db
+            .into_values()
+            .map(
+                |AvatarConfig {
+                     avatar_id,
+                     avatar_name,
+                     avatar_votag,
+                     rarity,
+                     damage_type,
+                     avatar_base_type,
+                     spneed,
+                     ..
+                 }| {
+                    Statement::with_args(
+                        "INSERT OR REPLACE INTO honkai_avatar VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        args!(
+                            avatar_id,
+                            avatar_name,
+                            rarity,
+                            avatar_votag,
+                            damage_type.to_string(),
+                            avatar_base_type.to_string(),
+                            spneed
+                        ),
+                    )
+                },
+            )
+            .collect();
+
+        client.batch(batch_avatar).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_avatar").await?;
+        Ok(())
     }
 }

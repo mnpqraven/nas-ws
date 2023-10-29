@@ -6,7 +6,7 @@ use crate::{
 use axum::{extract::Path, Json};
 use tracing::info;
 
-use super::character::upstream_avatar_config::AvatarConfig;
+use super::character::types::AvatarConfig;
 
 pub mod types;
 

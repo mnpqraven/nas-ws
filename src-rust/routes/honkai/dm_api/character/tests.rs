@@ -1,5 +1,5 @@
 use crate::routes::honkai::{
-    dm_api::character::upstream_avatar_config::AvatarConfig, traits::DbData,
+    dm_api::character::types::AvatarConfig, traits::DbData,
 };
 use std::collections::HashMap;
 

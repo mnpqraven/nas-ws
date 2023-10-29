@@ -1,23 +1,21 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    str::FromStr,
-};
-
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
             desc_param::{get_sorted_params, ParameterizedDescription},
             hash::HashedString,
-            types::{Param, TextMap},
+            types::{Param, Property, TextMap},
         },
-        mhy_api::types_parsed::shared::Property,
         traits::DbData,
     },
 };
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::{
+    collections::{BTreeMap, HashMap},
+    str::FromStr,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UpStreamRelicSetSkillConfig {
@@ -37,9 +35,7 @@ pub struct UpStreamRelicSetSkillConfig {
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RelicParam {
-    // #[serde(alias = "NAOGDGBJNOJ")]
     pub property: Property,
-    // #[serde(alias = "MBOHKHKHFPD")]
     pub value: f64,
 }
 impl Default for RelicParam {

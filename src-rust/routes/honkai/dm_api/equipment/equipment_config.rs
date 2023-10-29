@@ -1,15 +1,16 @@
 use crate::{
+    builder::{get_db_client, traits::DbAction},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
             hash::TextHash,
-            types::{LightConeRarity, TextMap},
+            types::{AssetPath, LightConeRarity, Path, TextMap},
         },
-        mhy_api::types_parsed::shared::{AssetPath, Path},
         traits::DbData,
     },
 };
 use async_trait::async_trait;
+use libsql_client::{args, Statement};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
@@ -66,43 +67,24 @@ pub struct UpstreamEquipmentConfig {
 /// metadata for light cones
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct EquipmentConfig {
-    #[serde(alias = "EquipmentID")]
     pub equipment_id: u32,
-    #[serde(alias = "Release")]
     pub release: bool,
-    #[serde(alias = "EquipmentName")]
     pub equipment_name: String,
-    #[serde(alias = "EquipmentDesc")]
     pub equipment_desc: String, // WARN: HASH LEADING TO NONE
-    #[serde(alias = "Rarity")]
     pub rarity: u8,
-    #[serde(alias = "AvatarBaseType")]
     pub avatar_base_type: Path,
-    #[serde(alias = "MaxPromotion")]
     pub max_promotion: u32,
-    #[serde(alias = "MaxRank")]
     pub max_rank: u32,
-    #[serde(alias = "ExpType")]
     pub exp_type: u32,
-    #[serde(alias = "SkillID")]
     pub skill_id: u32,
-    #[serde(alias = "ExpProvide")]
     pub exp_provide: u32,
-    #[serde(alias = "CoinCost")]
     pub coin_cost: u32,
-    #[serde(alias = "RankUpCostList")]
     pub rank_up_cost_list: Vec<u32>,
-    #[serde(skip, alias = "ThumbnailPath")]
     pub thumbnail_path: AssetPath,
-    #[serde(skip, alias = "ImagePath")]
     pub image_path: AssetPath,
-    #[serde(skip, alias = "ItemRightPanelOffset")]
     pub item_right_panel_offset: Vec<f32>,
-    #[serde(skip, alias = "AvatarDetailOffset")]
     pub avatar_detail_offset: Vec<f32>,
-    #[serde(skip, alias = "BattleDialogOffset")]
     pub battle_dialog_offset: Vec<f32>,
-    #[serde(skip, alias = "GachaResultOffset")]
     pub gacha_result_offset: Vec<f32>,
 }
 
@@ -162,5 +144,56 @@ impl DbData for EquipmentConfig {
             })
             .collect();
         Ok(transformed)
+    }
+}
+
+#[async_trait]
+impl DbAction for EquipmentConfig {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let lc_db = EquipmentConfig::read().await?;
+        let sts = lc_db
+            .into_values()
+            .map(|lc| {
+                let EquipmentConfig {
+                    equipment_id,
+                    release,
+                    equipment_name,
+                    rarity,
+                    avatar_base_type,
+                    max_promotion,
+                    max_rank,
+                    skill_id,
+                    ..
+                } = lc;
+
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO
+                    honkai_lightCone (
+                        id, release, name, rarity, path, max_promotion,
+                        max_rank, skill_id
+                    ) VALUES (?,?,?,?,?,?,?,?)",
+                    args!(
+                        equipment_id,
+                        release as i32,
+                        equipment_name,
+                        rarity,
+                        avatar_base_type.to_string(),
+                        max_promotion,
+                        max_rank,
+                        skill_id
+                    ),
+                )
+            })
+            .collect::<Vec<Statement>>();
+
+        client.batch(sts).await?;
+
+        Ok(())
+    }
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_lightCone").await?;
+        Ok(())
     }
 }

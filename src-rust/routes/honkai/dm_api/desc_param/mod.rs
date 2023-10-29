@@ -14,7 +14,7 @@ const DESC_IDENT: &str = r"(?<codeleft><.+?>)*(?<slot>#\d\[.\d?\]%?)(?<coderight
 pub struct ParameterizedDescription(pub Vec<String>);
 
 impl ParameterizedDescription {
-    pub fn _values(&self) -> Vec<String> {
+    pub fn values(&self) -> Vec<String> {
         self.0.clone()
     }
 }

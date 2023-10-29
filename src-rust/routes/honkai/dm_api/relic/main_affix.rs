@@ -2,7 +2,8 @@ use super::config::RelicType;
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{
-        dm_api::types::Param, mhy_api::types_parsed::shared::Property, traits::DbData,
+        dm_api::types::{Param, Property},
+        traits::DbData,
     },
 };
 use async_trait::async_trait;

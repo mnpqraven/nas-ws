@@ -6,7 +6,8 @@ use std::collections::BTreeMap;
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{
-        dm_api::types::Param, mhy_api::types_parsed::shared::Property, traits::DbData,
+        dm_api::types::{Param, Property},
+        traits::DbData,
     },
 };
 
@@ -28,17 +29,11 @@ pub struct UpstreamRelicSubAffixConfig {
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RelicSubAffixConfig {
-    #[serde(alias = "GroupID")]
     group_id: u32,
-    #[serde(alias = "AffixID")]
     affix_id: u32,
-    #[serde(alias = "Property")]
     property: Property,
-    #[serde(alias = "BaseValue")]
     base_value: f64,
-    #[serde(alias = "StepValue")]
     step_value: f64,
-    #[serde(alias = "StepNum")]
     step_num: u32,
 }
 

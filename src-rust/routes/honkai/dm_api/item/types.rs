@@ -1,4 +1,5 @@
 use crate::{
+    builder::{get_db_client, traits::DbAction},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{hash::TextHash, types::TextMap},
@@ -6,10 +7,13 @@ use crate::{
     },
 };
 use async_trait::async_trait;
+use libsql_client::{args, Statement};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
+use strum::IntoEnumIterator;
+use strum_macros::{Display, EnumIter, EnumString};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, EnumString, EnumIter, Display)]
 pub enum ItemType {
     Usable,
     Mission,
@@ -17,8 +21,10 @@ pub enum ItemType {
     Virtual,
     Material,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, EnumString, EnumIter, Display)]
 pub enum ItemSubType {
+    AetherSkill,
+    AetherSpirit,
     Book,
     Virtual,
     Gift,
@@ -36,7 +42,7 @@ pub enum ItemSubType {
     Mission,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, EnumString, EnumIter, Display)]
 pub enum ItemRarity {
     VeryRare,
     SuperRare,
@@ -74,7 +80,7 @@ pub struct UpstreamItem {
     #[serde(alias = "ItemAvatarIconPath")]
     item_avatar_icon_path: String,
     #[serde(alias = "PileLimit")]
-    pile_limit: u64,
+    pile_limit: u32,
     // unknown
     #[serde(alias = "CustomDataList")]
     custom_data_list: Vec<u32>,
@@ -103,7 +109,7 @@ pub struct Item {
     item_currency_icon_path: String,
     #[serde(skip)]
     item_avatar_icon_path: String,
-    pub pile_limit: u64,
+    pub pile_limit: u32,
     // unknown
     pub custom_data_list: Vec<u32>,
     // unknown
@@ -164,5 +170,114 @@ impl UpstreamItem {
             custom_data_list: self.custom_data_list.clone(),
             return_item_idlist: self.return_item_idlist.clone(),
         }
+    }
+}
+
+#[async_trait]
+impl DbAction for Item {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let item_db = Item::read().await?;
+        let st: Vec<Statement> = item_db
+            .into_values()
+            .map(|item| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO honkai_item VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    args!(
+                        item.id,
+                        item.item_name,
+                        item.rarity.to_string(),
+                        item.item_main_type.to_string(),
+                        item.item_sub_type.to_string(),
+                        item.inventory_display_tag,
+                        item.purpose_type,
+                        item.item_desc,
+                        item.item_bgdesc,
+                        item.pile_limit
+                    ),
+                )
+            })
+            .collect();
+
+        client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_item").await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl DbAction for ItemType {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = ItemType::iter()
+            .enumerate()
+            .map(|(i, value)| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO honkai_itemType VALUES (?, ?)",
+                    args!(value.to_string(), i),
+                )
+            })
+            .collect();
+        client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_itemType").await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl DbAction for ItemSubType {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = ItemSubType::iter()
+            .enumerate()
+            .map(|(i, value)| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO honkai_itemSubType VALUES (?, ?)",
+                    args!(value.to_string(), i),
+                )
+            })
+            .collect();
+        client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_itemSubType").await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl DbAction for ItemRarity {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let st: Vec<Statement> = ItemRarity::iter()
+            .enumerate()
+            .map(|(i, value)| {
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO honkai_itemRarity VALUES (?, ?)",
+                    args!(value.to_string(), i),
+                )
+            })
+            .collect();
+        client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_itemRarity").await?;
+        Ok(())
     }
 }

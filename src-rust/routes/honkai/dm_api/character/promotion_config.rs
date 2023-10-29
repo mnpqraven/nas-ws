@@ -1,4 +1,4 @@
-use super::upstream_avatar_config::MiniItem;
+use super::types::MiniItem;
 use crate::{
     handler::error::WorkerError,
     routes::honkai::{dm_api::types::Param, traits::DbData},
@@ -44,35 +44,20 @@ pub struct UpstreamAvatarPromotionConfig {
 
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
 pub struct AvatarPromotionConfig {
-    #[serde(alias = "AvatarID")]
     pub avatar_id: u32,
-    #[serde(alias = "Promotion")]
     pub promotion: Vec<u32>,
-    #[serde(alias = "PromotionCostList")]
     pub promotion_cost_list: Vec<Vec<MiniItem>>,
-    #[serde(alias = "MaxLevel")]
     pub max_level: Vec<u32>,
-    #[serde(alias = "PlayerLevelRequire")]
     pub player_level_require: u32,
-    #[serde(alias = "AttackBase")]
     pub attack_base: Vec<f64>,
-    #[serde(alias = "AttackAdd")]
     pub attack_add: Vec<f64>,
-    #[serde(alias = "DefenceBase")]
     pub defence_base: Vec<f64>,
-    #[serde(alias = "DefenceAdd")]
     pub defence_add: Vec<f64>,
-    #[serde(alias = "HPBase")]
     pub hpbase: Vec<f64>,
-    #[serde(alias = "HPAdd")]
     pub hpadd: Vec<f64>,
-    #[serde(alias = "SpeedBase")]
     pub speed_base: f64,
-    #[serde(alias = "CriticalChance")]
     pub critical_chance: f64,
-    #[serde(alias = "CriticalDamage")]
     pub critical_damage: f64,
-    #[serde(alias = "BaseAggro")]
     pub base_aggro: f64,
 }
 

@@ -1,7 +1,6 @@
 pub mod banner;
 pub mod dm_api;
 pub mod jade_estimate;
-pub mod mhy_api;
 pub mod patch;
 pub mod probability_rate;
 pub mod traits;
@@ -17,7 +16,7 @@ use self::dm_api::item::item_list;
 use self::dm_api::property::property;
 use self::dm_api::relic::{
     mainstat_spread, relic_set, relic_set_many, relic_set_search, relic_slot_type, relics_by_set,
-    set_bonus, set_bonus_many, substat_spread, relics_by_set_post,
+    relics_by_set_post, set_bonus, set_bonus_many, substat_spread,
 };
 use self::dm_api::{atlas, character, character_skill};
 use axum::routing::{get, post};
@@ -30,7 +29,6 @@ pub fn honkai_routes() -> Router {
         .route("/patch_dates", get(banner::patch_date_list))
         .route("/patch_banners", get(banner::patch_banner_list))
         .route("/warp_banners", get(banner::warp_banner_list))
-        .route("/mhy", post(mhy_api::handle))
         .route("/properties", get(property))
         .route("/light_cone/search/:name", get(light_cone_search))
         .route("/light_cone/metadata", get(light_cones).post(light_cones))

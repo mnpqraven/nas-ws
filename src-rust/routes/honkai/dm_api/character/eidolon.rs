@@ -1,17 +1,18 @@
-use super::upstream_avatar_config::MiniItem;
+use super::types::{AvatarConfig, MiniItem};
 use crate::{
+    builder::{get_db_client, traits::DbAction},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
             desc_param::{get_sorted_params, ParameterizedDescription},
             hash::{HashedString, TextHash},
-            types::{Param, TextMap},
+            types::{AssetPath, Param, TextMap},
         },
-        mhy_api::types_parsed::shared::AssetPath,
         traits::DbData,
     },
 };
 use async_trait::async_trait;
+use libsql_client::{args, Statement};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -98,5 +99,71 @@ impl DbData for AvatarRankConfig {
             })
             .collect();
         Ok(transformed)
+    }
+}
+
+#[async_trait]
+impl DbAction for AvatarRankConfig {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+
+        let eidolon_db = AvatarRankConfig::read().await?;
+        let eidolon_sts = eidolon_db
+            .into_values()
+            .map(|v| {
+                let AvatarRankConfig {
+                    rank_id,
+                    rank,
+                    name,
+                    desc,
+                    unlock_cost,
+                    param,
+                    ..
+                } = v;
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO honkai_eidolon (
+                        id, rank, name, desc, unlock_cost, param
+                    ) VALUES (?,?,?,?,?,?)",
+                    args!(
+                        rank_id,
+                        rank,
+                        name,
+                        serde_json::to_string(&desc).unwrap(),
+                        serde_json::to_string(&unlock_cost).unwrap(),
+                        serde_json::to_string(&param).unwrap()
+                    ),
+                )
+            })
+            .collect::<Vec<Statement>>();
+
+        let chara_db = AvatarConfig::read().await?;
+        let rank_map_sts = chara_db
+            .into_iter()
+            .flat_map(|(k, v)| {
+                v.rank_idlist
+                    .iter()
+                    .map(|rank_id| {
+                        Statement::with_args(
+                            "INSERT OR REPLACE INTO
+                            honkai_avatarEidolon (
+                                avatar_id, eidolon_id
+                            ) VALUES (?, ?)",
+                            args!(k, *rank_id),
+                        )
+                    })
+                    .collect::<Vec<Statement>>()
+            })
+            .collect::<Vec<Statement>>();
+
+        client.batch(eidolon_sts).await?;
+        client.batch(rank_map_sts).await?;
+
+        Ok(())
+    }
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_eidolon").await?;
+        client.execute("DELETE FROM honkai_avatarEidolon").await?;
+        Ok(())
     }
 }

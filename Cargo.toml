@@ -45,6 +45,10 @@ num-traits = "0.2.16"
 libsql-client = { git = "https://github.com/samishoux/libsql-client-rs" }
 toml = "0.8.1"
 
+[dependencies.rusqlite]
+version = "0.29.0"
+features = ["bundled"]
+
 [build-dependencies]
 tonic-build = "0.10.0"
 

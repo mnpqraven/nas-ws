@@ -1,20 +1,18 @@
 use crate::{
+    builder::{get_db_client, traits::DbAction},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
-            character::upstream_avatar_config::MiniItem,
+            character::types::{AvatarConfig, MiniItem},
             desc_param::{get_sorted_params, ParameterizedDescription},
             hash::{HashedString, TextHash},
-            types::{AbilityProperty, Param, TextMap},
-        },
-        mhy_api::{
-            internal::categorizing::{Anchor, SkillType},
-            types_parsed::shared::{AssetPath, Element},
+            types::{AbilityProperty, Anchor, AssetPath, Element, Param, SkillType, TextMap},
         },
         traits::DbData,
     },
 };
 use async_trait::async_trait;
+use libsql_client::{args, Statement};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -95,86 +93,51 @@ pub struct UpstreamAvatarSkillConfig {
     #[serde(alias = "AttackType")]
     attack_type: Option<SkillType>,
     #[serde(alias = "SkillEffect")]
-    skill_effect: SKillEffect,
+    skill_effect: SkillEffect,
     #[serde(alias = "SkillComboValueDelta")]
     skill_combo_value_delta: Option<Param>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct AvatarSkillConfig {
-    #[serde(alias = "SkillID")]
     pub skill_id: u32,
-    #[serde(alias = "SkillName")]
-    skill_name: String,
-    #[serde(alias = "SkillTag")]
-    skill_tag: String,
-    #[serde(alias = "SkillTypeDesc")]
-    skill_type_desc: String,
-    #[serde(alias = "Level")]
-    level: Vec<u32>,
-    #[serde(alias = "MaxLevel")]
-    max_level: u32,
-    #[serde(alias = "SkillTriggerKey")]
-    skill_trigger_key: String,
-    #[serde(alias = "SkillIcon")]
-    skill_icon: AssetPath,
-    #[serde(alias = "UltraSkillIcon")]
-    ultra_skill_icon: AssetPath,
+    pub skill_name: String,
+    pub skill_tag: String,
+    pub skill_type_desc: String,
+    pub level: Vec<u32>,
+    pub max_level: u32,
+    pub skill_trigger_key: String,
+    pub skill_icon: AssetPath,
+    pub ultra_skill_icon: AssetPath,
     // WARN: unknown type, DM data is all empty
-    #[serde(alias = "LevelUpCostList")]
-    level_up_cost_list: Vec<u32>,
-    #[serde(alias = "SkillDesc")]
-    skill_desc: ParameterizedDescription,
-    #[serde(alias = "SimpleSkillDesc")]
-    simple_skill_desc: String,
-    #[serde(alias = "RatedSkillTreeID")]
-    rated_skill_tree_id: Vec<u32>,
-    #[serde(alias = "RatedRankID")]
-    rated_rank_id: Vec<u32>,
+    pub level_up_cost_list: Vec<u32>,
+    pub skill_desc: ParameterizedDescription,
+    pub simple_skill_desc: String,
+    pub rated_skill_tree_id: Vec<u32>,
+    pub rated_rank_id: Vec<u32>,
     // WARN: unknown type, DM data is all empty
-    #[serde(alias = "ExtraEffectIDList")]
-    extra_effect_idlist: Vec<u32>,
+    pub extra_effect_idlist: Vec<u32>,
     // WARN: unknown type, DM data is all empty
-    #[serde(alias = "SimpleExtraEffectIDList")]
-    simple_extra_effect_idlist: Vec<u32>,
-    #[serde(alias = "ShowStanceList")]
-    show_stance_list: Vec<Param>,
+    pub simple_extra_effect_idlist: Vec<u32>,
+    pub show_stance_list: Vec<Param>,
     // WARN: unknown type, DM data is all empty
-    #[serde(alias = "ShowDamageList")]
-    // WARN: unknown type, DM data is all empty
-    show_damage_list: Vec<u32>,
-    #[serde(alias = "ShowHealList")]
-    show_heal_list: Vec<u32>,
-    #[serde(alias = "InitCoolDown")]
-    init_cool_down: i32,
-    #[serde(alias = "CoolDown")]
-    cool_down: i32,
-    #[serde(alias = "SPBase")]
-    spbase: Option<Param>,
-    #[serde(alias = "SPNeed")]
-    spneed: Option<Param>,
-    #[serde(alias = "SPMultipleRatio")]
-    spmultiple_ratio: Param,
-    #[serde(alias = "BPNeed")]
-    bpneed: Option<Param>,
-    #[serde(alias = "BPAdd")]
-    bpadd: Option<Param>,
-    #[serde(alias = "SkillNeed")]
-    skill_need: String,
-    #[serde(alias = "DelayRatio")]
-    delay_ratio: Param,
-    #[serde(alias = "ParamList")]
-    param_list: Vec<Vec<String>>,
-    #[serde(alias = "SimpleParamList")]
-    simple_param_list: Vec<Vec<Param>>,
-    #[serde(alias = "StanceDamageType")]
-    stance_damage_type: Option<Element>,
-    #[serde(alias = "AttackType")]
-    attack_type: Option<SkillType>,
-    #[serde(alias = "SkillEffect")]
-    skill_effect: SKillEffect,
-    #[serde(alias = "SkillComboValueDelta")]
-    skill_combo_value_delta: Option<Param>,
+    pub show_damage_list: Vec<u32>,
+    pub show_heal_list: Vec<u32>,
+    pub init_cool_down: i32,
+    pub cool_down: i32,
+    pub spbase: Option<Param>,
+    pub spneed: Option<Param>,
+    pub spmultiple_ratio: Param,
+    pub bpneed: Option<Param>,
+    pub bpadd: Option<Param>,
+    pub skill_need: String,
+    pub delay_ratio: Param,
+    pub param_list: Vec<Vec<String>>,
+    pub simple_param_list: Vec<Vec<Param>>,
+    pub stance_damage_type: Option<Element>,
+    pub attack_type: Option<SkillType>,
+    pub skill_effect: SkillEffect,
+    pub skill_combo_value_delta: Option<Param>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -240,7 +203,7 @@ pub struct AvatarSkillTreeConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
-enum SKillEffect {
+pub enum SkillEffect {
     SingleAttack,
     AoEAttack,
     MazeAttack,
@@ -356,6 +319,86 @@ impl AvatarSkillConfig {
 }
 
 #[async_trait]
+impl DbAction for AvatarSkillConfig {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let skill_db = AvatarSkillConfig::read().await?;
+        let metadata_db = AvatarConfig::read().await?;
+
+        let st_skills: Vec<Statement> = skill_db
+            .into_values()
+            .map(
+                |AvatarSkillConfig {
+                     skill_id,
+                     skill_name,
+                     skill_tag,
+                     skill_type_desc,
+                     max_level,
+                     spbase,
+                     spneed,
+                     attack_type,
+                     skill_desc,
+                     param_list,
+                     ..
+                 }| {
+                    let skill_desc = serde_json::to_string(&skill_desc.values()).unwrap();
+                    let param_list = serde_json::to_string(&param_list).unwrap();
+
+                    Statement::with_args(
+                        "INSERT OR REPLACE INTO
+                        honkai_skill (
+                            id, name, tag, type_desc, max_level, spbase,
+                            spneed, attack_type, skill_desc, param_list
+                        ) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                        args!(
+                            skill_id,
+                            skill_name,
+                            skill_tag,
+                            skill_type_desc,
+                            max_level,
+                            spbase.map(|e| e.value),
+                            spneed.map(|e| e.value),
+                            attack_type.map(|e| e.to_string()),
+                            skill_desc,
+                            param_list
+                        ),
+                    )
+                },
+            )
+            .collect();
+        let st_fk: Vec<Statement> = metadata_db
+            .into_values()
+            .flat_map(|meta| {
+                let skill_ids = meta.skill_list;
+                skill_ids
+                    .into_iter()
+                    .map(|skill_id| {
+                        Statement::with_args(
+                            "INSERT OR REPLACE INTO
+                            honkai_avatarSkill (avatar_id, skill_id) VALUES (?, ?)",
+                            args!(meta.avatar_id, skill_id),
+                        )
+                    })
+                    .collect::<Vec<Statement>>()
+            })
+            .collect();
+
+        let sts: Vec<Statement> = [st_skills, st_fk].into_iter().flatten().collect();
+
+        client.batch(sts).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client
+            .batch(["DELETE FROM skill", "DELETE FROM honkai_avatarSkill"])
+            .await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
 impl DbData for AvatarSkillTreeConfig {
     type TUpstream = BTreeMap<u32, BTreeMap<u32, UpstreamAvatarSkillTreeConfig>>;
     type TLocal = BTreeMap<u32, AvatarSkillTreeConfig>;
@@ -460,11 +503,94 @@ impl AvatarSkillTreeConfig {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn read_splitted_by_skillid(skill_id: u32) -> Result<Self, WorkerError> {
         let filepath = format!("/tmp/AvatarSkillTreeConfigs/{}.json", skill_id);
         let file = File::open(filepath)?;
         let reader = BufReader::new(file);
         let data: Self = serde_json::from_reader(reader)?;
         Ok(data)
+    }
+}
+
+#[async_trait]
+impl DbAction for AvatarSkillTreeConfig {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        let db = AvatarSkillTreeConfig::read().await?;
+        let st: Vec<Statement> = db
+            .into_values()
+            .flat_map(|trace| {
+                let promotion_limit = serde_json::to_string(&trace.avatar_promotion_limit).unwrap();
+                let pre_point = serde_json::to_string(&trace.pre_point).unwrap();
+                let point_desc = serde_json::to_string(&trace.point_desc).unwrap();
+                let param_list = serde_json::to_string(&trace.param_list).unwrap();
+
+                let trace_st = Statement::with_args(
+                    "INSERT OR REPLACE INTO
+                    honkai_trace (
+                        id, max_level, point_type, anchor, default_unlock,
+                        avatar_promotion_limit, pre_point, point_desc, param_list
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    args!(
+                        trace.point_id,
+                        trace.max_level,
+                        trace.point_type,
+                        trace.anchor.to_string(),
+                        trace.default_unlock as u8,
+                        promotion_limit,
+                        pre_point,
+                        point_desc,
+                        param_list
+                    ),
+                );
+                let pk_st = Statement::with_args(
+                    "INSERT OR REPLACE INTO
+                    honkai_avatarTrace (avatar_id, point_id) VALUES (?, ?)",
+                    args!(trace.avatar_id, trace.point_id),
+                );
+
+                let mat_st: Vec<Statement> = trace
+                    .material_list
+                    .iter()
+                    .cloned()
+                    .enumerate()
+                    .flat_map(|(index, mats)| {
+                        mats.iter()
+                            .cloned()
+                            .map(|MiniItem { item_id, item_num }| {
+                                Statement::with_args(
+                                    "INSERT OR REPLACE INTO honkai_traceMaterial (
+                                        item_id, point_id, level, item_num
+                                    ) VALUES (?, ?, ?, ?)",
+                                    args!(item_id, trace.point_id, index + 1, item_num),
+                                )
+                            })
+                            .collect::<Vec<Statement>>()
+                    })
+                    .collect();
+
+                let mut left = vec![trace_st, pk_st];
+                left.extend(mat_st);
+                left
+            })
+            .collect();
+
+        client.batch(st).await?;
+
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client
+            .batch([
+                "DELETE FROM honkai_trace",
+                "DELETE FROM honkai_avatarTrace",
+                "DELETE FROM honkai_traceMaterial",
+                "DELETE FROM honkai_skill",
+            ])
+            .await?;
+        Ok(())
     }
 }

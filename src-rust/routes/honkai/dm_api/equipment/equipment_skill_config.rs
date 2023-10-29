@@ -1,4 +1,5 @@
 use crate::{
+    builder::{get_db_client, traits::DbAction},
     handler::error::WorkerError,
     routes::honkai::{
         dm_api::{
@@ -10,6 +11,7 @@ use crate::{
     },
 };
 use async_trait::async_trait;
+use libsql_client::{args, Statement};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -38,23 +40,12 @@ pub struct UpstreamEquipmentSkillConfig {
 /// skill info for light cones
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct EquipmentSkillConfig {
-    #[serde(alias = "SkillID")]
     pub skill_id: u32,
-    /// merge
-    #[serde(alias = "SkillName")]
     pub skill_name: String,
-    #[serde(alias = "SkillDesc")]
     pub skill_desc: ParameterizedDescription,
-    /// merge
-    #[serde(skip, alias = "Level")]
     pub level: Vec<u32>,
-    #[serde(alias = "AbilityName")]
     pub ability_name: String,
-    /// merge
-    #[serde(alias = "ParamList")]
     pub param_list: Vec<Vec<String>>,
-    /// merge
-    #[serde(alias = "AbilityProperty")]
     pub ability_property: Vec<Vec<AbilityProperty>>,
 }
 
@@ -125,5 +116,49 @@ impl DbData for EquipmentSkillConfig {
             })
             .collect();
         Ok(transformed)
+    }
+}
+
+#[async_trait]
+impl DbAction for EquipmentSkillConfig {
+    async fn seed() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+
+        let lc_db = EquipmentSkillConfig::read().await?;
+        let lc_sts = lc_db
+            .into_values()
+            .map(|v| {
+                let EquipmentSkillConfig {
+                    skill_id,
+                    skill_name,
+                    skill_desc,
+                    param_list,
+                    ability_property,
+                    ..
+                } = v;
+                Statement::with_args(
+                    "INSERT OR REPLACE INTO
+                    honkai_lightConeSkill (
+                        id, name, desc, param_list, ability_property
+                    ) VALUES (?,?,?,?,?)",
+                    args!(
+                        skill_id,
+                        skill_name,
+                        serde_json::to_string(&skill_desc).unwrap(),
+                        serde_json::to_string(&param_list).unwrap(),
+                        serde_json::to_string(&ability_property).unwrap(),
+                    ),
+                )
+            })
+            .collect::<Vec<Statement>>();
+
+        client.batch(lc_sts).await?;
+
+        Ok(())
+    }
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_lightConeSkill").await?;
+        Ok(())
     }
 }

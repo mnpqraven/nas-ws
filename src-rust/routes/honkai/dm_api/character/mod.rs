@@ -1,6 +1,6 @@
 use self::{
     eidolon::AvatarRankConfig, promotion_config::AvatarPromotionConfig,
-    upstream_avatar_config::AvatarConfig,
+    types::AvatarConfig,
 };
 use crate::{
     handler::error::WorkerError,
@@ -17,7 +17,7 @@ pub mod eidolon;
 pub mod promotion_config;
 #[cfg(test)]
 mod tests;
-pub mod upstream_avatar_config;
+pub mod types;
 pub mod rpc;
 
 /// Retrieves a single character info

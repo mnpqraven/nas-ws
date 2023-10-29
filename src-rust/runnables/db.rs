@@ -4,7 +4,11 @@ use crate::{
     builder::traits::DbAction,
     handler::error::WorkerError,
     routes::honkai::dm_api::{
-        character::types::*, character_skill::types::*, item::types::*, types::*,
+        character::{eidolon::*, types::*},
+        character_skill::types::*,
+        equipment::{equipment_config::*, equipment_skill_config::*},
+        item::types::*,
+        types::*,
     },
 };
 
@@ -24,10 +28,16 @@ pub async fn seed_common() -> Result<(), WorkerError> {
 
 pub async fn seed_table() -> Result<(), WorkerError> {
     info!("seeding main tables...");
-    AvatarConfig::seed().await?;
+
     Item::seed().await?;
+
+    AvatarConfig::seed().await?;
     AvatarSkillConfig::seed().await?;
     AvatarSkillTreeConfig::seed().await?;
+    AvatarRankConfig::seed().await?;
+
+    EquipmentSkillConfig::seed().await?;
+    EquipmentConfig::seed().await?;
 
     info!("main tables seeded!");
     Ok(())

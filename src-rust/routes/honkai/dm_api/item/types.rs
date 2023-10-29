@@ -23,6 +23,8 @@ pub enum ItemType {
 }
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, EnumString, EnumIter, Display)]
 pub enum ItemSubType {
+    AetherSkill,
+    AetherSpirit,
     Book,
     Virtual,
     Gift,
@@ -180,7 +182,7 @@ impl DbAction for Item {
             .into_values()
             .map(|item| {
                 Statement::with_args(
-                    "INSERT OR REPLACE INTO item VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT OR REPLACE INTO honkai_item VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     args!(
                         item.id,
                         item.item_name,
@@ -200,6 +202,12 @@ impl DbAction for Item {
         client.batch(st).await?;
         Ok(())
     }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_item").await?;
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -210,12 +218,18 @@ impl DbAction for ItemType {
             .enumerate()
             .map(|(i, value)| {
                 Statement::with_args(
-                    "INSERT OR REPLACE INTO itemType VALUES (?, ?)",
+                    "INSERT OR REPLACE INTO honkai_itemType VALUES (?, ?)",
                     args!(value.to_string(), i),
                 )
             })
             .collect();
         client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_itemType").await?;
         Ok(())
     }
 }
@@ -228,12 +242,18 @@ impl DbAction for ItemSubType {
             .enumerate()
             .map(|(i, value)| {
                 Statement::with_args(
-                    "INSERT OR REPLACE INTO itemSubType VALUES (?, ?)",
+                    "INSERT OR REPLACE INTO honkai_itemSubType VALUES (?, ?)",
                     args!(value.to_string(), i),
                 )
             })
             .collect();
         client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_itemSubType").await?;
         Ok(())
     }
 }
@@ -246,12 +266,18 @@ impl DbAction for ItemRarity {
             .enumerate()
             .map(|(i, value)| {
                 Statement::with_args(
-                    "INSERT OR REPLACE INTO itemRarity VALUES (?, ?)",
+                    "INSERT OR REPLACE INTO honkai_itemRarity VALUES (?, ?)",
                     args!(value.to_string(), i),
                 )
             })
             .collect();
         client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_itemRarity").await?;
         Ok(())
     }
 }

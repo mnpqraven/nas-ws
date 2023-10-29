@@ -97,12 +97,18 @@ impl DbAction for SkillType {
             .enumerate()
             .map(|(index, ttype)| {
                 Statement::with_args(
-                    "INSERT OR REPLACE INTO skillType (name, type) VALUES (?, ?)",
+                    "INSERT OR REPLACE INTO honkai_skillType (name, type) VALUES (?, ?)",
                     args!(ttype.to_string(), index),
                 )
             })
             .collect();
         client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_skillType").await?;
         Ok(())
     }
 }
@@ -247,13 +253,18 @@ impl DbAction for Element {
         let st: Vec<Statement> = Element::iter()
             .map(|element| {
                 Statement::with_args(
-                    "INSERT OR REPLACE INTO element VALUES (?, ?)",
+                    "INSERT OR REPLACE INTO honkai_element VALUES (?, ?)",
                     args!(element.to_string(), element as i32),
                 )
             })
             .collect();
 
         client.batch(st).await?;
+        Ok(())
+    }
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_element").await?;
         Ok(())
     }
 }
@@ -265,13 +276,19 @@ impl DbAction for Path {
         let st: Vec<Statement> = Path::iter()
             .map(|path| {
                 Statement::with_args(
-                    "INSERT OR REPLACE INTO path VALUES (?, ?)",
+                    "INSERT OR REPLACE INTO honkai_path (name, type) VALUES (?, ?)",
                     args!(path.to_string(), path as i32),
                 )
             })
             .collect();
 
         client.batch(st).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_path").await?;
         Ok(())
     }
 }

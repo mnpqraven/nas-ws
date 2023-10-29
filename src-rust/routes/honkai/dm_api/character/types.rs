@@ -277,7 +277,7 @@ impl DbAction for AvatarConfig {
                      ..
                  }| {
                     Statement::with_args(
-                        "INSERT OR REPLACE INTO avatar VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        "INSERT OR REPLACE INTO honkai_avatar VALUES (?, ?, ?, ?, ?, ?, ?)",
                         args!(
                             avatar_id,
                             avatar_name,
@@ -293,6 +293,12 @@ impl DbAction for AvatarConfig {
             .collect();
 
         client.batch(batch_avatar).await?;
+        Ok(())
+    }
+
+    async fn teardown() -> Result<(), WorkerError> {
+        let client = get_db_client().await?;
+        client.execute("DELETE FROM honkai_avatar").await?;
         Ok(())
     }
 }
